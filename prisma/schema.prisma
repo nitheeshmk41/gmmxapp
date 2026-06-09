@@ -1,0 +1,357 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  super_admin
+  gym_owner
+  trainer
+  member
+}
+
+enum SubscriptionStatus {
+  trial
+  active
+  suspended
+  cancelled
+  expired
+}
+
+enum GymPlan {
+  starter
+  professional
+  enterprise
+}
+
+enum Gender {
+  male
+  female
+  other
+}
+
+enum MemberStatus {
+  active
+  expired
+  paused
+}
+
+enum LeadSource {
+  walk_in
+  website
+  referral
+  instagram
+  other
+}
+
+enum LeadStatus {
+  new
+  contacted
+  interested
+  trial
+  converted
+  lost
+}
+
+enum PaymentMethod {
+  cash
+  upi
+  card
+  bank_transfer
+  razorpay
+}
+
+enum PaymentStatus {
+  paid
+  pending
+  failed
+  refunded
+}
+
+enum AttendanceType {
+  manual
+  qr
+}
+
+enum WebsiteTemplate {
+  modern
+  minimal
+  performance
+}
+
+enum DnsType {
+  A
+  CNAME
+}
+
+enum DomainVerificationStatus {
+  pending
+  verified
+  failed
+}
+
+// ─────────────────────────────────────────────
+// MODELS
+// ─────────────────────────────────────────────
+
+model Gym {
+  id                  String             @id @default(uuid())
+  name                String
+  owner_name          String
+  phone               String
+  email               String
+  address             String?
+  city                String?
+  state               String?
+  country             String             @default("India")
+  subdomain           String             @unique
+  custom_domain       String?            @unique
+  logo_url            String?
+  subscription_status SubscriptionStatus @default(trial)
+  plan                GymPlan            @default(starter)
+  trial_ends_at       DateTime?
+  created_at          DateTime           @default(now())
+  updated_at          DateTime           @updatedAt
+
+  // Relations
+  users            User[]
+  branches         Branch[]
+  members          Member[]
+  leads            Lead[]
+  membership_plans MembershipPlan[]
+  payments         Payment[]
+  attendance       Attendance[]
+  trainers         Trainer[]
+  website_settings WebsiteSettings?
+  domains          Domain[]
+  subscriptions    Subscription[]
+
+  @@map("gyms")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  role       UserRole @default(gym_owner)
+  gym_id     String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  gym        Gym?         @relation(fields: [gym_id], references: [id], onDelete: SetNull)
+  attendance Attendance[] @relation("MarkedByUser")
+
+  @@map("users")
+}
+
+model Branch {
+  id         String   @id @default(uuid())
+  gym_id     String
+  name       String
+  address    String?
+  phone      String?
+  is_main    Boolean  @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  gym        Gym        @relation(fields: [gym_id], references: [id], onDelete: Cascade)
+  members    Member[]
+  attendance Attendance[]
+
+  @@map("branches")
+}
+
+model Member {
+  id         String       @id @default(uuid())
+  gym_id     String
+  branch_id  String?
+  name       String
+  phone      String
+  email      String?
+  gender     Gender?
+  age        Int?
+  height     Decimal?     @db.Decimal(5, 2)
+  weight     Decimal?     @db.Decimal(5, 2)
+  goal       String?
+  join_date  DateTime     @db.Date
+  plan_id    String?
+  trainer_id String?
+  status     MemberStatus @default(active)
+  notes      String?
+  qr_code    String?      // Future: QR attendance
+  photo_url  String?
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+
+  gym        Gym             @relation(fields: [gym_id], references: [id], onDelete: Cascade)
+  branch     Branch?         @relation(fields: [branch_id], references: [id], onDelete: SetNull)
+  plan       MembershipPlan? @relation(fields: [plan_id], references: [id], onDelete: SetNull)
+  trainer    Trainer?        @relation(fields: [trainer_id], references: [id], onDelete: SetNull)
+  payments   Payment[]
+  attendance Attendance[]
+
+  @@map("members")
+}
+
+model Lead {
+  id               String     @id @default(uuid())
+  gym_id           String
+  name             String
+  phone            String
+  email            String?
+  source           LeadSource @default(walk_in)
+  status           LeadStatus @default(new)
+  notes            String?
+  last_contacted_at DateTime?
+  created_at       DateTime   @default(now())
+  updated_at       DateTime   @updatedAt
+
+  gym Gym @relation(fields: [gym_id], references: [id], onDelete: Cascade)
+
+  @@map("leads")
+}
+
+model MembershipPlan {
+  id            String   @id @default(uuid())
+  gym_id        String
+  name          String
+  duration_days Int
+  price         Decimal  @db.Decimal(10, 2)
+  description   String?
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  gym      Gym       @relation(fields: [gym_id], references: [id], onDelete: Cascade)
+  members  Member[]
+  payments Payment[]
+
+  @@map("membership_plans")
+}
+
+model Payment {
+  id                   String        @id @default(uuid())
+  gym_id               String
+  member_id            String
+  plan_id              String?
+  amount               Decimal       @db.Decimal(10, 2)
+  method               PaymentMethod @default(cash)
+  status               PaymentStatus @default(paid)
+  razorpay_order_id    String?
+  razorpay_payment_id  String?
+  razorpay_signature   String?
+  receipt_number       String        @unique
+  paid_at              DateTime      @default(now())
+  membership_start     DateTime?     @db.Date
+  membership_end       DateTime?     @db.Date
+  notes                String?
+  created_at           DateTime      @default(now())
+  updated_at           DateTime      @updatedAt
+
+  gym    Gym            @relation(fields: [gym_id], references: [id], onDelete: Cascade)
+  member Member         @relation(fields: [member_id], references: [id], onDelete: Cascade)
+  plan   MembershipPlan? @relation(fields: [plan_id], references: [id], onDelete: SetNull)
+
+  @@map("payments")
+}
+
+model Attendance {
+  id         String   @id @default(uuid())
+  gym_id     String
+  member_id  String
+  branch_id  String?
+  date       DateTime @db.Date
+  marked_at  DateTime @default(now())
+  marked_by  String?
+  type       AttendanceType @default(manual)
+  created_at DateTime @default(now())
+
+  gym     Gym     @relation(fields: [gym_id], references: [id], onDelete: Cascade)
+  member  Member  @relation(fields: [member_id], references: [id], onDelete: Cascade)
+  branch  Branch? @relation(fields: [branch_id], references: [id], onDelete: SetNull)
+  user    User?   @relation("MarkedByUser", fields: [marked_by], references: [id], onDelete: SetNull)
+
+  @@unique([gym_id, member_id, date])
+  @@map("attendance")
+}
+
+model Trainer {
+  id                String   @id @default(uuid())
+  gym_id            String
+  name              String
+  phone             String
+  email             String?
+  specialization    String?
+  experience_years  Int?
+  photo_url         String?
+  bio               String?
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  gym     Gym      @relation(fields: [gym_id], references: [id], onDelete: Cascade)
+  members Member[]
+
+  @@map("trainers")
+}
+
+model WebsiteSettings {
+  id               String          @id @default(uuid())
+  gym_id           String          @unique
+  template         WebsiteTemplate @default(modern)
+  hero_image_url   String?
+  description      String?
+  gallery_urls     String[]        @default([])
+  social_instagram String?
+  social_facebook  String?
+  social_youtube   String?
+  whatsapp_number  String?
+  contact_email    String?
+  address          String?
+  tagline          String?
+  is_published     Boolean         @default(false)
+  created_at       DateTime        @default(now())
+  updated_at       DateTime        @updatedAt
+
+  gym Gym @relation(fields: [gym_id], references: [id], onDelete: Cascade)
+
+  @@map("website_settings")
+}
+
+model Domain {
+  id                  String                   @id @default(uuid())
+  gym_id              String
+  custom_domain       String                   @unique
+  verification_status DomainVerificationStatus @default(pending)
+  dns_type            DnsType                  @default(A)
+  verified_at         DateTime?
+  created_at          DateTime                 @default(now())
+  updated_at          DateTime                 @updatedAt
+
+  gym Gym @relation(fields: [gym_id], references: [id], onDelete: Cascade)
+
+  @@map("domains")
+}
+
+model Subscription {
+  id                       String             @id @default(uuid())
+  gym_id                   String
+  plan                     GymPlan            @default(starter)
+  status                   SubscriptionStatus @default(trial)
+  razorpay_subscription_id String?
+  current_period_start     DateTime?
+  current_period_end       DateTime?
+  created_at               DateTime           @default(now())
+  updated_at               DateTime           @updatedAt
+
+  gym Gym @relation(fields: [gym_id], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}

@@ -1,0 +1,177 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { Menu, X, ArrowRight } from "lucide-react";
+
+const NAV_ITEMS = [
+  { label: "Features", href: "/features" },
+  { label: "How it Works", href: "/how-it-works" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Testimonials", href: "/testimonials" },
+  { label: "Blogs", href: "/blogs" },
+  { label: "Contact", href: "/contact-us" },
+];
+
+export default function Header() {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  const getNavStyles = () => {
+    if (isHome) {
+      return isScrolled
+        ? "h-[60px] bg-slate-950/85 backdrop-blur-[12px] border-b border-white/10 shadow-sm"
+        : "h-[72px] bg-transparent border-transparent";
+    }
+    return isScrolled 
+      ? "h-[60px] bg-white/80 backdrop-blur-[12px] border-b border-black/5 shadow-sm"
+      : "h-[72px] bg-white border-b border-transparent";
+  };
+
+  const getLinkStyles = (href: string) => {
+    const isActive = pathname === href;
+    const baseStyle = "text-sm tracking-wide font-medium px-4 py-2 relative transition-colors";
+    const homeStyle = isHome && !isScrolled ? "text-slate-200 hover:text-white" : isHome && isScrolled ? "text-slate-300 hover:text-white" : "text-slate-600 hover:text-slate-900";
+    
+    // Underline style
+    const activeUnderline = isActive 
+      ? `after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-5 after:h-0.5 after:bg-[#FF5C73] after:rounded-full ${isHome ? 'text-white font-semibold' : 'text-slate-900 font-semibold'}`
+      : "after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-0 hover:after:w-5 after:h-0.5 after:bg-[#FF5C73]/50 after:rounded-full after:transition-all after:duration-300";
+
+    return `${baseStyle} ${homeStyle} ${activeUnderline}`;
+  };
+
+  return (
+    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${getNavStyles()}`}>
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 h-full flex items-center justify-between">
+        {/* Brand/Logo */}
+        <Link href="/" className="flex items-center gap-2 group shrink-0">
+          <div className={`relative transition-all duration-300 ${isScrolled ? "h-6 w-auto" : "h-7 w-auto"}`}>
+            <Image
+              src="/gmmx_logo_trans.png"
+              alt="GMMX"
+              width={28}
+              height={28}
+              className={`h-full w-auto object-contain transition-all duration-300 ${
+                isHome && !isScrolled ? "brightness-0 invert" : isHome && isScrolled ? "brightness-0 invert" : ""
+              }`}
+              priority
+            />
+          </div>
+          <span
+            className={`font-black text-xl tracking-tight transition-colors ${
+              isHome ? "text-white" : "text-slate-900"
+            }`}
+          >
+            gmmx<span className="text-[#FF5C73]">.app</span>
+          </span>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <div className="hidden lg:flex items-center gap-1">
+          {NAV_ITEMS.map((item) => (
+            <Link key={item.href} href={item.href} className={getLinkStyles(item.href)}>
+              {item.label}
+            </Link>
+          ))}
+        </div>
+
+        {/* CTA Buttons */}
+        <div className="hidden lg:flex items-center gap-6 shrink-0">
+          <Link
+            href="/login"
+            className={`text-sm font-semibold transition-colors ${isHome ? 'text-slate-200 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
+          >
+            Login
+          </Link>
+          <Link
+            href="/signup"
+            className="flex items-center justify-center gap-1.5 h-10 px-5 rounded-full text-sm font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={{
+              background: "#FF5C73",
+              boxShadow: "0 4px 12px rgba(255,92,115,0.2)",
+            }}
+          >
+            Start Free Trial <ArrowRight size={16} />
+          </Link>
+        </div>
+
+        {/* Mobile menu button */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className={`lg:hidden p-2 rounded-lg transition-colors ${isHome ? 'text-white hover:bg-white/10' : 'text-slate-900 hover:bg-slate-100'}`}
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile menu overlay */}
+      {mobileMenuOpen && (
+        <div
+          className={`absolute top-full left-0 right-0 border-b lg:hidden flex flex-col p-6 gap-4 animate-in slide-in-from-top-5 duration-200 ${
+            isHome
+              ? "bg-slate-950/95 border-white/10 text-white backdrop-blur-xl"
+              : "bg-white/95 border-slate-200 text-slate-900 shadow-xl backdrop-blur-xl"
+          }`}
+        >
+          {NAV_ITEMS.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`text-base font-semibold tracking-wide py-2 px-4 rounded-xl ${
+                  isActive ? "text-[#FF5C73] underline decoration-2 underline-offset-4" : isHome ? "hover:bg-white/5" : "hover:bg-slate-50"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+          <hr className={isHome ? "border-white/10 my-2" : "border-slate-100 my-2"} />
+          <div className="flex flex-col gap-3">
+            <Link
+              href="/login"
+              className={`text-center py-3 rounded-full text-sm font-semibold border ${
+                isHome
+                  ? "border-white/20 text-white hover:bg-white/5"
+                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              Login
+            </Link>
+            <Link
+              href="/signup"
+              className="flex items-center justify-center gap-2 h-11 rounded-full text-sm font-semibold text-white transition-all"
+              style={{ background: "#FF5C73" }}
+            >
+              Start Free Trial <ArrowRight size={16} />
+            </Link>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}
