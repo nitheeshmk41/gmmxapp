@@ -39,7 +39,7 @@ export async function createPlan(formData: FormData) {
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   await prisma.membershipPlan.create({
-    data: { ...parsed.data, gym_id: gym.id },
+    data: { ...parsed.data, tenant_id: gym.tenant_id, gym_id: gym.id },
   });
 
   revalidatePath("/dashboard/plans");

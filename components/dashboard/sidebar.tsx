@@ -24,13 +24,9 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/members", label: "Members", icon: Users },
   { href: "/dashboard/leads", label: "Leads", icon: UserPlus },
-  { href: "/dashboard/trainers", label: "Trainers", icon: Dumbbell },
-  { href: "/dashboard/plans", label: "Plans", icon: CreditCard },
   { href: "/dashboard/payments", label: "Payments", icon: CreditCard },
   { href: "/dashboard/attendance", label: "Attendance", icon: CalendarCheck },
-  { href: "/dashboard/expiry", label: "Expiry", icon: AlertTriangle },
-  { href: "/dashboard/website", label: "Website", icon: Globe },
-  { href: "/dashboard/domain", label: "Domain", icon: LinkIcon },
+  { href: "/dashboard/plans", label: "Plans", icon: CreditCard },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 

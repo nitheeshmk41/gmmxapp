@@ -47,7 +47,7 @@ export async function updateWebsiteSettings(formData: FormData) {
 
   await prisma.websiteSettings.upsert({
     where: { gym_id: gym.id },
-    create: { ...parsed.data, gym_id: gym.id },
+    create: { ...parsed.data, tenant_id: gym.tenant_id, gym_id: gym.id },
     update: parsed.data,
   });
 
@@ -62,7 +62,7 @@ export async function toggleWebsitePublish(isPublished: boolean) {
 
   await prisma.websiteSettings.upsert({
     where: { gym_id: gym.id },
-    create: { gym_id: gym.id, is_published: isPublished },
+    create: { tenant_id: gym.tenant_id, gym_id: gym.id, is_published: isPublished },
     update: { is_published: isPublished },
   });
 

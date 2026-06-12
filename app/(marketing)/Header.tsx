@@ -35,7 +35,8 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    setMobileMenuOpen(false);
+    const id = window.setTimeout(() => setMobileMenuOpen(false), 0);
+    return () => window.clearTimeout(id);
   }, [pathname]);
 
   const getNavStyles = () => {

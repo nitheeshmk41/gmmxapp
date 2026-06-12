@@ -1,21 +1,33 @@
-const { Client } = require('pg');
-
 async function test(host) {
-  const c = new Client(`postgresql://postgres:Mk01yTPNtUre9BnuY1QVTIl3Q9O5zxXP@${host}:5432/postgres`);
+  const { Client } = await import("pg");
+  const baseUrl = process.env.DATABASE_URL;
+
+  if (!baseUrl) {
+    throw new Error("DATABASE_URL is required");
+  }
+
+  const url = new URL(baseUrl);
+  url.hostname = host;
+
+  const client = new Client(url.toString());
   try {
-    await c.connect();
+    await client.connect();
     console.log(`Connected successfully to ${host}!`);
-    await c.end();
-  } catch (e) {
-    console.log(`Failed connecting to ${host}: ${e.message}`);
+  } catch (error) {
+    console.log(`Failed connecting to ${host}: ${error.message}`);
+  } finally {
+    await client.end().catch(() => undefined);
   }
 }
 
 async function main() {
-  await test('127.0.0.1');
-  await test('localhost');
-  await test('api.gmmx.app');
-  await test('143.244.131.198');
+  await test("127.0.0.1");
+  await test("localhost");
+  await test("api.gmmx.app");
+  await test("143.244.131.198");
 }
 
-main();
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

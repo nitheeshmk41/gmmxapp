@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireManager } from "@/lib/auth/context";
 import { createRazorpayOrder } from "@/lib/razorpay";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { toErrorResponse, ValidationError } from "@/lib/errors";
+import { createCorrelationId, logEvent } from "@/lib/logger";
 
 const schema = z.object({
   memberId: z.string(),
@@ -12,33 +14,42 @@ const schema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const correlationId = createCorrelationId();
 
-    const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
-    if (!dbUser?.gym_id) return NextResponse.json({ error: "Gym not found" }, { status: 404 });
+  try {
+    const context = await requireManager();
+    if (!context.gym?.id || !context.tenant?.id) throw new ValidationError("Gym not found");
 
     const body = await request.json();
     const parsed = schema.safeParse(body);
-    if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+    if (!parsed.success) throw new ValidationError(parsed.error.issues[0].message);
 
     const { memberId, amount, notes } = parsed.data;
 
+    const member = await prisma.member.findFirst({
+      where: { id: memberId, tenant_id: context.tenant.id, gym_id: context.gym.id },
+      select: { id: true },
+    });
+    if (!member) throw new ValidationError("Member not found");
+
     // Generate receipt number
-    const count = await prisma.payment.count({ where: { gym_id: dbUser.gym_id } });
+    const count = await prisma.payment.count({ where: { tenant_id: context.tenant.id, gym_id: context.gym.id } });
     const receipt = `GMMX-${new Date().getFullYear()}-${String(count + 1).padStart(5, "0")}`;
 
     const order = await createRazorpayOrder({
       amount,
       receipt,
-      notes: { memberId, gymId: dbUser.gym_id, ...notes },
+      notes: { memberId, gymId: context.gym.id, tenantId: context.tenant.id, ...notes },
     });
 
     return NextResponse.json({ orderId: order.id, amount: order.amount, currency: order.currency, receipt });
   } catch (error) {
-    console.error("Create order error:", error);
-    return NextResponse.json({ error: "Failed to create payment order" }, { status: 500 });
+    const response = toErrorResponse(error);
+    logEvent(response.status >= 500 ? "error" : "warn", "payment.order_create.failed", {
+      correlationId,
+      reason: error instanceof Error ? error.message : "unknown",
+      status: response.status,
+    });
+    return NextResponse.json(response.body, { status: response.status });
   }
 }

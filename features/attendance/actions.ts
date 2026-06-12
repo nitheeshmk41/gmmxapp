@@ -59,6 +59,7 @@ export async function markAttendance(memberId: string, date?: string) {
   await prisma.attendance.create({
     data: {
       gym_id: gym.id,
+      tenant_id: gym.tenant_id,
       member_id: memberId,
       date: dateOnly,
       type: "manual",
@@ -89,6 +90,7 @@ export async function bulkMarkAttendance(memberIds: string[], date?: string) {
   await prisma.attendance.createMany({
     data: toMark.map((member_id) => ({
       gym_id: gym.id,
+      tenant_id: gym.tenant_id,
       member_id,
       date: dateOnly,
       type: "manual",

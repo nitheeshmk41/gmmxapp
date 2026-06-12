@@ -92,6 +92,7 @@ export async function createPayment(formData: FormData) {
   const payment = await prisma.payment.create({
     data: {
       ...rest,
+      tenant_id: gym.tenant_id,
       gym_id: gym.id,
       plan_id: plan_id || undefined,
       receipt_number: receiptNumber,

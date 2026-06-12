@@ -38,6 +38,7 @@ export async function getExpiringMembers(filter: ExpiryFilter = "week") {
   // Get latest payment per member
   const payments = await prisma.payment.findMany({
     where: {
+      tenant_id: gym.tenant_id,
       gym_id: gym.id,
       status: "paid",
       membership_end: dateFilter,
@@ -58,11 +59,11 @@ export async function renewMembership(memberId: string, planId: string) {
   if (!gym) return { error: "Unauthorized" };
 
   const plan = await prisma.membershipPlan.findFirst({
-    where: { id: planId, gym_id: gym.id },
+    where: { id: planId, tenant_id: gym.tenant_id, gym_id: gym.id },
   });
   if (!plan) return { error: "Plan not found" };
 
-  const count = await prisma.payment.count({ where: { gym_id: gym.id } });
+  const count = await prisma.payment.count({ where: { tenant_id: gym.tenant_id, gym_id: gym.id } });
   const receiptNumber = `GMMX-${new Date().getFullYear()}-${String(count + 1).padStart(5, "0")}`;
 
   const start = new Date();
@@ -72,6 +73,7 @@ export async function renewMembership(memberId: string, planId: string) {
   await prisma.$transaction(async (tx) => {
     await tx.payment.create({
       data: {
+        tenant_id: gym.tenant_id,
         gym_id: gym.id,
         member_id: memberId,
         plan_id: planId,
@@ -85,7 +87,7 @@ export async function renewMembership(memberId: string, planId: string) {
     });
 
     await tx.member.updateMany({
-      where: { id: memberId, gym_id: gym.id },
+      where: { id: memberId, tenant_id: gym.tenant_id, gym_id: gym.id },
       data: { status: "active" },
     });
   });

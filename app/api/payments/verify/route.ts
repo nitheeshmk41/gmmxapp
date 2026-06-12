@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireManager } from "@/lib/auth/context";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { toErrorResponse, ValidationError } from "@/lib/errors";
+import { createCorrelationId, logEvent } from "@/lib/logger";
 
 const schema = z.object({
   razorpay_order_id: z.string(),
@@ -15,17 +17,15 @@ const schema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const correlationId = createCorrelationId();
 
-    const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
-    if (!dbUser?.gym_id) return NextResponse.json({ error: "Gym not found" }, { status: 404 });
+  try {
+    const context = await requireManager();
+    if (!context.gym?.id || !context.tenant?.id) throw new ValidationError("Gym not found");
 
     const body = await request.json();
     const parsed = schema.safeParse(body);
-    if (!parsed.success) return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+    if (!parsed.success) throw new ValidationError("Invalid data");
 
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, memberId, planId, amount, receiptNumber } = parsed.data;
 
@@ -37,15 +37,23 @@ export async function POST(request: NextRequest) {
     });
 
     if (!isValid) {
-      return NextResponse.json({ error: "Invalid payment signature" }, { status: 400 });
+      throw new ValidationError("Invalid payment signature");
     }
+
+    const member = await prisma.member.findFirst({
+      where: { id: memberId, tenant_id: context.tenant.id, gym_id: context.gym.id },
+      select: { id: true },
+    });
+    if (!member) throw new ValidationError("Member not found");
 
     // Compute membership dates
     let membershipEnd: Date | undefined;
     const membershipStart = new Date();
 
     if (planId) {
-      const plan = await prisma.membershipPlan.findFirst({ where: { id: planId, gym_id: dbUser.gym_id } });
+      const plan = await prisma.membershipPlan.findFirst({
+        where: { id: planId, tenant_id: context.tenant.id, gym_id: context.gym.id },
+      });
       if (plan) {
         membershipEnd = new Date(membershipStart);
         membershipEnd.setDate(membershipEnd.getDate() + plan.duration_days);
@@ -56,7 +64,8 @@ export async function POST(request: NextRequest) {
     await prisma.$transaction(async (tx) => {
       await tx.payment.create({
         data: {
-          gym_id: dbUser.gym_id!,
+          tenant_id: context.tenant!.id,
+          gym_id: context.gym!.id,
           member_id: memberId,
           plan_id: planId,
           amount,
@@ -72,14 +81,19 @@ export async function POST(request: NextRequest) {
       });
 
       await tx.member.updateMany({
-        where: { id: memberId, gym_id: dbUser.gym_id! },
+        where: { id: memberId, tenant_id: context.tenant!.id, gym_id: context.gym!.id },
         data: { status: "active" },
       });
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Verify payment error:", error);
-    return NextResponse.json({ error: "Payment verification failed" }, { status: 500 });
+    const response = toErrorResponse(error);
+    logEvent(response.status >= 500 ? "error" : "warn", "payment.verify.failed", {
+      correlationId,
+      reason: error instanceof Error ? error.message : "unknown",
+      status: response.status,
+    });
+    return NextResponse.json(response.body, { status: response.status });
   }
 }

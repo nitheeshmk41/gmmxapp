@@ -57,7 +57,7 @@ export function DashboardCharts({ monthlyRevenue, newMembers, attendanceTrend }:
               tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
             />
             <Tooltip
-              formatter={(value: any) => [`₹${Number(value).toLocaleString("en-IN")}`, "Revenue"]}
+              formatter={(value) => [`₹${Number(value).toLocaleString("en-IN")}`, "Revenue"]}
               contentStyle={{
                 background: "var(--color-surface)",
                 border: "1px solid var(--color-border)",

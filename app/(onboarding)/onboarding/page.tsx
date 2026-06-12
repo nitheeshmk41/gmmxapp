@@ -4,20 +4,19 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Building2,
-  Globe,
-  CreditCard,
+  User,
+  Settings,
   CheckCircle2,
   Loader2,
   Check,
   X,
 } from "lucide-react";
 import { validateSubdomain } from "@/lib/utils";
-import { PRICING_PLANS } from "@/types";
 
 const STEPS = [
-  { id: 1, title: "Gym Details", icon: Building2 },
-  { id: 2, title: "Subdomain", icon: Globe },
-  { id: 3, title: "Choose Plan", icon: CreditCard },
+  { id: 1, title: "Gym Information", icon: Building2 },
+  { id: 2, title: "Owner Information", icon: User },
+  { id: 3, title: "Business Setup", icon: Settings },
   { id: 4, title: "All Set!", icon: CheckCircle2 },
 ];
 
@@ -27,22 +26,30 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Form state
+  // Step 1 State
   const [gymDetails, setGymDetails] = useState({
     name: "",
-    ownerName: "",
-    phone: "",
-    email: "",
+    gymType: "",
     address: "",
     city: "",
     state: "",
+    country: "India",
   });
+
+  // Step 2 State
+  const [ownerDetails, setOwnerDetails] = useState({
+    name: "",
+    phone: "",
+    whatsapp: "",
+  });
+
+  // Step 3 State
   const [subdomain, setSubdomain] = useState("");
   const [subdomainStatus, setSubdomainStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
-  const [selectedPlan, setSelectedPlan] = useState<"starter" | "professional" | "enterprise">("starter");
 
   // Real-time subdomain check
   useEffect(() => {
+    if (step !== 3) return;
     if (!subdomain) {
       const t = setTimeout(() => setSubdomainStatus("idle"), 0);
       return () => clearTimeout(t);
@@ -67,20 +74,47 @@ export default function OnboardingPage() {
       clearTimeout(tCheck);
       clearTimeout(timer);
     };
-  }, [subdomain]);
+  }, [subdomain, step]);
 
-  async function handleCreateGym() {
+  async function handleNextStep() {
     setLoading(true);
     setError("");
+
     try {
-      const res = await fetch("/api/gyms/create", {
+      let payload = {};
+      if (step === 1) {
+        if (!gymDetails.name || !gymDetails.city || !gymDetails.state) {
+          throw new Error("Please fill in required fields.");
+        }
+        payload = { step: 1, gymDetails };
+      } else if (step === 2) {
+        if (!ownerDetails.name || !ownerDetails.phone) {
+          throw new Error("Please fill in required fields.");
+        }
+        payload = { step: 2, ownerDetails };
+      } else if (step === 3) {
+        if (subdomainStatus !== "available") {
+          throw new Error("Please choose an available subdomain.");
+        }
+        payload = { step: 3, businessSetup: { subdomain } };
+      } else if (step === 4) {
+        payload = { step: 4 };
+      }
+
+      const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...gymDetails, subdomain, plan: selectedPlan }),
+        body: JSON.stringify(payload),
       });
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create gym");
-      setStep(4);
+      if (!res.ok) throw new Error(data.error || "Failed to save step");
+
+      if (step < 4) {
+        setStep(step + 1);
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -144,7 +178,7 @@ export default function OnboardingPage() {
                     {step > s.id ? <Check size={16} /> : s.id}
                   </div>
                   <span
-                    className="mt-1.5 text-xs font-medium hidden sm:block"
+                    className="mt-1.5 text-xs font-medium hidden sm:block text-center whitespace-nowrap"
                     style={{
                       color: step === s.id ? "var(--color-brand-primary)" : "var(--color-muted-foreground)",
                     }}
@@ -154,7 +188,7 @@ export default function OnboardingPage() {
                 </div>
                 {i < STEPS.length - 1 && (
                   <div
-                    className="h-0.5 w-12 sm:w-20 mx-2 transition-all"
+                    className="h-0.5 w-12 sm:w-16 mx-2 transition-all"
                     style={{
                       background: step > s.id ? "var(--color-success)" : "var(--color-border)",
                     }}
@@ -173,23 +207,22 @@ export default function OnboardingPage() {
               boxShadow: "var(--shadow-lg)",
             }}
           >
-            {/* Step 1: Gym Details */}
+            {/* Step 1: Gym Information */}
             {step === 1 && (
               <div>
                 <h2 className="text-xl font-bold mb-1" style={{ color: "var(--color-foreground)" }}>
-                  Tell us about your gym
+                  Gym Information
                 </h2>
                 <p className="text-sm mb-6" style={{ color: "var(--color-muted-foreground)" }}>
-                  This information will appear on your gym website and profile.
+                  Tell us about your gym facility.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
-                    { id: "name", label: "Gym name *", placeholder: "Iron Fit Gym", key: "name" },
-                    { id: "ownerName", label: "Your name *", placeholder: "Rajesh Kumar", key: "ownerName" },
-                    { id: "phone", label: "Phone number *", placeholder: "+91 98765 43210", key: "phone" },
-                    { id: "email", label: "Email address *", placeholder: "gym@ironfit.in", key: "email" },
+                    { id: "name", label: "Gym Name *", placeholder: "Iron Fit Arena", key: "name" },
+                    { id: "gymType", label: "Gym Type", placeholder: "e.g. CrossFit, Traditional", key: "gymType" },
                     { id: "city", label: "City *", placeholder: "Mumbai", key: "city" },
                     { id: "state", label: "State *", placeholder: "Maharashtra", key: "state" },
+                    { id: "country", label: "Country", placeholder: "India", key: "country" },
                   ].map((field) => (
                     <div key={field.id} className="space-y-1.5">
                       <label htmlFor={field.id} className="block text-sm font-medium" style={{ color: "var(--color-foreground)" }}>
@@ -213,7 +246,7 @@ export default function OnboardingPage() {
                     </label>
                     <input
                       id="address"
-                      placeholder="123 Fitness Street, Andheri West"
+                      placeholder="123 Fitness Street"
                       value={gymDetails.address}
                       onChange={(e) => setGymDetails({ ...gymDetails, address: e.target.value })}
                       className={inputClass}
@@ -223,37 +256,92 @@ export default function OnboardingPage() {
                     />
                   </div>
                 </div>
+                {error && <div className="text-red-500 text-sm mt-4">{error}</div>}
                 <div className="mt-6 flex justify-end">
                   <button
-                    onClick={() => {
-                      if (!gymDetails.name || !gymDetails.ownerName || !gymDetails.phone || !gymDetails.email || !gymDetails.city || !gymDetails.state) {
-                        setError("Please fill in all required fields");
-                        return;
-                      }
-                      setError("");
-                      setStep(2);
-                    }}
-                    className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white"
+                    onClick={handleNextStep}
+                    disabled={loading}
+                    className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white flex items-center gap-2"
                     style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
                   >
+                    {loading && <Loader2 size={14} className="animate-spin" />}
                     Continue →
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Step 2: Subdomain */}
+            {/* Step 2: Owner Information */}
             {step === 2 && (
               <div>
                 <h2 className="text-xl font-bold mb-1" style={{ color: "var(--color-foreground)" }}>
-                  Choose your subdomain
+                  Owner Information
                 </h2>
                 <p className="text-sm mb-6" style={{ color: "var(--color-muted-foreground)" }}>
-                  This will be your gym&apos;s website address on GMMX.
+                  Your contact details.
+                </p>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="ownerName" className="block text-sm font-medium" style={{ color: "var(--color-foreground)" }}>Full Name *</label>
+                    <input
+                      id="ownerName"
+                      placeholder="John Doe"
+                      value={ownerDetails.name}
+                      onChange={(e) => setOwnerDetails({ ...ownerDetails, name: e.target.value })}
+                      className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label htmlFor="phone" className="block text-sm font-medium" style={{ color: "var(--color-foreground)" }}>Phone Number *</label>
+                    <input
+                      id="phone"
+                      placeholder="+91 9876543210"
+                      value={ownerDetails.phone}
+                      onChange={(e) => setOwnerDetails({ ...ownerDetails, phone: e.target.value })}
+                      className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label htmlFor="whatsapp" className="block text-sm font-medium" style={{ color: "var(--color-foreground)" }}>WhatsApp Number</label>
+                    <input
+                      id="whatsapp"
+                      placeholder="+91 9876543210"
+                      value={ownerDetails.whatsapp}
+                      onChange={(e) => setOwnerDetails({ ...ownerDetails, whatsapp: e.target.value })}
+                      className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur}
+                    />
+                  </div>
+                </div>
+                {error && <div className="text-red-500 text-sm mt-4">{error}</div>}
+                <div className="mt-6 flex justify-between">
+                  <button onClick={() => setStep(1)} className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-gray-100">
+                    ← Back
+                  </button>
+                  <button
+                    onClick={handleNextStep}
+                    disabled={loading}
+                    className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white flex items-center gap-2"
+                    style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
+                  >
+                    {loading && <Loader2 size={14} className="animate-spin" />}
+                    Continue →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Business Setup */}
+            {step === 3 && (
+              <div>
+                <h2 className="text-xl font-bold mb-1" style={{ color: "var(--color-foreground)" }}>
+                  Business Setup
+                </h2>
+                <p className="text-sm mb-6" style={{ color: "var(--color-muted-foreground)" }}>
+                  Choose your gym&apos;s subdomain. We&apos;ve activated a 14-day free trial.
                 </p>
                 <div className="space-y-3">
                   <label className="block text-sm font-medium" style={{ color: "var(--color-foreground)" }}>
-                    Subdomain
+                    Subdomain *
                   </label>
                   <div className="flex rounded-lg overflow-hidden" style={{ border: "1.5px solid", borderColor: subdomainStatus === "available" ? "var(--color-success)" : subdomainStatus === "taken" || subdomainStatus === "invalid" ? "var(--color-danger)" : "var(--color-border)" }}>
                     <input
@@ -285,116 +373,30 @@ export default function OnboardingPage() {
                       <><X size={14} style={{ color: "var(--color-danger)" }} /><span className="text-xs" style={{ color: "var(--color-danger)" }}>{validateSubdomain(subdomain).error}</span></>
                     )}
                   </div>
-                  {subdomainStatus === "available" && (
-                    <div
-                      className="p-4 rounded-xl mt-2"
-                      style={{ background: "var(--color-success-light)", border: "1px solid #86efac" }}
-                    >
-                      <p className="text-sm font-medium" style={{ color: "#15803d" }}>
-                        Your website will be available at:
-                      </p>
-                      <p className="text-lg font-bold mt-1" style={{ color: "#166534" }}>
-                        🌐 {subdomain}.gmmx.app
-                      </p>
-                    </div>
-                  )}
+                  
+                  <div className="p-4 rounded-xl mt-6 border-l-4 border-[#FF5C73] bg-rose-50/50">
+                    <h3 className="font-semibold text-sm mb-1 text-slate-800">14-Day Free Trial Activated</h3>
+                    <p className="text-xs text-slate-600">Your account includes full access to all Professional tier features. Default membership plans will be added automatically to your dashboard.</p>
+                  </div>
                 </div>
+                {error && <div className="text-red-500 text-sm mt-4">{error}</div>}
                 <div className="mt-6 flex justify-between">
-                  <button onClick={() => setStep(1)} className="px-6 py-2.5 rounded-lg text-sm font-semibold" style={{ background: "var(--color-border)", color: "var(--color-foreground)" }}>
+                  <button onClick={() => setStep(2)} className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-gray-100">
                     ← Back
                   </button>
                   <button
-                    onClick={() => setStep(3)}
-                    disabled={subdomainStatus !== "available"}
-                    className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white transition-all"
+                    onClick={handleNextStep}
+                    disabled={subdomainStatus !== "available" || loading}
+                    className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white transition-all flex items-center gap-2"
                     style={{
                       background: "var(--color-brand-primary)",
                       boxShadow: "var(--shadow-brand)",
-                      opacity: subdomainStatus !== "available" ? 0.5 : 1,
-                      cursor: subdomainStatus !== "available" ? "not-allowed" : "pointer",
+                      opacity: subdomainStatus !== "available" || loading ? 0.5 : 1,
+                      cursor: subdomainStatus !== "available" || loading ? "not-allowed" : "pointer",
                     }}
                   >
-                    Continue →
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Choose Plan */}
-            {step === 3 && (
-              <div>
-                <h2 className="text-xl font-bold mb-1" style={{ color: "var(--color-foreground)" }}>
-                  Choose your plan
-                </h2>
-                <p className="text-sm mb-6" style={{ color: "var(--color-muted-foreground)" }}>
-                  Start with a 14-day free trial. No credit card required.
-                </p>
-                <div className="space-y-3">
-                  {PRICING_PLANS.map((plan) => (
-                    <button
-                      key={plan.id}
-                      onClick={() => setSelectedPlan(plan.id)}
-                      className="w-full p-4 rounded-xl text-left transition-all"
-                      style={{
-                        border: `2px solid ${selectedPlan === plan.id ? "var(--color-brand-primary)" : "var(--color-border)"}`,
-                        background: selectedPlan === plan.id ? "var(--color-brand-light)" : "var(--color-surface)",
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-5 h-5 rounded-full border-2 flex items-center justify-center"
-                            style={{ borderColor: selectedPlan === plan.id ? "var(--color-brand-primary)" : "var(--color-border)" }}
-                          >
-                            {selectedPlan === plan.id && (
-                              <div className="w-2.5 h-2.5 rounded-full" style={{ background: "var(--color-brand-primary)" }} />
-                            )}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-sm" style={{ color: "var(--color-foreground)" }}>
-                                {plan.name}
-                              </span>
-                              {plan.highlighted && (
-                                <span className="badge-brand text-xs">Most Popular</span>
-                              )}
-                            </div>
-                            <p className="text-xs mt-0.5" style={{ color: "var(--color-muted-foreground)" }}>
-                              {plan.description}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          {plan.price > 0 ? (
-                            <>
-                              <span className="text-lg font-bold" style={{ color: "var(--color-foreground)" }}>₹{plan.price}</span>
-                              <span className="text-xs" style={{ color: "var(--color-muted-foreground)" }}>/mo</span>
-                            </>
-                          ) : (
-                            <span className="text-sm font-bold" style={{ color: "var(--color-brand-primary)" }}>Custom</span>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-                {error && (
-                  <div className="mt-4 p-3 rounded-lg text-sm" style={{ background: "var(--color-danger-light)", color: "#dc2626", border: "1px solid #fca5a5" }}>
-                    {error}
-                  </div>
-                )}
-                <div className="mt-6 flex justify-between">
-                  <button onClick={() => setStep(2)} className="px-6 py-2.5 rounded-lg text-sm font-semibold" style={{ background: "var(--color-border)", color: "var(--color-foreground)" }}>
-                    ← Back
-                  </button>
-                  <button
-                    onClick={handleCreateGym}
-                    disabled={loading}
-                    className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white flex items-center gap-2"
-                    style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)", opacity: loading ? 0.8 : 1 }}
-                  >
                     {loading && <Loader2 size={14} className="animate-spin" />}
-                    {loading ? "Creating your gym…" : "Launch My Gym 🚀"}
+                    Finish Setup →
                   </button>
                 </div>
               </div>
@@ -413,16 +415,15 @@ export default function OnboardingPage() {
                   Your gym is live! 🎉
                 </h2>
                 <p className="text-sm mb-2" style={{ color: "var(--color-muted-foreground)" }}>
-                  {gymDetails.name} is now on GMMX.
-                </p>
-                <p className="text-base font-semibold mb-8" style={{ color: "var(--color-brand-primary)" }}>
-                  🌐 {subdomain}.gmmx.app
+                  Setup is complete.
                 </p>
                 <button
-                  onClick={() => router.push("/dashboard")}
-                  className="px-8 py-3 rounded-xl text-sm font-semibold text-white"
+                  onClick={handleNextStep}
+                  disabled={loading}
+                  className="px-8 py-3 mt-8 rounded-xl text-sm font-semibold text-white flex items-center gap-2 justify-center mx-auto"
                   style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
                 >
+                  {loading && <Loader2 size={14} className="animate-spin" />}
                   Go to Dashboard →
                 </button>
               </div>

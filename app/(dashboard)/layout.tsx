@@ -18,7 +18,7 @@ export default async function DashboardLayout({
 
   if (!user) redirect("/login");
   if (user.role === "super_admin") redirect("/admin");
-  if (!gym) redirect("/onboarding");
+  if (!gym || user.onboarding_status !== "completed") redirect("/onboarding");
 
   return (
     <div className="flex min-h-screen" style={{ background: "var(--color-background)" }}>

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Building2, User, CreditCard, Bell, Loader2 } from "lucide-react";
+import { useState } from "react";
+import Link from "next/link";
+import { Building2, User, CreditCard } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 type Gym = {
@@ -46,13 +47,6 @@ const STATUS_BADGES: Record<string, string> = {
 
 export function SettingsClientPage({ gym, user, subscription }: Props) {
   const [activeTab, setActiveTab] = useState("gym");
-
-  const inputStyle = {
-    border: "1.5px solid var(--color-border)",
-    background: "var(--color-surface)",
-    color: "var(--color-foreground)",
-    outline: "none",
-  };
 
   return (
     <div className="max-w-2xl space-y-5 animate-in">
@@ -170,13 +164,13 @@ export function SettingsClientPage({ gym, user, subscription }: Props) {
               <p className="text-xs mb-3" style={{ color: "var(--color-muted-foreground)" }}>
                 To change your password, use the forgot password flow from the login page.
               </p>
-              <a
+              <Link
                 href="/forgot-password"
                 className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium"
                 style={{ background: "var(--color-border)", color: "var(--color-foreground)" }}
               >
                 Change Password
-              </a>
+              </Link>
             </div>
           </div>
         </div>

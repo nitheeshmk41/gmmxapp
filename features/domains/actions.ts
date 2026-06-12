@@ -36,6 +36,7 @@ export async function addDomain(formData: FormData) {
   await prisma.domain.create({
     data: {
       gym_id: gym.id,
+      tenant_id: gym.tenant_id,
       custom_domain: parsed.data.custom_domain,
       verification_status: "pending",
       dns_type: "A",

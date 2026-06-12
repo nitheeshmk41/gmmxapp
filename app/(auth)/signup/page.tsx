@@ -10,9 +10,7 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [password, setPassword] = useState("");
-  const [gymName, setGymName] = useState("");
-
-  const generatedSubdomain = gymName.toLowerCase().replace(/[^a-z0-9]/g, "") || "yourgym";
+  const [name, setName] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -81,22 +79,17 @@ export default function SignUpPage() {
         )}
 
         <div className="space-y-1.5">
-          <label htmlFor="gymName" className="block text-sm font-bold text-slate-700">Gym Name</label>
+          <label htmlFor="name" className="block text-sm font-bold text-slate-700">Full Name</label>
           <input
-            id="gymName"
-            name="gymName"
+            id="name"
+            name="name"
             type="text"
             required
-            value={gymName}
-            onChange={(e) => setGymName(e.target.value)}
-            placeholder="e.g. Iron Fit Arena"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. John Doe"
             className="w-full px-4 py-3 rounded-xl text-sm transition-all border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:border-[#FF5C73] focus:bg-white focus:ring-4 focus:ring-[#FF5C73]/10"
           />
-          {gymName && (
-            <p className="mt-1.5 text-xs font-medium text-slate-500">
-              Your website: <span className="font-bold text-[#FF5C73]">{generatedSubdomain}.gmmx.app</span>
-            </p>
-          )}
         </div>
 
         <div className="space-y-1.5">

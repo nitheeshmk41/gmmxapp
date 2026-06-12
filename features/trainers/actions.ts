@@ -58,7 +58,7 @@ export async function createTrainer(formData: FormData) {
   const { email, ...rest } = parsed.data;
 
   await prisma.trainer.create({
-    data: { ...rest, gym_id: gym.id, email: email || undefined },
+    data: { ...rest, tenant_id: gym.tenant_id, gym_id: gym.id, email: email || undefined },
   });
 
   revalidatePath("/dashboard/trainers");

@@ -105,6 +105,7 @@ export async function createMember(formData: FormData) {
   await prisma.member.create({
     data: {
       ...rest,
+      tenant_id: gym.tenant_id,
       gym_id: gym.id,
       email: email || undefined,
       plan_id: plan_id || undefined,

@@ -14,8 +14,22 @@ datasource db {
 enum UserRole {
   super_admin
   gym_owner
+  manager
   trainer
   member
+}
+
+enum AuthProvider {
+  email
+  google
+}
+
+enum OnboardingStatus {
+  pending
+  gym_created
+  owner_profile_completed
+  business_setup_completed
+  completed
 }
 
 enum SubscriptionStatus {
@@ -102,8 +116,32 @@ enum DomainVerificationStatus {
 // MODELS
 // ─────────────────────────────────────────────
 
+model Tenant {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  users            User[]
+  gyms             Gym[]
+  branches         Branch[]
+  members          Member[]
+  leads            Lead[]
+  membership_plans MembershipPlan[]
+  payments         Payment[]
+  attendance       Attendance[]
+  trainers         Trainer[]
+  website_settings WebsiteSettings[]
+  domains          Domain[]
+  subscriptions    Subscription[]
+
+  @@map("tenants")
+}
+
 model Gym {
   id                  String             @id @default(uuid())
+  tenant_id           String
   name                String
   owner_name          String
   phone               String
@@ -112,6 +150,7 @@ model Gym {
   city                String?
   state               String?
   country             String             @default("India")
+  gym_type            String?
   subdomain           String             @unique
   custom_domain       String?            @unique
   logo_url            String?
@@ -122,6 +161,7 @@ model Gym {
   updated_at          DateTime           @updatedAt
 
   // Relations
+  tenant           Tenant            @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   users            User[]
   branches         Branch[]
   members          Member[]
@@ -134,25 +174,37 @@ model Gym {
   domains          Domain[]
   subscriptions    Subscription[]
 
+  @@index([tenant_id])
   @@map("gyms")
 }
 
 model User {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  role       UserRole @default(gym_owner)
-  gym_id     String?
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id                String           @id @default(uuid())
+  tenant_id         String?
+  appwrite_user_id  String           @unique
+  email             String           @unique
+  name              String?
+  phone             String?
+  whatsapp          String?
+  provider          AuthProvider     @default(email)
+  role              UserRole         @default(gym_owner)
+  gym_id            String?
+  onboarding_status OnboardingStatus @default(pending)
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
 
+  tenant     Tenant?      @relation(fields: [tenant_id], references: [id], onDelete: SetNull)
   gym        Gym?         @relation(fields: [gym_id], references: [id], onDelete: SetNull)
   attendance Attendance[] @relation("MarkedByUser")
 
+  @@index([tenant_id])
+  @@index([gym_id])
   @@map("users")
 }
 
 model Branch {
   id         String   @id @default(uuid())
+  tenant_id  String
   gym_id     String
   name       String
   address    String?
@@ -161,15 +213,19 @@ model Branch {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
+  tenant    Tenant     @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   gym        Gym        @relation(fields: [gym_id], references: [id], onDelete: Cascade)
   members    Member[]
   attendance Attendance[]
 
+  @@index([tenant_id])
+  @@index([gym_id])
   @@map("branches")
 }
 
 model Member {
   id         String       @id @default(uuid())
+  tenant_id  String
   gym_id     String
   branch_id  String?
   name       String
@@ -190,6 +246,7 @@ model Member {
   created_at DateTime     @default(now())
   updated_at DateTime     @updatedAt
 
+  tenant     Tenant          @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   gym        Gym             @relation(fields: [gym_id], references: [id], onDelete: Cascade)
   branch     Branch?         @relation(fields: [branch_id], references: [id], onDelete: SetNull)
   plan       MembershipPlan? @relation(fields: [plan_id], references: [id], onDelete: SetNull)
@@ -197,11 +254,18 @@ model Member {
   payments   Payment[]
   attendance Attendance[]
 
+  @@index([tenant_id])
+  @@index([gym_id])
+  @@index([branch_id])
+  @@index([plan_id])
+  @@index([trainer_id])
+  @@index([status])
   @@map("members")
 }
 
 model Lead {
   id               String     @id @default(uuid())
+  tenant_id        String
   gym_id           String
   name             String
   phone            String
@@ -213,13 +277,18 @@ model Lead {
   created_at       DateTime   @default(now())
   updated_at       DateTime   @updatedAt
 
+  tenant Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   gym Gym @relation(fields: [gym_id], references: [id], onDelete: Cascade)
 
+  @@index([tenant_id])
+  @@index([gym_id])
+  @@index([status])
   @@map("leads")
 }
 
 model MembershipPlan {
   id            String   @id @default(uuid())
+  tenant_id     String
   gym_id        String
   name          String
   duration_days Int
@@ -229,15 +298,19 @@ model MembershipPlan {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
+  tenant   Tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   gym      Gym       @relation(fields: [gym_id], references: [id], onDelete: Cascade)
   members  Member[]
   payments Payment[]
 
+  @@index([tenant_id])
+  @@index([gym_id])
   @@map("membership_plans")
 }
 
 model Payment {
   id                   String        @id @default(uuid())
+  tenant_id            String
   gym_id               String
   member_id            String
   plan_id              String?
@@ -255,15 +328,23 @@ model Payment {
   created_at           DateTime      @default(now())
   updated_at           DateTime      @updatedAt
 
+  tenant Tenant         @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   gym    Gym            @relation(fields: [gym_id], references: [id], onDelete: Cascade)
   member Member         @relation(fields: [member_id], references: [id], onDelete: Cascade)
   plan   MembershipPlan? @relation(fields: [plan_id], references: [id], onDelete: SetNull)
 
+  @@index([tenant_id])
+  @@index([gym_id])
+  @@index([member_id])
+  @@index([plan_id])
+  @@index([status])
+  @@index([paid_at])
   @@map("payments")
 }
 
 model Attendance {
   id         String   @id @default(uuid())
+  tenant_id  String
   gym_id     String
   member_id  String
   branch_id  String?
@@ -273,17 +354,22 @@ model Attendance {
   type       AttendanceType @default(manual)
   created_at DateTime @default(now())
 
+  tenant  Tenant  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   gym     Gym     @relation(fields: [gym_id], references: [id], onDelete: Cascade)
   member  Member  @relation(fields: [member_id], references: [id], onDelete: Cascade)
   branch  Branch? @relation(fields: [branch_id], references: [id], onDelete: SetNull)
   user    User?   @relation("MarkedByUser", fields: [marked_by], references: [id], onDelete: SetNull)
 
   @@unique([gym_id, member_id, date])
+  @@index([tenant_id])
+  @@index([gym_id])
+  @@index([branch_id])
   @@map("attendance")
 }
 
 model Trainer {
   id                String   @id @default(uuid())
+  tenant_id         String
   gym_id            String
   name              String
   phone             String
@@ -296,14 +382,18 @@ model Trainer {
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 
+  tenant  Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   gym     Gym      @relation(fields: [gym_id], references: [id], onDelete: Cascade)
   members Member[]
 
+  @@index([tenant_id])
+  @@index([gym_id])
   @@map("trainers")
 }
 
 model WebsiteSettings {
   id               String          @id @default(uuid())
+  tenant_id        String
   gym_id           String          @unique
   template         WebsiteTemplate @default(modern)
   hero_image_url   String?
@@ -320,13 +410,16 @@ model WebsiteSettings {
   created_at       DateTime        @default(now())
   updated_at       DateTime        @updatedAt
 
+  tenant Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   gym Gym @relation(fields: [gym_id], references: [id], onDelete: Cascade)
 
+  @@index([tenant_id])
   @@map("website_settings")
 }
 
 model Domain {
   id                  String                   @id @default(uuid())
+  tenant_id           String
   gym_id              String
   custom_domain       String                   @unique
   verification_status DomainVerificationStatus @default(pending)
@@ -335,13 +428,17 @@ model Domain {
   created_at          DateTime                 @default(now())
   updated_at          DateTime                 @updatedAt
 
+  tenant Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   gym Gym @relation(fields: [gym_id], references: [id], onDelete: Cascade)
 
+  @@index([tenant_id])
+  @@index([gym_id])
   @@map("domains")
 }
 
 model Subscription {
   id                       String             @id @default(uuid())
+  tenant_id                String
   gym_id                   String
   plan                     GymPlan            @default(starter)
   status                   SubscriptionStatus @default(trial)
@@ -351,7 +448,10 @@ model Subscription {
   created_at               DateTime           @default(now())
   updated_at               DateTime           @updatedAt
 
+  tenant Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   gym Gym @relation(fields: [gym_id], references: [id], onDelete: Cascade)
 
+  @@index([tenant_id])
+  @@index([gym_id])
   @@map("subscriptions")
 }

@@ -63,6 +63,7 @@ export async function createLead(formData: FormData) {
   await prisma.lead.create({
     data: {
       ...rest,
+      tenant_id: gym.tenant_id,
       gym_id: gym.id,
       email: email || undefined,
     },
@@ -126,6 +127,7 @@ export async function convertLeadToMember(leadId: string) {
     const newMember = await tx.member.create({
       data: {
         gym_id: gym.id,
+        tenant_id: gym.tenant_id,
         name: lead.name,
         phone: lead.phone,
         email: lead.email || undefined,
@@ -149,14 +151,22 @@ export async function convertLeadToMember(leadId: string) {
 
 // Public lead capture (from gym website join form)
 export async function createPublicLead(data: {
+  tenantId?: string;
   gymId: string;
   name: string;
   phone: string;
   email?: string;
   source?: string;
 }) {
+  const gym = await prisma.gym.findUnique({
+    where: { id: data.gymId },
+    select: { id: true, tenant_id: true },
+  });
+  if (!gym) return { error: "Gym not found" };
+
   await prisma.lead.create({
     data: {
+      tenant_id: data.tenantId ?? gym.tenant_id,
       gym_id: data.gymId,
       name: data.name,
       phone: data.phone,
