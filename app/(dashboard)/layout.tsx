@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 import { getCurrentUser, getCurrentGym } from "@/features/auth/actions";
@@ -16,8 +17,16 @@ export default async function DashboardLayout({
 }) {
   const [user, gym] = await Promise.all([getCurrentUser(), getCurrentGym()]);
 
-  if (!user) redirect("/login");
+  if (!user) {
+    // Session cookie is stale/invalid. 
+    // We redirect to login with a redirectTo parameter.
+    // The middleware will intercept this and delete the stale cookie.
+    redirect("/login?redirectTo=/dashboard");
+  }
+
   if (user.role === "super_admin") redirect("/admin");
+  if (user.role === "trainer") redirect("/trainer/dashboard");
+  if (user.role === "member") redirect("/member/dashboard");
   if (!gym || user.onboarding_status !== "completed") redirect("/onboarding");
 
   return (

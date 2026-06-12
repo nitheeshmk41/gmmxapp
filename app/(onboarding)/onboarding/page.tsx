@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Building2,
   User,
@@ -12,24 +12,28 @@ import {
   X,
 } from "lucide-react";
 import { validateSubdomain } from "@/lib/utils";
+import { completeOnboarding } from "@/features/onboarding/actions";
 
 const STEPS = [
   { id: 1, title: "Gym Information", icon: Building2 },
-  { id: 2, title: "Owner Information", icon: User },
-  { id: 3, title: "Business Setup", icon: Settings },
-  { id: 4, title: "All Set!", icon: CheckCircle2 },
+  { id: 2, title: "Business Setup", icon: Settings },
+  { id: 3, title: "All Set!", icon: CheckCircle2 },
 ];
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialGymName = searchParams?.get("gymName") || "";
+  
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   // Step 1 State
   const [gymDetails, setGymDetails] = useState({
-    name: "",
+    name: initialGymName,
     gymType: "",
+    phone: "",
     address: "",
     city: "",
     state: "",
@@ -37,19 +41,19 @@ export default function OnboardingPage() {
   });
 
   // Step 2 State
-  const [ownerDetails, setOwnerDetails] = useState({
-    name: "",
-    phone: "",
-    whatsapp: "",
-  });
-
-  // Step 3 State
   const [subdomain, setSubdomain] = useState("");
   const [subdomainStatus, setSubdomainStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
 
+  useEffect(() => {
+    if (initialGymName && !subdomain) {
+      const baseSubdomain = initialGymName.toLowerCase().replace(/[^a-z0-9]/g, "");
+      setSubdomain(baseSubdomain);
+    }
+  }, [initialGymName]);
+
   // Real-time subdomain check
   useEffect(() => {
-    if (step !== 3) return;
+    if (step !== 2) return;
     if (!subdomain) {
       const t = setTimeout(() => setSubdomainStatus("idle"), 0);
       return () => clearTimeout(t);
@@ -81,39 +85,42 @@ export default function OnboardingPage() {
     setError("");
 
     try {
-      let payload = {};
       if (step === 1) {
         if (!gymDetails.name || !gymDetails.city || !gymDetails.state) {
           throw new Error("Please fill in required fields.");
         }
-        payload = { step: 1, gymDetails };
+        setStep(2);
       } else if (step === 2) {
-        if (!ownerDetails.name || !ownerDetails.phone) {
-          throw new Error("Please fill in required fields.");
-        }
-        payload = { step: 2, ownerDetails };
-      } else if (step === 3) {
         if (subdomainStatus !== "available") {
           throw new Error("Please choose an available subdomain.");
         }
-        payload = { step: 3, businessSetup: { subdomain } };
-      } else if (step === 4) {
-        payload = { step: 4 };
-      }
-
-      const res = await fetch("/api/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to save step");
-
-      if (step < 4) {
-        setStep(step + 1);
-      } else {
-        router.push("/dashboard");
+        
+        // Final Submission to Server Action
+        const formData = new FormData();
+        formData.append("gymName", gymDetails.name);
+        formData.append("phone", gymDetails.phone);
+        formData.append("subdomain", subdomain);
+        formData.append("plan", "starter"); // Mock plan selection for now
+        
+        const result = await completeOnboarding(formData);
+        if (result.error) throw new Error(result.error);
+        
+        setStep(3);
+        
+        // Redirect to their new subdomain after a brief success message
+        setTimeout(() => {
+          const proto = window.location.protocol;
+          const host = window.location.host;
+          // If localhost, it might be localhost:3000. 
+          // If production, we replace gmmx.app with subdomain.gmmx.app
+          const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
+          if (isLocalhost) {
+             window.location.href = `${proto}//${host}/dashboard?gym=${result.subdomain}`;
+          } else {
+             const baseDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "gmmx.app";
+             window.location.href = `${proto}//${result.subdomain}.${baseDomain}/dashboard`;
+          }
+        }, 2000);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -202,9 +209,9 @@ export default function OnboardingPage() {
           <div
             className="p-8 rounded-2xl animate-in"
             style={{
-              background: "var(--color-surface)",
-              border: "1px solid var(--color-border)",
-              boxShadow: "var(--shadow-lg)",
+               background: "var(--color-surface)",
+               border: "1px solid var(--color-border)",
+               boxShadow: "var(--shadow-lg)",
             }}
           >
             {/* Step 1: Gym Information */}
@@ -219,6 +226,7 @@ export default function OnboardingPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
                     { id: "name", label: "Gym Name *", placeholder: "Iron Fit Arena", key: "name" },
+                    { id: "phone", label: "Mobile Number *", placeholder: "9876543210", key: "phone" },
                     { id: "gymType", label: "Gym Type", placeholder: "e.g. CrossFit, Traditional", key: "gymType" },
                     { id: "city", label: "City *", placeholder: "Mumbai", key: "city" },
                     { id: "state", label: "State *", placeholder: "Maharashtra", key: "state" },
@@ -271,67 +279,8 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* Step 2: Owner Information */}
+            {/* Step 2: Business Setup */}
             {step === 2 && (
-              <div>
-                <h2 className="text-xl font-bold mb-1" style={{ color: "var(--color-foreground)" }}>
-                  Owner Information
-                </h2>
-                <p className="text-sm mb-6" style={{ color: "var(--color-muted-foreground)" }}>
-                  Your contact details.
-                </p>
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="space-y-1.5">
-                    <label htmlFor="ownerName" className="block text-sm font-medium" style={{ color: "var(--color-foreground)" }}>Full Name *</label>
-                    <input
-                      id="ownerName"
-                      placeholder="John Doe"
-                      value={ownerDetails.name}
-                      onChange={(e) => setOwnerDetails({ ...ownerDetails, name: e.target.value })}
-                      className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label htmlFor="phone" className="block text-sm font-medium" style={{ color: "var(--color-foreground)" }}>Phone Number *</label>
-                    <input
-                      id="phone"
-                      placeholder="+91 9876543210"
-                      value={ownerDetails.phone}
-                      onChange={(e) => setOwnerDetails({ ...ownerDetails, phone: e.target.value })}
-                      className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label htmlFor="whatsapp" className="block text-sm font-medium" style={{ color: "var(--color-foreground)" }}>WhatsApp Number</label>
-                    <input
-                      id="whatsapp"
-                      placeholder="+91 9876543210"
-                      value={ownerDetails.whatsapp}
-                      onChange={(e) => setOwnerDetails({ ...ownerDetails, whatsapp: e.target.value })}
-                      className={inputClass} style={inputStyle} onFocus={handleInputFocus} onBlur={handleInputBlur}
-                    />
-                  </div>
-                </div>
-                {error && <div className="text-red-500 text-sm mt-4">{error}</div>}
-                <div className="mt-6 flex justify-between">
-                  <button onClick={() => setStep(1)} className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-gray-100">
-                    ← Back
-                  </button>
-                  <button
-                    onClick={handleNextStep}
-                    disabled={loading}
-                    className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white flex items-center gap-2"
-                    style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
-                  >
-                    {loading && <Loader2 size={14} className="animate-spin" />}
-                    Continue →
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Business Setup */}
-            {step === 3 && (
               <div>
                 <h2 className="text-xl font-bold mb-1" style={{ color: "var(--color-foreground)" }}>
                   Business Setup
@@ -381,7 +330,7 @@ export default function OnboardingPage() {
                 </div>
                 {error && <div className="text-red-500 text-sm mt-4">{error}</div>}
                 <div className="mt-6 flex justify-between">
-                  <button onClick={() => setStep(2)} className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-gray-100">
+                  <button onClick={() => setStep(1)} className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-gray-100">
                     ← Back
                   </button>
                   <button
@@ -402,8 +351,8 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* Step 4: Success */}
-            {step === 4 && (
+            {/* Step 3: Success */}
+            {step === 3 && (
               <div className="text-center py-6">
                 <div
                   className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
@@ -414,23 +363,25 @@ export default function OnboardingPage() {
                 <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--color-foreground)" }}>
                   Your gym is live! 🎉
                 </h2>
-                <p className="text-sm mb-2" style={{ color: "var(--color-muted-foreground)" }}>
-                  Setup is complete.
+                <p className="text-sm mb-6" style={{ color: "var(--color-muted-foreground)" }}>
+                  Redirecting you to your new dashboard...
                 </p>
-                <button
-                  onClick={handleNextStep}
-                  disabled={loading}
-                  className="px-8 py-3 mt-8 rounded-xl text-sm font-semibold text-white flex items-center gap-2 justify-center mx-auto"
-                  style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
-                >
-                  {loading && <Loader2 size={14} className="animate-spin" />}
-                  Go to Dashboard →
-                </button>
+                <div className="flex justify-center">
+                  <Loader2 size={24} className="animate-spin" style={{ color: "var(--color-brand-primary)" }} />
+                </div>
               </div>
             )}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <OnboardingContent />
+    </Suspense>
   );
 }

@@ -9,6 +9,7 @@ export async function getCurrentContext() {
   try {
     const { account } = await createSessionClient();
     const appwriteUser = await account.get();
+    console.log("[AUTH] Appwrite session valid, userId:", appwriteUser.$id);
 
     const user = await prisma.user.findUnique({
       where: { appwrite_user_id: appwriteUser.$id },
@@ -26,7 +27,12 @@ export async function getCurrentContext() {
       },
     });
 
-    if (!user) return null;
+    if (!user) {
+      console.log("[AUTH] No DB user found for appwrite_user_id:", appwriteUser.$id);
+      return null;
+    }
+
+    console.log("[AUTH] DB user found:", user.id, "gym:", user.gym_id, "onboarding:", user.onboarding_status);
 
     return {
       appwriteUser,
@@ -36,7 +42,8 @@ export async function getCurrentContext() {
       role: user.role,
       subscription: user.gym?.subscriptions[0] ?? null,
     };
-  } catch {
+  } catch (error) {
+    console.log("[AUTH] getCurrentContext failed:", error instanceof Error ? error.message : "unknown");
     return null;
   }
 }
@@ -68,4 +75,3 @@ export function requireManager() {
 export function requireTrainer() {
   return requireRole(["gym_owner", "manager", "trainer", "super_admin"]);
 }
-

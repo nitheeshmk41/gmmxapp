@@ -105,6 +105,8 @@ export default function SignUpPage() {
           />
         </div>
 
+
+
         <div className="space-y-1.5">
           <label htmlFor="password" className="block text-sm font-bold text-slate-700">Password</label>
           <div className="relative">
@@ -165,7 +167,7 @@ export default function SignUpPage() {
           }}
         >
           {loading && <Loader2 size={16} className="animate-spin" />}
-          {loading ? "Creating your gym…" : "Create My Gym →"}
+          {loading ? "Creating account…" : "Create Account →"}
         </button>
         
         <p className="text-center text-xs font-bold text-slate-400 mt-3 flex items-center justify-center gap-1.5">

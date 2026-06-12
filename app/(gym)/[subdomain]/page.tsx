@@ -56,7 +56,10 @@ export default async function GymPage({ params }: Props) {
 
   const templateData = {
     gym,
-    settings: gym.website_settings,
+    settings: {
+      ...gym.website_settings,
+      gallery_urls: (gym.website_settings.gallery_urls as unknown as string[]) || [],
+    },
     plans: gym.membership_plans.map((p) => ({
       ...p,
       price: Number(p.price),

@@ -29,7 +29,9 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith("/dashboard") &&
     !pathname.startsWith("/admin") &&
     !pathname.startsWith("/api") &&
-    !pathname.startsWith("/_next")
+    !pathname.startsWith("/_next") &&
+    !pathname.startsWith("/login") &&
+    !pathname.startsWith("/signup")
   ) {
     const url = request.nextUrl.clone();
     url.pathname = `/gym/${subdomain}${pathname}`;
@@ -38,7 +40,8 @@ export async function middleware(request: NextRequest) {
 
   // ── Session Check ────────────────────────────────────────────
   const sessionCookieName = `a_session_${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
-  const hasSession = request.cookies.has(sessionCookieName);
+  const sessionCookie = request.cookies.get(sessionCookieName);
+  const hasSession = !!sessionCookie?.value;
 
   // ── Auth Pages Guard (redirect logged-in users away) ─────────
   const isAuthPage =
@@ -47,8 +50,19 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/forgot-password");
 
   if (isAuthPage && hasSession) {
-    // User is already authenticated — send them to dashboard.
-    // Dashboard layout will handle further routing (onboarding vs dashboard).
+    // Check for a redirect-loop breaker: if the request came from /dashboard
+    // or /onboarding (via the Referer header or a query param), the session
+    // cookie is stale. Delete it and let the user through to the login page.
+    const redirectTo = request.nextUrl.searchParams.get("redirectTo");
+    if (redirectTo) {
+      // This means a protected route already rejected the session.
+      // The cookie is stale — delete it and let the user see the login page.
+      const res = NextResponse.next({ request });
+      res.cookies.delete(sessionCookieName);
+      return res;
+    }
+
+    // Otherwise, user appears to have a valid session — send to dashboard.
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

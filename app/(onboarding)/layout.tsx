@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { getCurrentUser } from "@/features/auth/actions";
 
 /**
@@ -15,8 +16,11 @@ export default async function OnboardingLayout({
 }) {
   const user = await getCurrentUser();
 
-  // Not logged in
+  // Not logged in — clear stale cookie and redirect
   if (!user) {
+    const cookieStore = await cookies();
+    const sessionCookieName = `a_session_${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
+    cookieStore.delete(sessionCookieName);
     redirect("/login");
   }
 

@@ -1,9 +1,10 @@
-import { ensureOwnerWorkspace, routeForUser } from "@/lib/auth/bootstrap";
+import { ensureUserRecord, routeForUser } from "@/lib/auth/bootstrap";
 import { env } from "@/lib/env";
 import { createCorrelationId, logEvent } from "@/lib/logger";
 import { Account, Client } from "node-appwrite";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { exchangeOAuthTokenForSession } from "@/lib/appwrite/server";
 
 export async function GET(request: Request) {
   const correlationId = createCorrelationId();
@@ -17,15 +18,14 @@ export async function GET(request: Request) {
   }
 
   try {
-    const client = new Client()
-      .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
-      .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
+    console.log(`[OAuth Callback] Attempting to exchange token for user ${userId}`);
 
-    const account = new Account(client);
-    const session = await account.createSession(userId, secret);
+    const sessionSecret = await exchangeOAuthTokenForSession(userId, secret);
+    
+    console.log(`[OAuth Callback] Session created successfully for user ${userId}`);
 
     const cookieStore = await cookies();
-    cookieStore.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, session.secret, {
+    cookieStore.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, sessionSecret, {
       path: "/",
       httpOnly: true,
       sameSite: "lax",
@@ -36,11 +36,11 @@ export async function GET(request: Request) {
     const sessionClient = new Client()
       .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
       .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID)
-      .setSession(session.secret);
+      .setSession(sessionSecret);
 
     const sessionAccount = new Account(sessionClient);
     const appwriteUser = await sessionAccount.get();
-    const dbUser = await ensureOwnerWorkspace({
+    const dbUser = await ensureUserRecord({
       appwriteUser,
       provider: "google",
       correlationId,
@@ -60,7 +60,8 @@ export async function GET(request: Request) {
       reason: error instanceof Error ? error.message : "unknown",
     });
 
-    return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
+    const errorMessage = error instanceof Error ? error.message : "unknown";
+    return NextResponse.redirect(`${origin}/login?error=auth_callback_failed&details=${encodeURIComponent(errorMessage)}`);
   }
 }
 

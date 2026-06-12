@@ -1,7 +1,7 @@
 "use server";
 
-import { createAdminClient, createSessionClient } from "@/lib/appwrite/server";
-import { ensureOwnerWorkspace, routeForUser } from "@/lib/auth/bootstrap";
+import { createAdminClient, createSessionClient, createEmailPasswordSessionHelper } from "@/lib/appwrite/server";
+import { ensureUserRecord, routeForUser } from "@/lib/auth/bootstrap";
 import { getCurrentContext } from "@/lib/auth/context";
 import { env } from "@/lib/env";
 import { createCorrelationId, logEvent } from "@/lib/logger";
@@ -94,17 +94,21 @@ export async function signUp(formData: FormData) {
       parsed.data.name
     );
 
-    const session = await account.createEmailPasswordSession(
+    const sessionSecret = await createEmailPasswordSessionHelper(
       parsed.data.email,
       parsed.data.password
     );
 
-    await setSessionCookie(session.secret);
-    await ensureOwnerWorkspace({
+    await setSessionCookie(sessionSecret);
+    
+    // Create the Prisma User record only.
+    const user = await ensureUserRecord({
       appwriteUser,
       provider: "email",
       correlationId,
     });
+    
+    // phone and gymName will be collected later in the onboarding wizard
 
     logEvent("info", "auth.signup.completed", {
       correlationId,
@@ -121,7 +125,10 @@ export async function signUp(formData: FormData) {
     };
   }
 
-  redirect("/onboarding");
+  // Proceed to onboarding wizard
+  const redirectUrl = new URL("/onboarding", await getAppUrl());
+  
+  redirect(redirectUrl.toString());
 }
 
 export async function signIn(formData: FormData) {
@@ -137,11 +144,11 @@ export async function signIn(formData: FormData) {
   const account = getAuthClient();
 
   try {
-    const session = await account.createEmailPasswordSession(
+    const sessionSecret = await createEmailPasswordSessionHelper(
       parsed.data.email,
       parsed.data.password
     );
-    await setSessionCookie(session.secret);
+    await setSessionCookie(sessionSecret);
   } catch (error: unknown) {
     logEvent("warn", "auth.login.failed", {
       correlationId,
@@ -164,7 +171,7 @@ export async function signIn(formData: FormData) {
         where: { appwrite_user_id: appwriteUser.$id },
         include: { gym: true },
       })) ??
-      (await ensureOwnerWorkspace({
+      (await ensureUserRecord({
         appwriteUser,
         provider: "email",
         correlationId,
