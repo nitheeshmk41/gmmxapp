@@ -41,7 +41,7 @@ export async function createSessionClient() {
  * Create an Appwrite client authenticated with the project API key.
  * Used for admin operations like password recovery, user management.
  *
- * Requires NEXT_APPWRITE_KEY to be set in environment variables.
+ * Requires APPWRITE_API_KEY to be set in environment variables.
  */
 export async function createAdminClient() {
   const client = new Client()

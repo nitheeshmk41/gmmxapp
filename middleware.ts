@@ -6,21 +6,27 @@ export async function middleware(request: NextRequest) {
 
   // 1. Read host header
   const host = request.headers.get("host") || "";
+  const hostname = host.split(":")[0];
 
   // 2. Extract subdomain
-  const subdomain = host.split(".")[0];
+  const parts = hostname.split(".");
+  let subdomain: string | null = null;
+
+  if (
+    hostname !== "localhost" &&
+    hostname !== "gmmx.app" &&
+    hostname !== "www.gmmx.app" &&
+    hostname !== "127.0.0.1"
+  ) {
+    subdomain = parts[0];
+  }
 
   // 6. Add debugging logs
   console.log(`[Middleware] Host: ${host} | Extracted Subdomain: ${subdomain} | Path: ${pathname}`);
 
-  // 3. Ignore standard hosts and localhosts
-  const isLocalhost = subdomain === "localhost" || host.startsWith("127.0.0.1");
-  const isAppDomain = subdomain === "www" || subdomain === "gmmx" || host === "gmmx.app";
-
   // Check if we should rewrite to tenant
   if (
-    !isLocalhost &&
-    !isAppDomain &&
+    subdomain &&
     !pathname.startsWith("/dashboard") &&
     !pathname.startsWith("/admin") &&
     !pathname.startsWith("/api") &&

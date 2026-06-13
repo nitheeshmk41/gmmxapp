@@ -6,7 +6,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_APP_DOMAIN: z.string().min(1).default("gmmx.app"),
   NEXT_PUBLIC_APPWRITE_ENDPOINT: z.string().url("NEXT_PUBLIC_APPWRITE_ENDPOINT must be a valid URL"),
   NEXT_PUBLIC_APPWRITE_PROJECT_ID: z.string().min(1, "NEXT_PUBLIC_APPWRITE_PROJECT_ID is required"),
-  NEXT_APPWRITE_KEY: z.string().optional(),
+  APPWRITE_API_KEY: z.string().optional(),
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
@@ -14,7 +14,7 @@ const envSchema = z.object({
 });
 
 const appwriteAdminEnvSchema = z.object({
-  NEXT_APPWRITE_KEY: z.string().min(1, "NEXT_APPWRITE_KEY is required for Appwrite admin operations"),
+  APPWRITE_API_KEY: z.string().min(1, "APPWRITE_API_KEY is required for Appwrite admin operations"),
 });
 
 export const env = envSchema.parse({
@@ -23,7 +23,7 @@ export const env = envSchema.parse({
   NEXT_PUBLIC_APP_DOMAIN: process.env.NEXT_PUBLIC_APP_DOMAIN,
   NEXT_PUBLIC_APPWRITE_ENDPOINT: process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT,
   NEXT_PUBLIC_APPWRITE_PROJECT_ID: process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID,
-  NEXT_APPWRITE_KEY: process.env.NEXT_APPWRITE_KEY,
+  APPWRITE_API_KEY: process.env.APPWRITE_API_KEY,
   RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID,
   RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET,
   RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET,
@@ -32,6 +32,6 @@ export const env = envSchema.parse({
 
 export function getAppwriteAdminKey() {
   return appwriteAdminEnvSchema.parse({
-    NEXT_APPWRITE_KEY: process.env.NEXT_APPWRITE_KEY,
-  }).NEXT_APPWRITE_KEY;
+    APPWRITE_API_KEY: process.env.APPWRITE_API_KEY,
+  }).APPWRITE_API_KEY;
 }
