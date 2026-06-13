@@ -57,20 +57,51 @@ export async function createTrainer(formData: FormData) {
   const parsed = trainerSchema.safeParse({ ...raw, is_active: true });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  const { databases } = await createAdminClient();
+  const { databases, users } = await createAdminClient();
 
-  await databases.createDocument(
-    APPWRITE_DB_ID,
-    COLLECTIONS.TRAINERS,
-    ID.unique(),
-    {
-      ...parsed.data,
-      gymId: gym.$id
+  try {
+    let userId = ID.unique();
+    if (parsed.data.phone) {
+      // Create Appwrite Auth User for the Trainer to allow OTP login
+      const password = ID.unique() + ID.unique();
+      const appwriteUser = await users.create(
+        ID.unique(),
+        parsed.data.email || undefined,
+        parsed.data.phone,
+        password,
+        parsed.data.name
+      );
+      userId = appwriteUser.$id;
+
+      // Link to gym_users
+      await databases.createDocument(
+        APPWRITE_DB_ID,
+        COLLECTIONS.GYM_USERS,
+        ID.unique(),
+        {
+          gymId: gym.$id,
+          userId: userId,
+          role: "TRAINER"
+        }
+      );
     }
-  );
 
-  revalidatePath("/dashboard/trainers");
-  return { success: true };
+    await databases.createDocument(
+      APPWRITE_DB_ID,
+      COLLECTIONS.TRAINERS,
+      ID.unique(),
+      {
+        ...parsed.data,
+        gymId: gym.$id,
+        userId: userId // Assuming TRAINERS collection wants to track userId
+      }
+    );
+
+    revalidatePath("/dashboard/trainers");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "Failed to create trainer" };
+  }
 }
 
 export async function updateTrainer(id: string, formData: FormData) {

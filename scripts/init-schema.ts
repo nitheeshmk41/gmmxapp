@@ -41,6 +41,13 @@ async function setupSchema() {
   await createString("gyms", "primaryColor", 255, false);
   await createString("gyms", "secondaryColor", 255, false);
   await createString("gyms", "trialEndsAt", 255, false);
+  await createString("gyms", "coverImageUrl", 1024, false);
+  await createString("gyms", "createdAt", 255, false);
+
+  console.log("Setting up Gym Users Schema...");
+  await createString("gym_users", "gymId", 255, true);
+  await createString("gym_users", "userId", 255, true);
+  await createString("gym_users", "role", 255, true);
 
   console.log("Waiting for attributes to be ready...");
   await delay(3000); // Wait for Appwrite to process attributes
@@ -48,6 +55,8 @@ async function setupSchema() {
   console.log("Creating Indexes...");
   await createIndex("gyms", "subdomain_idx", IndexType.Unique, ["subdomain"]);
   await createIndex("gyms", "ownerId_idx", IndexType.Key, ["ownerId"]);
+
+  await createIndex("gym_users", "gym_user_idx", IndexType.Key, ["gymId", "userId"]);
 
   console.log("Schema setup complete.");
 }

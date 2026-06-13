@@ -11,6 +11,7 @@ export interface TenantData {
   primaryColor: string | null;
   secondaryColor: string | null;
   ownerId: string;
+  coverImageUrl: string | null;
   createdAt: string;
 }
 
@@ -39,6 +40,7 @@ export async function getTenantBySubdomain(subdomain: string): Promise<TenantDat
       primaryColor: gym.primary_color || null,
       secondaryColor: gym.secondary_color || null,
       ownerId: gym.owner_id,
+      coverImageUrl: gym.coverImageUrl || gym.cover_image_url || null,
       createdAt: gym.$createdAt,
     };
   } catch (error) {

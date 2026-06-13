@@ -1,6 +1,6 @@
 "use server";
 
-import { createAdminClient, createSessionClient, createEmailPasswordSessionHelper } from "@/lib/appwrite/server";
+import { createAdminClient, createSessionClient } from "@/lib/appwrite/server";
 import { ensureUserRecord, routeForUser } from "@/lib/auth/bootstrap";
 import { getCurrentContext } from "@/lib/auth/context";
 import { env } from "@/lib/env";
@@ -11,15 +11,13 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { APPWRITE_DB_ID, COLLECTIONS, GymUserDocument } from "@/lib/appwrite/types";
 
-const signUpSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+const sendOtpSchema = z.object({
+  phone: z.string().min(10, "Phone number must be at least 10 characters (include country code)"),
 });
 
-const signInSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
+const verifyOtpSchema = z.object({
+  userId: z.string().min(1, "User ID is missing"),
+  secret: z.string().min(6, "OTP must be 6 digits"),
 });
 
 function getAuthClient() {
@@ -73,81 +71,45 @@ export async function signInWithGoogle() {
   redirect(redirectUrl);
 }
 
-export async function signUp(formData: FormData) {
-  const correlationId = createCorrelationId();
-  const raw = {
-    name: formData.get("name") as string,
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  };
-
-  const parsed = signUpSchema.safeParse(raw);
+export async function sendOtp(formData: FormData) {
+  const phone = formData.get("phone") as string;
+  const parsed = sendOtpSchema.safeParse({ phone });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   const account = getAuthClient();
 
   try {
-    const appwriteUser = await account.create(
-      ID.unique(),
-      parsed.data.email,
-      parsed.data.password,
-      parsed.data.name
-    );
-
-    const sessionSecret = await createEmailPasswordSessionHelper(
-      parsed.data.email,
-      parsed.data.password
-    );
-
-    await setSessionCookie(sessionSecret);
-    
-    // Create the DB User record
-    await ensureUserRecord({
-      appwriteUser,
-      provider: "email",
-      correlationId,
-    });
-    
-    logEvent("info", "auth.signup.completed", {
-      correlationId,
-      appwriteUserId: appwriteUser.$id,
-    });
+    const token = await account.createPhoneToken(ID.unique(), phone);
+    return { success: true, userId: token.userId };
   } catch (error: unknown) {
-    return {
-      error: error instanceof Error ? error.message : "Failed to create account",
-    };
+    return { error: error instanceof Error ? error.message : "Failed to send OTP" };
   }
-
-  // Proceed to onboarding wizard
-  const redirectUrl = new URL("/onboarding", await getAppUrl());
-  redirect(redirectUrl.toString());
 }
 
-export async function signIn(formData: FormData) {
+export async function verifyOtp(formData: FormData) {
   const correlationId = createCorrelationId();
-  const raw = {
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  };
-
-  const parsed = signInSchema.safeParse(raw);
+  const userId = formData.get("userId") as string;
+  const secret = formData.get("secret") as string;
+  
+  const parsed = verifyOtpSchema.safeParse({ userId, secret });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  try {
-    const sessionSecret = await createEmailPasswordSessionHelper(
-      parsed.data.email,
-      parsed.data.password
-    );
-    await setSessionCookie(sessionSecret);
-  } catch (error: unknown) {
-    return { error: "Invalid email or password" };
-  }
+  const account = getAuthClient();
 
   let redirectTo = "/dashboard";
-
+  
   try {
+    const session = await account.createSession(userId, secret);
+    await setSessionCookie(session.secret);
+    
     const { account: sessionAccount } = await createSessionClient();
     const appwriteUser = await sessionAccount.get();
+
+    const dbUser = await ensureUserRecord({
+      appwriteUser,
+      provider: "phone",
+      correlationId,
+    });
 
     const { databases } = await createAdminClient();
     const gymUsersRes = await databases.listDocuments<GymUserDocument>(
@@ -156,24 +118,18 @@ export async function signIn(formData: FormData) {
       [Query.equal("userId", appwriteUser.$id)]
     );
 
-    const dbUser = await ensureUserRecord({
-      appwriteUser,
-      provider: "email",
-      correlationId,
-    });
-
     const gymUser = gymUsersRes.documents.length > 0 ? gymUsersRes.documents[0] : null;
 
     redirectTo = routeForUser({
       role: gymUser?.role || "OWNER",
-      onboarding_status: dbUser.onboarding_status || "completed", // Fallback to completed for now
+      onboarding_status: dbUser.onboarding_status || "completed",
       gymId: gymUser?.gymId
     });
-    
-  } catch (error) {
-    console.error("Route resolution failed", error);
+  } catch (error: unknown) {
+    console.error("OTP verification failed", error);
+    return { error: "Invalid OTP or OTP expired." };
   }
-
+  
   redirect(redirectTo);
 }
 
@@ -186,18 +142,6 @@ export async function signOut() {
     await deleteSessionCookie();
   } catch {}
   redirect("/login");
-}
-
-export async function resetPassword(formData: FormData) {
-  const email = formData.get("email") as string;
-  if (!email || !z.string().email().safeParse(email).success) {
-    return { error: "Please enter a valid email address" };
-  }
-  try {
-    const { account } = await createAdminClient();
-    await account.createRecovery(email, `${env.NEXT_PUBLIC_APP_URL}/auth/reset-password`);
-  } catch {}
-  return { success: "If an account exists with that email, you'll receive a password reset link." };
 }
 
 export async function getCurrentUser() {

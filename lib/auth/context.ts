@@ -2,6 +2,7 @@ import { createAdminClient, createSessionClient } from "@/lib/appwrite/server";
 import { AuthenticationError, AuthorizationError } from "@/lib/errors";
 import { APPWRITE_DB_ID, COLLECTIONS, GymUserDocument, GymDocument } from "@/lib/appwrite/types";
 import { Query } from "node-appwrite";
+import { headers } from "next/headers";
 
 export type AuthContext = Awaited<ReturnType<typeof getCurrentContext>>;
 
@@ -12,11 +13,40 @@ export async function getCurrentContext() {
     
     const { databases } = await createAdminClient();
 
-    // Query gym_users to find if the user is attached to a gym
+    const headerStore = await headers();
+    const host = headerStore.get("host") || "";
+    const hostname = host.split(":")[0];
+    const parts = hostname.split(".");
+    
+    let currentGymId: string | null = null;
+    
+    if (
+      hostname !== "localhost" &&
+      hostname !== "gmmx.app" &&
+      hostname !== "www.gmmx.app" &&
+      hostname !== "127.0.0.1"
+    ) {
+      const subdomain = parts[0];
+      const gymRes = await databases.listDocuments<GymDocument>(
+        APPWRITE_DB_ID,
+        COLLECTIONS.GYMS,
+        [Query.equal("subdomain", subdomain)]
+      );
+      if (gymRes.documents.length > 0) {
+        currentGymId = gymRes.documents[0].$id;
+      }
+    }
+
+    const queryFilters = [Query.equal("userId", appwriteUser.$id)];
+    if (currentGymId) {
+      queryFilters.push(Query.equal("gymId", currentGymId));
+    }
+
+    // Query gym_users to find if the user is attached to the current gym (or any gym if on root domain)
     const gymUsersRes = await databases.listDocuments<GymUserDocument>(
       APPWRITE_DB_ID,
       COLLECTIONS.GYM_USERS,
-      [Query.equal("userId", appwriteUser.$id)]
+      queryFilters
     );
 
     let gymUser = null;
@@ -39,7 +69,13 @@ export async function getCurrentContext() {
 
     return {
       appwriteUser,
-      user: { id: appwriteUser.$id, email: appwriteUser.email, name: appwriteUser.name, role, onboarding_status: "completed" },
+      user: { 
+        id: appwriteUser.$id, 
+        email: appwriteUser.email, 
+        name: appwriteUser.name, 
+        role, 
+        onboarding_status: (appwriteUser.prefs && appwriteUser.prefs.onboarding_status) || "pending" 
+      },
       gym,
       role,
       subscription: null, // Subscriptions handled differently now

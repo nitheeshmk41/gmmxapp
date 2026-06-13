@@ -10,7 +10,7 @@ export async function ensureUserRecord({
   correlationId,
 }: {
   appwriteUser: Models.User<Models.Preferences>;
-  provider: "email" | "google";
+  provider: "email" | "google" | "phone";
   correlationId?: string;
 }) {
   const displayName = appwriteUser.name || appwriteUser.email.split("@")[0] || "Owner";

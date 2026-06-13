@@ -375,6 +375,18 @@ export function ModernTemplate({ gym, settings, plans, trainers }: Props) {
 
       {/* Footer */}
       <footer className="py-8 px-6 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="flex justify-center gap-6 mb-6">
+          <a href="/login" className="text-sm font-semibold transition-colors" style={{ color: "#94A3B8" }}
+             onMouseEnter={(e) => (e.currentTarget.style.color = "#FF5C73")}
+             onMouseLeave={(e) => (e.currentTarget.style.color = "#94A3B8")}>
+            Member Login
+          </a>
+          <a href="/login" className="text-sm font-semibold transition-colors" style={{ color: "#94A3B8" }}
+             onMouseEnter={(e) => (e.currentTarget.style.color = "#FF5C73")}
+             onMouseLeave={(e) => (e.currentTarget.style.color = "#94A3B8")}>
+            Trainer Login
+          </a>
+        </div>
         <p className="text-sm" style={{ color: "#475569" }}>
           © {new Date().getFullYear()} {gym.name}. Powered by{" "}
           <a href="https://gmmx.app" style={{ color: "#FF5C73" }}>GMMX</a>
