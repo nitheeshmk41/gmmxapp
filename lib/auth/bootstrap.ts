@@ -1,14 +1,8 @@
 import type { Models } from "node-appwrite";
-import { prisma } from "@/lib/prisma";
+import { ID } from "node-appwrite";
 import { logEvent } from "@/lib/logger";
-
-function toTenantSlug(input: string) {
-  return input
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 40);
-}
+import { createAdminClient } from "@/lib/appwrite/server";
+import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
 
 export async function ensureUserRecord({
   appwriteUser,
@@ -21,30 +15,33 @@ export async function ensureUserRecord({
 }) {
   const displayName = appwriteUser.name || appwriteUser.email.split("@")[0] || "Owner";
 
-  const user = await prisma.user.upsert({
-    where: { appwrite_user_id: appwriteUser.$id },
-    update: {
-      email: appwriteUser.email,
-      name: displayName,
-    },
-    create: {
-      appwrite_user_id: appwriteUser.$id,
-      email: appwriteUser.email,
-      name: displayName,
-      provider,
-      role: "gym_owner",
+  // Appwrite Users API holds the core identity.
+  // In our new architecture, we don't have a separate `users` DB table,
+  // we just use the `gym_users` collection for mapping users to tenants.
+  // We can update the Appwrite user preferences to track onboarding status.
+  const { users } = await createAdminClient();
+  
+  const prefs = await users.getPrefs(appwriteUser.$id);
+  if (!prefs.onboarding_status) {
+    await users.updatePrefs(appwriteUser.$id, {
+      ...prefs,
       onboarding_status: "pending",
-    },
-    include: { tenant: true, gym: true },
-  });
+      role: "gym_owner"
+    });
+  }
 
   logEvent("info", "user.bootstrap.completed", {
     correlationId,
-    userId: user.id,
+    userId: appwriteUser.$id,
     provider,
   });
 
-  return user;
+  return {
+    id: appwriteUser.$id,
+    email: appwriteUser.email,
+    name: displayName,
+    onboarding_status: prefs.onboarding_status || "pending"
+  };
 }
 
 export async function createGymTenant({
@@ -55,6 +52,11 @@ export async function createGymTenant({
   phone,
   subdomain,
   plan = "starter",
+  template = "modern",
+  primaryColor,
+  secondaryColor,
+  logoUrl,
+  coverImageUrl,
 }: {
   userId: string;
   gymName: string;
@@ -63,100 +65,67 @@ export async function createGymTenant({
   phone: string;
   subdomain: string;
   plan?: string;
+  template?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  logoUrl?: string;
+  coverImageUrl?: string;
 }) {
   const trialEndsAt = new Date();
   trialEndsAt.setDate(trialEndsAt.getDate() + 14);
 
-  const baseSlug = toTenantSlug(gymName) || "gym";
-  const tenantSlug = `${baseSlug}-${Math.random().toString(36).substring(2, 8)}`;
+  const { databases, users } = await createAdminClient();
 
-  return prisma.$transaction(async (tx) => {
-    const tenant = await tx.tenant.create({
-      data: {
-        name: gymName,
-        slug: tenantSlug,
-      },
-    });
+  // Create Gym
+  const gym = await databases.createDocument(
+    APPWRITE_DB_ID,
+    COLLECTIONS.GYMS,
+    ID.unique(),
+    {
+      name: gymName,
+      subdomain,
+      ownerId: userId,
+      template,
+      primaryColor,
+      secondaryColor,
+      logoUrl,
+      coverImageUrl,
+      trialEndsAt: trialEndsAt.toISOString(),
+      createdAt: new Date().toISOString()
+    }
+  );
 
-    const gym = await tx.gym.create({
-      data: {
-        tenant_id: tenant.id,
-        name: gymName,
-        owner_name: ownerName,
-        phone,
-        email,
-        subdomain,
-        plan: plan as any,
-        subscription_status: "trial",
-        trial_ends_at: trialEndsAt,
-      },
-    });
+  // Link Owner
+  await databases.createDocument(
+    APPWRITE_DB_ID,
+    COLLECTIONS.GYM_USERS,
+    ID.unique(),
+    {
+      gymId: gym.$id,
+      userId: userId,
+      role: "OWNER"
+    }
+  );
 
-    await tx.branch.create({
-      data: {
-        id: `main-${gym.id}`,
-        tenant_id: tenant.id,
-        gym_id: gym.id,
-        name: "Main Branch",
-        is_main: true,
-      },
-    });
-
-    await tx.websiteSettings.create({
-      data: {
-        tenant_id: tenant.id,
-        gym_id: gym.id,
-        template: "modern",
-        is_published: true,
-      },
-    });
-
-    await tx.subscription.create({
-      data: {
-        id: `trial-${gym.id}`,
-        tenant_id: tenant.id,
-        gym_id: gym.id,
-        plan: plan as any,
-        status: "trial",
-        current_period_start: new Date(),
-        current_period_end: trialEndsAt,
-      },
-    });
-
-    return tx.user.update({
-      where: { id: userId },
-      data: {
-        tenant_id: tenant.id,
-        gym_id: gym.id,
-        onboarding_status: "completed",
-      },
-      include: { tenant: true, gym: true },
-    });
+  // Mark user as onboarded
+  const prefs = await users.getPrefs(userId);
+  await users.updatePrefs(userId, {
+    ...prefs,
+    onboarding_status: "completed"
   });
+
+  return gym;
 }
 
 export function routeForUser(user: {
   role: string;
   onboarding_status: string;
-  gym?: { subscription_status?: string; trial_ends_at?: Date | null; subdomain?: string } | null;
+  gymId?: string | null;
 }) {
   if (user.role === "super_admin") return "/admin";
   if (user.onboarding_status !== "completed") return "/onboarding";
-  if (user.gym?.subscription_status === "expired") return "/billing";
   
-  const path = user.role === "trainer" ? "/trainer/dashboard" : user.role === "member" ? "/member/dashboard" : "/dashboard";
-  const subdomain = user.gym?.subdomain;
+  const path = user.role === "TRAINER" ? "/trainer/dashboard" : user.role === "MEMBER" ? "/member/dashboard" : "/dashboard";
 
-  if (subdomain) {
-    const isProd = process.env.NODE_ENV === "production";
-    if (isProd) {
-      const baseDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "gmmx.app";
-      return `https://${subdomain}.${baseDomain}${path}`;
-    }
-    // Locally, middleware uses the ?gym= query parameter instead of subdomains
-    return `${path}?gym=${subdomain}`;
-  }
-
-  return path;
+  return path; // Domain resolution handled by middleware/redirects
 }
-

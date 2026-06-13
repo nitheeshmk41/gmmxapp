@@ -2,7 +2,9 @@
 
 import { createGymTenant } from "@/lib/auth/bootstrap";
 import { getCurrentContext } from "@/lib/auth/context";
-import { prisma } from "@/lib/prisma";
+import { createAdminClient } from "@/lib/appwrite/server";
+import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
+import { Query } from "node-appwrite";
 
 export async function completeOnboarding(formData: FormData) {
   const context = await getCurrentContext();
@@ -11,7 +13,11 @@ export async function completeOnboarding(formData: FormData) {
     return { error: "You must be logged in to complete onboarding." };
   }
 
-  if (context.user.onboarding_status === "completed") {
+  // We need to fetch user's prefs to check if onboarding is already completed
+  const { users, databases } = await createAdminClient();
+  const prefs = await users.getPrefs(context.user.id);
+  
+  if (prefs.onboarding_status === "completed") {
     return { error: "Onboarding is already completed." };
   }
 
@@ -20,17 +26,25 @@ export async function completeOnboarding(formData: FormData) {
   const plan = formData.get("plan") as string;
   const phone = formData.get("phone") as string;
   
+  const template = formData.get("template") as string;
+  const primaryColor = formData.get("primaryColor") as string;
+  const secondaryColor = formData.get("secondaryColor") as string;
+  const logoUrl = formData.get("logoUrl") as string;
+  const coverImageUrl = formData.get("coverImageUrl") as string;
+  
   // Basic validation
   if (!gymName || !subdomain || !plan || !phone) {
     return { error: "Missing required fields." };
   }
 
   // Check if subdomain is taken
-  const existingGym = await prisma.gym.findUnique({
-    where: { subdomain },
-  });
+  const existingGym = await databases.listDocuments(
+    APPWRITE_DB_ID,
+    COLLECTIONS.GYMS,
+    [Query.equal("subdomain", subdomain)]
+  );
 
-  if (existingGym) {
+  if (existingGym.documents.length > 0) {
     return { error: "This subdomain is already taken." };
   }
 
@@ -43,6 +57,11 @@ export async function completeOnboarding(formData: FormData) {
       phone,
       subdomain,
       plan,
+      template,
+      primaryColor,
+      secondaryColor,
+      logoUrl,
+      coverImageUrl,
     });
     
     return { success: true, subdomain };

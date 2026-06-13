@@ -1,96 +1,34 @@
+import Link from "next/link";
 import {
   Users,
-  UserCheck,
+  UserPlus,
   AlertTriangle,
-  CalendarX,
   IndianRupee,
   CalendarCheck,
-  UserPlus,
   TrendingUp,
+  CreditCard,
+  Plus,
+  ArrowRight,
+  Clock
 } from "lucide-react";
 import {
   getDashboardStats,
   getMonthlyRevenue,
   getNewMembersMonthly,
   getAttendanceTrend,
+  getRecentActivity
 } from "@/features/dashboard/stats";
 import { formatCurrency } from "@/lib/utils";
 import { DashboardCharts } from "./charts";
-
-const STAT_CARDS = [
-  {
-    key: "totalMembers" as const,
-    label: "Total Members",
-    icon: Users,
-    color: "var(--color-info)",
-    bg: "var(--color-info-light)",
-    borderColor: "var(--color-info)",
-  },
-  {
-    key: "activeMembers" as const,
-    label: "Active Members",
-    icon: UserCheck,
-    color: "var(--color-success)",
-    bg: "var(--color-success-light)",
-    borderColor: "var(--color-success)",
-  },
-  {
-    key: "expiringThisWeek" as const,
-    label: "Expiring This Week",
-    icon: AlertTriangle,
-    color: "var(--color-warning)",
-    bg: "var(--color-warning-light)",
-    borderColor: "var(--color-warning)",
-  },
-  {
-    key: "expiringThisMonth" as const,
-    label: "Expiring This Month",
-    icon: CalendarX,
-    color: "var(--color-danger)",
-    bg: "var(--color-danger-light)",
-    borderColor: "var(--color-danger)",
-  },
-  {
-    key: "revenueThisMonth" as const,
-    label: "Revenue This Month",
-    icon: IndianRupee,
-    color: "var(--color-brand-primary)",
-    bg: "var(--color-brand-light)",
-    borderColor: "var(--color-brand-primary)",
-    isCurrency: true,
-  },
-  {
-    key: "attendanceToday" as const,
-    label: "Attendance Today",
-    icon: CalendarCheck,
-    color: "var(--color-success)",
-    bg: "var(--color-success-light)",
-    borderColor: "var(--color-success)",
-  },
-  {
-    key: "totalLeads" as const,
-    label: "Total Leads",
-    icon: TrendingUp,
-    color: "var(--color-info)",
-    bg: "var(--color-info-light)",
-    borderColor: "var(--color-info)",
-  },
-  {
-    key: "newLeadsThisWeek" as const,
-    label: "New Leads This Week",
-    icon: UserPlus,
-    color: "var(--color-brand-primary)",
-    bg: "var(--color-brand-light)",
-    borderColor: "var(--color-brand-primary)",
-  },
-];
+import { formatDistanceToNow } from "date-fns";
 
 export default async function DashboardPage() {
-  const [stats, monthlyRevenue, newMembers, attendanceTrend] = await Promise.all([
+  const [stats, monthlyRevenue, newMembers, attendanceTrend, recentActivity] = await Promise.all([
     getDashboardStats(),
     getMonthlyRevenue(),
     getNewMembersMonthly(),
     getAttendanceTrend(),
+    getRecentActivity()
   ]);
 
   if (!stats) {
@@ -101,74 +39,188 @@ export default async function DashboardPage() {
     );
   }
 
+  // Define Quick Actions
+  const QUICK_ACTIONS = [
+    { href: "/dashboard/members/new", label: "Add Member", icon: UserPlus, color: "text-blue-500", bg: "bg-blue-50" },
+    { href: "/dashboard/leads", label: "Add Lead", icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-50" },
+    { href: "/dashboard/payments", label: "Payment", icon: CreditCard, color: "text-purple-500", bg: "bg-purple-50" },
+    { href: "/dashboard/attendance", label: "Attendance", icon: CalendarCheck, color: "text-orange-500", bg: "bg-orange-50" },
+  ];
+
+  // Define Today's Overview Cards
+  const TODAY_STATS = [
+    { label: "Revenue Today", value: formatCurrency(stats.revenueToday), icon: IndianRupee, color: "var(--color-success)", bg: "var(--color-success-light)" },
+    { label: "Attendance Today", value: stats.attendanceToday, icon: CalendarCheck, color: "var(--color-info)", bg: "var(--color-info-light)" },
+    { label: "Expiring Soon", value: stats.expiringThisMonth, icon: AlertTriangle, color: "var(--color-warning)", bg: "var(--color-warning-light)" },
+    { label: "New Leads", value: stats.newLeadsThisWeek, icon: TrendingUp, color: "var(--color-brand-primary)", bg: "var(--color-brand-light)" },
+  ];
+
   return (
-    <div className="space-y-6 animate-in">
-      {/* Welcome banner */}
-      <div
-        className="p-5 rounded-2xl flex items-center justify-between"
-        style={{
-          background: "linear-gradient(135deg, var(--color-sidebar) 0%, #1E293B 100%)",
-        }}
-      >
+    <div className="space-y-8 animate-in max-w-6xl mx-auto pb-10">
+      {/* Greeting Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-white font-bold text-lg">Good {getGreeting()}! 👋</h2>
-          <p className="text-sm mt-0.5" style={{ color: "#94A3B8" }}>
+          <h2 className="text-2xl font-bold" style={{ color: "var(--color-foreground)" }}>
+            Good {getGreeting()} 👋
+          </h2>
+          <p className="text-sm mt-1" style={{ color: "var(--color-muted-foreground)" }}>
             Here&apos;s what&apos;s happening with your gym today.
           </p>
         </div>
-        <div
-          className="hidden sm:flex w-12 h-12 rounded-xl items-center justify-center"
-          style={{ background: "rgba(255,92,115,0.15)" }}
-        >
-          <TrendingUp size={20} style={{ color: "var(--color-brand-primary)" }} />
-        </div>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {STAT_CARDS.map((card) => {
-          const Icon = card.icon;
-          const rawValue = stats[card.key];
-          const displayValue = card.isCurrency
-            ? formatCurrency(rawValue as number)
-            : String(rawValue);
+      {/* Quick Actions */}
+      <section>
+        <h3 className="text-xs font-semibold tracking-wider uppercase mb-3 text-slate-500">
+          Quick Actions
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {QUICK_ACTIONS.map((action) => {
+            const Icon = action.icon;
+            return (
+              <Link
+                key={action.label}
+                href={action.href}
+                className="flex items-center gap-3 p-3 rounded-xl transition-all hover:-translate-y-0.5 bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md shadow-sm"
+              >
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${action.bg}`}>
+                  <Icon size={18} className={action.color} />
+                </div>
+                <span className="font-semibold text-sm text-slate-700">{action.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
 
-          return (
-            <div
-              key={card.key}
-              className="p-5 rounded-xl hover-lift"
-              style={{
-                background: "var(--color-surface)",
-                border: "1px solid var(--color-border)",
-                boxShadow: "var(--shadow-card)",
-                borderTop: `3px solid ${card.borderColor}`,
-              }}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-medium" style={{ color: "var(--color-muted-foreground)" }}>
-                  {card.label}
-                </span>
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center"
-                  style={{ background: card.bg }}
-                >
-                  <Icon size={15} style={{ color: card.color }} />
+      {/* Today's Overview */}
+      <section>
+        <h3 className="text-xs font-semibold tracking-wider uppercase mb-3 text-slate-500">
+          Today&apos;s Overview
+        </h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {TODAY_STATS.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={stat.label}
+                className="p-5 rounded-2xl bg-white border border-slate-100 shadow-sm transition-all hover:shadow-md"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-medium text-slate-500">
+                    {stat.label}
+                  </span>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: stat.bg }}>
+                    <Icon size={16} style={{ color: stat.color }} />
+                  </div>
+                </div>
+                <div className="text-2xl font-bold text-slate-900 tracking-tight">
+                  {stat.value}
                 </div>
               </div>
-              <div className="text-2xl font-bold" style={{ color: "var(--color-foreground)" }}>
-                {displayValue}
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Recent Activity & Renewals */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Activity Feed */}
+        <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-base font-bold text-slate-900 tracking-tight">Recent Activity</h3>
+            <Link href="/dashboard/payments" className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
+              View all <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="space-y-5">
+            {recentActivity.recentPayments.map((payment) => (
+              <div key={payment.id} className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                  <IndianRupee size={16} className="text-emerald-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-900 truncate">
+                    Payment from {payment.member.name}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {formatDistanceToNow(new Date(payment.paid_at), { addSuffix: true })}
+                  </p>
+                </div>
+                <div className="text-sm font-bold text-emerald-600">
+                  +{formatCurrency(Number(payment.amount))}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            ))}
+            {recentActivity.recentMembers.map((member) => (
+              <div key={member.id} className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+                  <UserPlus size={16} className="text-blue-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-900 truncate">
+                    {member.name} joined
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {formatDistanceToNow(new Date(member.join_date), { addSuffix: true })}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {recentActivity.recentPayments.length === 0 && recentActivity.recentMembers.length === 0 && (
+              <p className="text-sm text-slate-500 text-center py-4">No recent activity.</p>
+            )}
+          </div>
+        </section>
+
+        {/* Upcoming Renewals */}
+        <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-base font-bold text-slate-900 tracking-tight">Upcoming Renewals</h3>
+            <Link href="/dashboard/expiry" className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
+              View all <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="space-y-5">
+            {recentActivity.upcomingRenewals.map((renewal) => {
+              const daysLeft = Math.ceil((new Date(renewal.membership_end!).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+              const isUrgent = daysLeft <= 3;
+              
+              return (
+                <div key={renewal.id} className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isUrgent ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'}`}>
+                      <Clock size={16} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-900 truncate">{renewal.member.name}</p>
+                      <p className="text-xs text-slate-500">{renewal.member.phone}</p>
+                    </div>
+                  </div>
+                  <div className={`text-xs font-bold px-3 py-1 rounded-full ${isUrgent ? 'bg-red-50 text-red-700' : 'bg-orange-50 text-orange-700'}`}>
+                    {daysLeft > 0 ? `In ${daysLeft} days` : 'Expired'}
+                  </div>
+                </div>
+              );
+            })}
+            {recentActivity.upcomingRenewals.length === 0 && (
+              <p className="text-sm text-slate-500 text-center py-4">No upcoming renewals in the next 30 days.</p>
+            )}
+          </div>
+        </section>
       </div>
 
       {/* Charts */}
-      <DashboardCharts
-        monthlyRevenue={monthlyRevenue}
-        newMembers={newMembers}
-        attendanceTrend={attendanceTrend}
-      />
+      <section>
+         <h3 className="text-xs font-semibold tracking-wider uppercase mb-3 text-slate-500">
+          Performance
+        </h3>
+        <DashboardCharts
+          monthlyRevenue={monthlyRevenue}
+          newMembers={newMembers}
+          attendanceTrend={attendanceTrend}
+        />
+      </section>
     </div>
   );
 }

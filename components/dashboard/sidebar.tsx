@@ -66,26 +66,6 @@ export function Sidebar({ gymName = "Your Gym", gymSubdomain, userEmail }: Sideb
         </div>
       </div>
 
-      {/* Gym info card */}
-      <div
-        className="mx-3 mt-3 p-3 rounded-xl flex items-center gap-3"
-        style={{ background: "var(--color-sidebar-accent)" }}
-      >
-        <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ background: "rgba(255,92,115,0.15)" }}
-        >
-          <Building2 size={16} style={{ color: "var(--color-brand-primary)" }} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-white truncate">{gymName}</p>
-          {gymSubdomain && (
-            <p className="text-xs truncate" style={{ color: "var(--color-sidebar-muted)" }}>
-              {gymSubdomain}.gmmx.app
-            </p>
-          )}
-        </div>
-      </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-3 overflow-y-auto scrollbar-thin">

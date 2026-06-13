@@ -1,9 +1,11 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { createAdminClient } from "@/lib/appwrite/server";
 import { getCurrentGym } from "@/features/auth/actions";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { APPWRITE_DB_ID, COLLECTIONS, TrainerDocument } from "@/lib/appwrite/types";
+import { Query, ID } from "node-appwrite";
 
 const trainerSchema = z.object({
   name: z.string().min(2, "Name required"),
@@ -19,32 +21,32 @@ export async function getTrainers() {
   const gym = await getCurrentGym();
   if (!gym) return [];
 
-  return prisma.trainer.findMany({
-    where: { gym_id: gym.id },
-    include: { members: { select: { id: true, name: true } } },
-    orderBy: { name: "asc" },
-  });
+  const { databases } = await createAdminClient();
+  const response = await databases.listDocuments<TrainerDocument>(
+    APPWRITE_DB_ID,
+    COLLECTIONS.TRAINERS,
+    [Query.equal("gymId", gym.$id), Query.orderAsc("name")]
+  );
+
+  return response.documents;
 }
 
 export async function getTrainerById(id: string) {
   const gym = await getCurrentGym();
   if (!gym) return null;
 
-  return prisma.trainer.findFirst({
-    where: { id, gym_id: gym.id },
-    include: {
-      members: {
-        include: {
-          payments: {
-            where: { status: "paid" },
-            orderBy: { paid_at: "desc" },
-            take: 1,
-            select: { membership_end: true },
-          },
-        },
-      },
-    },
-  });
+  const { databases } = await createAdminClient();
+  try {
+    const trainer = await databases.getDocument<TrainerDocument>(
+      APPWRITE_DB_ID,
+      COLLECTIONS.TRAINERS,
+      id
+    );
+    if (trainer.gymId !== gym.$id) return null;
+    return trainer;
+  } catch {
+    return null;
+  }
 }
 
 export async function createTrainer(formData: FormData) {
@@ -55,11 +57,17 @@ export async function createTrainer(formData: FormData) {
   const parsed = trainerSchema.safeParse({ ...raw, is_active: true });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  const { email, ...rest } = parsed.data;
+  const { databases } = await createAdminClient();
 
-  await prisma.trainer.create({
-    data: { ...rest, tenant_id: gym.tenant_id, gym_id: gym.id, email: email || undefined },
-  });
+  await databases.createDocument(
+    APPWRITE_DB_ID,
+    COLLECTIONS.TRAINERS,
+    ID.unique(),
+    {
+      ...parsed.data,
+      gymId: gym.$id
+    }
+  );
 
   revalidatePath("/dashboard/trainers");
   return { success: true };
@@ -73,12 +81,14 @@ export async function updateTrainer(id: string, formData: FormData) {
   const parsed = trainerSchema.safeParse(raw);
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  const { email, ...rest } = parsed.data;
+  const { databases } = await createAdminClient();
 
-  await prisma.trainer.updateMany({
-    where: { id, gym_id: gym.id },
-    data: { ...rest, email: email || undefined },
-  });
+  await databases.updateDocument(
+    APPWRITE_DB_ID,
+    COLLECTIONS.TRAINERS,
+    id,
+    parsed.data
+  );
 
   revalidatePath("/dashboard/trainers");
   return { success: true };
@@ -88,7 +98,13 @@ export async function deleteTrainer(id: string) {
   const gym = await getCurrentGym();
   if (!gym) return { error: "Unauthorized" };
 
-  await prisma.trainer.deleteMany({ where: { id, gym_id: gym.id } });
+  const { databases } = await createAdminClient();
+  await databases.deleteDocument(
+    APPWRITE_DB_ID,
+    COLLECTIONS.TRAINERS,
+    id
+  );
+
   revalidatePath("/dashboard/trainers");
   return { success: true };
 }

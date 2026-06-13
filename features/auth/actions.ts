@@ -5,11 +5,11 @@ import { ensureUserRecord, routeForUser } from "@/lib/auth/bootstrap";
 import { getCurrentContext } from "@/lib/auth/context";
 import { env } from "@/lib/env";
 import { createCorrelationId, logEvent } from "@/lib/logger";
-import { prisma } from "@/lib/prisma";
-import { Account, Client, ID, OAuthProvider } from "node-appwrite";
+import { Account, Client, ID, OAuthProvider, Query } from "node-appwrite";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { APPWRITE_DB_ID, COLLECTIONS, GymUserDocument } from "@/lib/appwrite/types";
 
 const signUpSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -101,25 +101,18 @@ export async function signUp(formData: FormData) {
 
     await setSessionCookie(sessionSecret);
     
-    // Create the Prisma User record only.
-    const user = await ensureUserRecord({
+    // Create the DB User record
+    await ensureUserRecord({
       appwriteUser,
       provider: "email",
       correlationId,
     });
     
-    // phone and gymName will be collected later in the onboarding wizard
-
     logEvent("info", "auth.signup.completed", {
       correlationId,
       appwriteUserId: appwriteUser.$id,
     });
   } catch (error: unknown) {
-    logEvent("warn", "auth.signup.failed", {
-      correlationId,
-      reason: error instanceof Error ? error.message : "unknown",
-    });
-
     return {
       error: error instanceof Error ? error.message : "Failed to create account",
     };
@@ -127,7 +120,6 @@ export async function signUp(formData: FormData) {
 
   // Proceed to onboarding wizard
   const redirectUrl = new URL("/onboarding", await getAppUrl());
-  
   redirect(redirectUrl.toString());
 }
 
@@ -141,8 +133,6 @@ export async function signIn(formData: FormData) {
   const parsed = signInSchema.safeParse(raw);
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  const account = getAuthClient();
-
   try {
     const sessionSecret = await createEmailPasswordSessionHelper(
       parsed.data.email,
@@ -150,14 +140,7 @@ export async function signIn(formData: FormData) {
     );
     await setSessionCookie(sessionSecret);
   } catch (error: unknown) {
-    logEvent("warn", "auth.login.failed", {
-      correlationId,
-      reason: error instanceof Error ? error.message : "unknown",
-    });
-
-    return {
-      error: error instanceof Error ? error.message : "Invalid email or password",
-    };
+    return { error: "Invalid email or password" };
   }
 
   let redirectTo = "/dashboard";
@@ -166,71 +149,55 @@ export async function signIn(formData: FormData) {
     const { account: sessionAccount } = await createSessionClient();
     const appwriteUser = await sessionAccount.get();
 
-    const dbUser =
-      (await prisma.user.findUnique({
-        where: { appwrite_user_id: appwriteUser.$id },
-        include: { gym: true },
-      })) ??
-      (await ensureUserRecord({
-        appwriteUser,
-        provider: "email",
-        correlationId,
-      }));
+    const { databases } = await createAdminClient();
+    const gymUsersRes = await databases.listDocuments<GymUserDocument>(
+      APPWRITE_DB_ID,
+      COLLECTIONS.GYM_USERS,
+      [Query.equal("userId", appwriteUser.$id)]
+    );
 
-    redirectTo = routeForUser(dbUser);
-    logEvent("info", "auth.login.completed", {
+    const dbUser = await ensureUserRecord({
+      appwriteUser,
+      provider: "email",
       correlationId,
-      userId: dbUser.id,
-      tenantId: dbUser.tenant_id,
-      gymId: dbUser.gym_id,
     });
+
+    const gymUser = gymUsersRes.documents.length > 0 ? gymUsersRes.documents[0] : null;
+
+    redirectTo = routeForUser({
+      role: gymUser?.role || "OWNER",
+      onboarding_status: dbUser.onboarding_status || "completed", // Fallback to completed for now
+      gymId: gymUser?.gymId
+    });
+    
   } catch (error) {
-    logEvent("warn", "auth.login.route_resolution_failed", {
-      correlationId,
-      reason: error instanceof Error ? error.message : "unknown",
-    });
+    console.error("Route resolution failed", error);
   }
 
   redirect(redirectTo);
 }
 
 export async function signOut() {
-  const correlationId = createCorrelationId();
-
   try {
     const { account } = await createSessionClient();
     await account.deleteSession("current");
-  } catch {
-    // Session may already be invalid.
-  }
-
+  } catch {}
   try {
     await deleteSessionCookie();
-    logEvent("info", "auth.logout.completed", { correlationId });
-  } catch {
-    // Cookie may already be gone.
-  }
-
+  } catch {}
   redirect("/login");
 }
 
 export async function resetPassword(formData: FormData) {
   const email = formData.get("email") as string;
-
   if (!email || !z.string().email().safeParse(email).success) {
     return { error: "Please enter a valid email address" };
   }
-
   try {
     const { account } = await createAdminClient();
     await account.createRecovery(email, `${env.NEXT_PUBLIC_APP_URL}/auth/reset-password`);
-  } catch {
-    // Avoid account enumeration.
-  }
-
-  return {
-    success: "If an account exists with that email, you'll receive a password reset link.",
-  };
+  } catch {}
+  return { success: "If an account exists with that email, you'll receive a password reset link." };
 }
 
 export async function getCurrentUser() {

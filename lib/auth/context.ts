@@ -1,7 +1,7 @@
-import type { UserRole } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
-import { createSessionClient } from "@/lib/appwrite/server";
+import { createAdminClient, createSessionClient } from "@/lib/appwrite/server";
 import { AuthenticationError, AuthorizationError } from "@/lib/errors";
+import { APPWRITE_DB_ID, COLLECTIONS, GymUserDocument, GymDocument } from "@/lib/appwrite/types";
+import { Query } from "node-appwrite";
 
 export type AuthContext = Awaited<ReturnType<typeof getCurrentContext>>;
 
@@ -9,41 +9,42 @@ export async function getCurrentContext() {
   try {
     const { account } = await createSessionClient();
     const appwriteUser = await account.get();
-    console.log("[AUTH] Appwrite session valid, userId:", appwriteUser.$id);
+    
+    const { databases } = await createAdminClient();
 
-    const user = await prisma.user.findUnique({
-      where: { appwrite_user_id: appwriteUser.$id },
-      include: {
-        tenant: true,
-        gym: {
-          include: {
-            branches: { where: { is_main: true }, take: 1 },
-            subscriptions: {
-              orderBy: { created_at: "desc" },
-              take: 1,
-            },
-          },
-        },
-      },
-    });
+    // Query gym_users to find if the user is attached to a gym
+    const gymUsersRes = await databases.listDocuments<GymUserDocument>(
+      APPWRITE_DB_ID,
+      COLLECTIONS.GYM_USERS,
+      [Query.equal("userId", appwriteUser.$id)]
+    );
 
-    if (!user) {
-      console.log("[AUTH] No DB user found for appwrite_user_id:", appwriteUser.$id);
-      return null;
+    let gymUser = null;
+    let gym: GymDocument | null = null;
+    let role = "OWNER";
+
+    if (gymUsersRes.documents.length > 0) {
+      gymUser = gymUsersRes.documents[0];
+      role = gymUser.role;
+      
+      const gymRes = await databases.listDocuments<GymDocument>(
+        APPWRITE_DB_ID,
+        COLLECTIONS.GYMS,
+        [Query.equal("$id", gymUser.gymId)]
+      );
+      if (gymRes.documents.length > 0) {
+        gym = gymRes.documents[0];
+      }
     }
-
-    console.log("[AUTH] DB user found:", user.id, "gym:", user.gym_id, "onboarding:", user.onboarding_status);
 
     return {
       appwriteUser,
-      user,
-      tenant: user.tenant,
-      gym: user.gym,
-      role: user.role,
-      subscription: user.gym?.subscriptions[0] ?? null,
+      user: { id: appwriteUser.$id, email: appwriteUser.email, name: appwriteUser.name, role },
+      gym,
+      role,
+      subscription: null, // Subscriptions handled differently now
     };
   } catch (error) {
-    console.log("[AUTH] getCurrentContext failed:", error instanceof Error ? error.message : "unknown");
     return null;
   }
 }
@@ -54,24 +55,24 @@ export async function requireAuth() {
   return context;
 }
 
-function hasRole(role: UserRole, allowed: UserRole[]) {
+function hasRole(role: string, allowed: string[]) {
   return allowed.includes(role);
 }
 
-export async function requireRole(allowed: UserRole[]) {
+export async function requireRole(allowed: string[]) {
   const context = await requireAuth();
   if (!hasRole(context.role, allowed)) throw new AuthorizationError();
   return context;
 }
 
 export function requireOwner() {
-  return requireRole(["gym_owner", "super_admin"]);
+  return requireRole(["OWNER", "super_admin"]);
 }
 
 export function requireManager() {
-  return requireRole(["gym_owner", "manager", "super_admin"]);
+  return requireRole(["OWNER", "manager", "super_admin"]);
 }
 
 export function requireTrainer() {
-  return requireRole(["gym_owner", "manager", "trainer", "super_admin"]);
+  return requireRole(["OWNER", "manager", "TRAINER", "super_admin"]);
 }
