@@ -37,28 +37,39 @@ export default async function GymPage({ params }: Props) {
 
   const { databases } = await createAdminClient();
 
-  // Fetch Settings
-  const settingsRes = await databases.listDocuments(
-    APPWRITE_DB_ID,
-    COLLECTIONS.SETTINGS,
-    [Query.equal("gymId", tenant.id)]
-  );
-  
-  const rawSettings = settingsRes.documents[0] || {};
+  let rawSettings: any = {};
+  let plansRes = { documents: [] as MembershipPlanDocument[] };
+  let trainersRes = { documents: [] as TrainerDocument[] };
 
-  // Fetch active plans
-  const plansRes = await databases.listDocuments<MembershipPlanDocument>(
-    APPWRITE_DB_ID,
-    COLLECTIONS.PLANS,
-    [Query.equal("gymId", tenant.id), Query.equal("isActive", true)]
-  );
+  try {
+    // Fetch Settings
+    console.log(`[Tenant Route] Fetching SETTINGS for gym_id: ${tenant.id}`);
+    const settingsRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.SETTINGS,
+      [Query.equal("gym_id", tenant.id)]
+    );
+    rawSettings = settingsRes.documents[0] || {};
 
-  // Fetch active trainers
-  const trainersRes = await databases.listDocuments<TrainerDocument>(
-    APPWRITE_DB_ID,
-    COLLECTIONS.TRAINERS,
-    [Query.equal("gymId", tenant.id), Query.equal("isActive", true)]
-  );
+    // Fetch active plans
+    console.log(`[Tenant Route] Fetching PLANS for gym_id: ${tenant.id}`);
+    plansRes = await databases.listDocuments<MembershipPlanDocument>(
+      APPWRITE_DB_ID,
+      COLLECTIONS.PLANS,
+      [Query.equal("gym_id", tenant.id), Query.equal("isActive", true)]
+    );
+
+    // Fetch active trainers
+    console.log(`[Tenant Route] Fetching TRAINERS for gym_id: ${tenant.id}`);
+    trainersRes = await databases.listDocuments<TrainerDocument>(
+      APPWRITE_DB_ID,
+      COLLECTIONS.TRAINERS,
+      [Query.equal("gym_id", tenant.id), Query.equal("isActive", true)]
+    );
+  } catch (error) {
+    console.error(`[Tenant Route Error] Failed to fetch Appwrite collections for subdomain: ${subdomain}`, error);
+    // Don't throw unhandled exceptions. We will render the template with fallback data.
+  }
 
   const gymData = {
     id: tenant.id,

@@ -39,7 +39,7 @@ export async function getCurrentContext() {
 
     const queryFilters = [Query.equal("userId", appwriteUser.$id)];
     if (currentGymId) {
-      queryFilters.push(Query.equal("gymId", currentGymId));
+      queryFilters.push(Query.equal("gym_id", currentGymId));
     }
 
     // Query gym_users to find if the user is attached to the current gym (or any gym if on root domain)
