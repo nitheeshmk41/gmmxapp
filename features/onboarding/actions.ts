@@ -37,6 +37,18 @@ export async function completeOnboarding(formData: FormData) {
     return { error: "Missing required fields." };
   }
 
+  const reserved = [
+    "server",
+    "api",
+    "www",
+    "mail",
+    "status",
+  ];
+
+  if (reserved.includes(subdomain.toLowerCase())) {
+    return { error: "This subdomain is reserved and cannot be used." };
+  }
+
   // Check if subdomain is taken
   const existingGym = await databases.listDocuments(
     APPWRITE_DB_ID,

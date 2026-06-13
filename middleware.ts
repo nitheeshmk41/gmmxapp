@@ -12,11 +12,20 @@ export async function middleware(request: NextRequest) {
   const parts = hostname.split(".");
   let subdomain: string | null = null;
 
+  const reserved = [
+    "server",
+    "api",
+    "www",
+    "mail",
+    "status",
+  ];
+
   if (
     hostname !== "localhost" &&
     hostname !== "gmmx.app" &&
     hostname !== "www.gmmx.app" &&
-    hostname !== "127.0.0.1"
+    hostname !== "127.0.0.1" &&
+    !reserved.includes(parts[0])
   ) {
     subdomain = parts[0];
   }
