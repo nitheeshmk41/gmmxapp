@@ -1,12 +1,14 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { createAdminClient } from "@/lib/appwrite/server";
 import { getCurrentGym } from "@/features/auth/actions";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
+import { Query, ID } from "node-appwrite";
 
 const websiteSchema = z.object({
-  template: z.enum(["modern", "minimal", "performance"]).default("modern"),
+  template: z.enum(["modern", "minimal", "performance", "crossfit"]).default("modern"),
   description: z.string().optional(),
   tagline: z.string().optional(),
   whatsapp_number: z.string().optional(),
@@ -22,7 +24,13 @@ export async function getWebsiteSettings() {
   const gym = await getCurrentGym();
   if (!gym) return null;
 
-  return prisma.websiteSettings.findUnique({ where: { gym_id: gym.id } });
+  const { databases } = await createAdminClient();
+  const res = await databases.listDocuments(
+    APPWRITE_DB_ID,
+    COLLECTIONS.SETTINGS,
+    [Query.equal("gymId", gym.$id)]
+  );
+  return res.documents.length > 0 ? res.documents[0] : null;
 }
 
 export async function updateWebsiteSettings(formData: FormData) {
@@ -45,11 +53,28 @@ export async function updateWebsiteSettings(formData: FormData) {
   const parsed = websiteSchema.safeParse(raw);
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  await prisma.websiteSettings.upsert({
-    where: { gym_id: gym.id },
-    create: { ...parsed.data, tenant_id: gym.tenant_id, gym_id: gym.id },
-    update: parsed.data,
-  });
+  const { databases } = await createAdminClient();
+  const existing = await databases.listDocuments(
+    APPWRITE_DB_ID,
+    COLLECTIONS.SETTINGS,
+    [Query.equal("gymId", gym.$id)]
+  );
+
+  if (existing.documents.length > 0) {
+    await databases.updateDocument(
+      APPWRITE_DB_ID,
+      COLLECTIONS.SETTINGS,
+      existing.documents[0].$id,
+      parsed.data
+    );
+  } else {
+    await databases.createDocument(
+      APPWRITE_DB_ID,
+      COLLECTIONS.SETTINGS,
+      ID.unique(),
+      { ...parsed.data, gymId: gym.$id }
+    );
+  }
 
   revalidatePath("/dashboard/website");
   revalidatePath(`/gym/${gym.subdomain}`);
@@ -60,11 +85,28 @@ export async function toggleWebsitePublish(isPublished: boolean) {
   const gym = await getCurrentGym();
   if (!gym) return { error: "Unauthorized" };
 
-  await prisma.websiteSettings.upsert({
-    where: { gym_id: gym.id },
-    create: { tenant_id: gym.tenant_id, gym_id: gym.id, is_published: isPublished },
-    update: { is_published: isPublished },
-  });
+  const { databases } = await createAdminClient();
+  const existing = await databases.listDocuments(
+    APPWRITE_DB_ID,
+    COLLECTIONS.SETTINGS,
+    [Query.equal("gymId", gym.$id)]
+  );
+
+  if (existing.documents.length > 0) {
+    await databases.updateDocument(
+      APPWRITE_DB_ID,
+      COLLECTIONS.SETTINGS,
+      existing.documents[0].$id,
+      { is_published: isPublished }
+    );
+  } else {
+    await databases.createDocument(
+      APPWRITE_DB_ID,
+      COLLECTIONS.SETTINGS,
+      ID.unique(),
+      { gymId: gym.$id, is_published: isPublished }
+    );
+  }
 
   revalidatePath("/dashboard/website");
   return { success: true };

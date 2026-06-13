@@ -100,6 +100,7 @@ export const COLLECTIONS = {
   PLANS: "membership_plans",
   PAYMENTS: "payments",
   SUBSCRIPTIONS: "subscriptions",
+  SETTINGS: "settings",
 };
 
 // Ensure this matches your Appwrite configuration

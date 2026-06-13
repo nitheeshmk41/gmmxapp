@@ -49,8 +49,6 @@ export async function GET(request: Request) {
     logEvent("info", "auth.oauth.completed", {
       correlationId,
       userId: dbUser.id,
-      tenantId: dbUser.tenant_id,
-      gymId: dbUser.gym_id,
     });
 
     return NextResponse.redirect(`${origin}${routeForUser(dbUser)}`);

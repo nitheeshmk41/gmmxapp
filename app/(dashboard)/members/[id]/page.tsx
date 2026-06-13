@@ -33,13 +33,13 @@ export default async function MemberProfilePage({ params }: { params: { id: stri
     active: CheckCircle2,
     expired: XCircle,
     paused: PauseCircle,
-  }[member.status] || User;
+  }[member.status as "active" | "expired" | "paused"] || User;
 
   const statusColor = {
     active: "var(--color-success)",
     expired: "var(--color-danger)",
     paused: "var(--color-warning)",
-  }[member.status] || "var(--color-muted-foreground)";
+  }[member.status as "active" | "expired" | "paused"] || "var(--color-muted-foreground)";
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 animate-in">
@@ -264,7 +264,7 @@ export default async function MemberProfilePage({ params }: { params: { id: stri
                   </tr>
                 </thead>
                 <tbody>
-                  {member.payments.map((payment) => (
+                  {member.payments.map((payment: any) => (
                     <tr key={payment.id} style={{ borderTop: "1px solid var(--color-border-muted)" }}>
                       <td className="px-5 py-4 text-sm" style={{ color: "var(--color-foreground)" }}>
                         {formatDate(payment.paid_at)}

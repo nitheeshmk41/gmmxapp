@@ -39,7 +39,7 @@ export async function getCurrentContext() {
 
     return {
       appwriteUser,
-      user: { id: appwriteUser.$id, email: appwriteUser.email, name: appwriteUser.name, role },
+      user: { id: appwriteUser.$id, email: appwriteUser.email, name: appwriteUser.name, role, onboarding_status: "completed" },
       gym,
       role,
       subscription: null, // Subscriptions handled differently now

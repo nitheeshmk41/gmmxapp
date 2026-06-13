@@ -40,7 +40,8 @@ export async function ensureUserRecord({
     id: appwriteUser.$id,
     email: appwriteUser.email,
     name: displayName,
-    onboarding_status: prefs.onboarding_status || "pending"
+    onboarding_status: prefs.onboarding_status || "pending",
+    role: prefs.role || "owner"
   };
 }
 
