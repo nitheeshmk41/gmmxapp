@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GMMX - Gym Management Platform
+
+Welcome to GMMX! This platform is built exclusively for gym owners to help you manage your business, acquire new members, and establish a professional online presence with ease.
+
+## What is GMMX?
+
+GMMX is a web-first Gym Management SaaS. Unlike generic fitness tracking apps meant for individual gym-goers, GMMX is a complete business suite designed to simplify your day-to-day operations. 
+
+Our core philosophy is simple: **Manage your gym and get a professional website in minutes.**
+
+## Key Features
+
+- **Member Management**: Track active, paused, and expired memberships seamlessly.
+- **Automated Gym Website**: Every gym receives a beautiful, SEO-optimized public website (e.g., `yourgym.gmmx.app`) fully integrated with your plans, trainers, and contact info.
+- **Lead Generation**: Capture inquiries directly from your website and track them from initial contact to conversion.
+- **Trainer Portals**: Assign trainers to members, allowing them to manage their schedules and track member attendance.
+- **Payments & Expiries**: Track payments (cash, card, UPI) and quickly identify members who are due for renewal so you never miss out on revenue.
 
 ## Getting Started
 
-First, run the development server:
+1. **Sign Up**: Create a secure passwordless account using Google or your phone number.
+2. **Onboarding**: Enter your gym's details, select a website template (Modern, Minimal, or Performance), and pick your custom subdomain.
+3. **Dashboard**: Once onboarded, you'll be taken to your owner dashboard.
+4. **Add Data**: Start adding your membership plans, trainers, and existing members.
+5. **Publish**: Toggle your website to "Published" to instantly go live!
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Support
+If you run into any issues, please reach out to our support team or use the quick-action shortcuts directly from your owner dashboard.
