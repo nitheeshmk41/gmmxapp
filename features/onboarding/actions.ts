@@ -5,6 +5,7 @@ import { getCurrentContext } from "@/lib/auth/context";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
 import { Query } from "node-appwrite";
+import { cookies } from "next/headers";
 
 export async function completeOnboarding(formData: FormData) {
   const context = await getCurrentContext();
@@ -26,11 +27,11 @@ export async function completeOnboarding(formData: FormData) {
   const plan = formData.get("plan") as string;
   const phone = formData.get("phone") as string;
   
-  const template = formData.get("template") as string;
-  const primaryColor = formData.get("primaryColor") as string;
-  const secondaryColor = formData.get("secondaryColor") as string;
-  const logoUrl = formData.get("logoUrl") as string;
-  const coverImageUrl = formData.get("coverImageUrl") as string;
+  const template = "modern";
+  const primaryColor = "#FF5C73";
+  const secondaryColor = "#1A1A1A";
+  const logoUrl = "";
+  const coverImageUrl = "";
   
   // Basic validation
   if (!gymName || !subdomain || !plan || !phone) {
@@ -75,6 +76,9 @@ export async function completeOnboarding(formData: FormData) {
       logoUrl,
       coverImageUrl,
     });
+    
+    const cookieStore = await cookies();
+    cookieStore.set("gmmx_sample_data", "true", { path: "/", maxAge: 60 * 60 * 24 * 30 });
     
     return { success: true, subdomain };
   } catch (error) {

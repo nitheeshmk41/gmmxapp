@@ -1,48 +1,38 @@
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
-import { Sidebar } from "@/components/dashboard/sidebar";
-import { Topbar } from "@/components/dashboard/topbar";
-import { getCurrentUser, getCurrentGym } from "@/features/auth/actions";
+import { getCurrentUser } from "@/features/auth/actions";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Dashboard – GMMX",
-  description: "Manage your gym from one place",
+  title: "Super Admin – GMMX",
 };
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [user, gym] = await Promise.all([getCurrentUser(), getCurrentGym()]);
-
-  if (!user) {
-    // Session cookie is stale/invalid. 
-    // We redirect to login with a redirectTo parameter.
-    // The middleware will intercept this and delete the stale cookie.
-    redirect("/login?redirectTo=/dashboard");
-  }
-
-  if (user.role === "super_admin") redirect("/admin");
-  if (user.role === "trainer") redirect("/trainer/dashboard");
-  if (user.role === "member") redirect("/member/dashboard");
-  if (!gym || user.onboarding_status !== "completed") redirect("/onboarding");
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "super_admin") redirect("/signin");
 
   return (
-    <div className="flex min-h-screen" style={{ background: "var(--color-background)" }}>
-      {/* Sidebar */}
-      <Sidebar
-        gymName={gym.name}
-        gymSubdomain={gym.subdomain}
-        userEmail={user.email}
-      />
-
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-h-screen" style={{ marginLeft: "256px" }}>
-        <Topbar gymSubdomain={gym.subdomain} />
-        <main className="flex-1 p-6">{children}</main>
-      </div>
+    <div className="min-h-screen" style={{ background: "var(--color-background)" }}>
+      {/* Admin top nav */}
+      <header
+        className="sticky top-0 z-50 flex items-center justify-between h-14 px-6"
+        style={{ background: "var(--color-sidebar)", borderBottom: "1px solid var(--color-sidebar-border)" }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ background: "var(--color-brand-primary)" }}>G</div>
+          <span className="font-bold text-white text-sm">GMMX Admin</span>
+          <span className="badge-danger text-xs">Super Admin</span>
+        </div>
+        <nav className="flex items-center gap-4">
+          {[
+            { href: "/dashboard", label: "Overview" },
+            { href: "/gyms", label: "Gyms" },
+            { href: "/billing", label: "Subscriptions" },
+          ].map((item) => (
+            <a key={item.href} href={item.href} className="text-xs font-medium" style={{ color: "#94A3B8" }}>{item.label}</a>
+          ))}
+        </nav>
+      </header>
+      <main className="p-6">{children}</main>
     </div>
   );
 }

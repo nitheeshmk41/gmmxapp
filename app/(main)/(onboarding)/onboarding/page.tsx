@@ -1,28 +1,23 @@
 "use client";
 
-import { useState, useEffect, Suspense, useRef } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Building2,
   Globe,
-  Palette,
-  LayoutTemplate,
   Rocket,
   CheckCircle2,
   Loader2,
   Check,
   X,
-  Upload,
 } from "lucide-react";
 import { validateSubdomain } from "@/lib/utils";
 import { completeOnboarding } from "@/features/onboarding/actions";
 
 const STEPS = [
   { id: 1, title: "Gym Info", icon: Building2 },
-  { id: 2, title: "Subdomain", icon: Globe },
-  { id: 3, title: "Branding", icon: Palette },
-  { id: 4, title: "Template", icon: LayoutTemplate },
-  { id: 5, title: "Launch", icon: Rocket },
+  { id: 2, title: "Website Address", icon: Globe },
+  { id: 3, title: "Create Gym", icon: Rocket },
 ];
 
 function OnboardingContent() {
@@ -38,31 +33,21 @@ function OnboardingContent() {
     name: initialGymName,
     phone: "",
     city: "",
-    state: "",
-    country: "India",
   });
 
   // Step 2: Subdomain
   const [subdomain, setSubdomain] = useState("");
   const [subdomainStatus, setSubdomainStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
 
-  // Step 3: Branding
-  const [branding, setBranding] = useState({
-    primaryColor: "#FF5C73",
-    secondaryColor: "#1A1A1A",
-    logoUrl: "", // Mocked for now
-    coverImageUrl: "", // Mocked for now
-  });
-
-  // Step 4: Template
-  const [template, setTemplate] = useState("modern"); // modern, crossfit, minimal
+  // Step 3 Progress
+  const [launchProgress, setLaunchProgress] = useState(0);
 
   useEffect(() => {
-    if (initialGymName && !subdomain) {
-      const baseSubdomain = initialGymName.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (gymDetails.name && !subdomain && step === 2) {
+      const baseSubdomain = gymDetails.name.toLowerCase().replace(/[^a-z0-9]/g, "");
       setSubdomain(baseSubdomain);
     }
-  }, [initialGymName]);
+  }, [gymDetails.name, step]);
 
   // Real-time subdomain check
   useEffect(() => {
@@ -96,63 +81,51 @@ function OnboardingContent() {
   async function handleLaunch() {
     setLoading(true);
     setError("");
+    setStep(3);
+    setLaunchProgress(1); // Creating Account
 
     try {
       const formData = new FormData();
       formData.append("gymName", gymDetails.name);
       formData.append("phone", gymDetails.phone);
       formData.append("subdomain", subdomain);
-      formData.append("plan", "starter"); // Trial starts on professional implicitly
+      formData.append("plan", "professional"); // Trial starts on professional
       
-      formData.append("template", template);
-      formData.append("primaryColor", branding.primaryColor);
-      formData.append("secondaryColor", branding.secondaryColor);
-      if (branding.logoUrl) formData.append("logoUrl", branding.logoUrl);
-      if (branding.coverImageUrl) formData.append("coverImageUrl", branding.coverImageUrl);
+      // Simulate progress Steps (Database, Website, Admin)
+      setTimeout(() => setLaunchProgress(2), 1500);
+      setTimeout(() => setLaunchProgress(3), 3000);
+      setTimeout(() => setLaunchProgress(4), 4500);
       
       const result = await completeOnboarding(formData);
+      
       if (result.error) throw new Error(result.error);
       
-      setStep(6); // Success screen
-      
-      // Redirect to their new subdomain
       setTimeout(() => {
-        const proto = window.location.protocol;
-        const host = window.location.host;
-        const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
-        
-        if (isLocalhost) {
-           window.location.href = `${proto}//${host}?gym=${result.subdomain}`;
-        } else {
-           const baseDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "gmmx.app";
-           window.location.href = `${proto}//${result.subdomain}.${baseDomain}`;
-        }
-      }, 2000);
+        setLaunchProgress(5); // Done
+        // No automatic redirect anymore
+      }, 5000); // Ensuring the visual progress takes at least 5s
+
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
       setLoading(false);
+      setStep(2); // Go back if error
     }
   }
 
   const handleNext = () => {
     setError("");
     if (step === 1 && (!gymDetails.name || !gymDetails.phone || !gymDetails.city)) {
-      setError("Please fill in required fields.");
+      setError("Please fill in all required fields.");
       return;
     }
     if (step === 2 && subdomainStatus !== "available") {
       setError("Please choose an available subdomain.");
       return;
     }
-    if (step === 5) {
+    if (step === 2) {
       handleLaunch();
       return;
     }
-    setStep((s) => s + 1);
-  };
-
-  const handleSkipBranding = () => {
     setStep((s) => s + 1);
   };
 
@@ -166,16 +139,16 @@ function OnboardingContent() {
           G
         </div>
         <span className="font-bold text-xl tracking-tight">GMMX</span>
-        <span className="ml-2 text-sm text-zinc-500">— Website Setup</span>
+        <span className="ml-2 text-sm text-zinc-500">— Setup</span>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center p-6 py-12">
-        <div className="w-full max-w-3xl">
+        <div className="w-full max-w-2xl">
           {/* Progress Indicator */}
-          {step <= 5 && (
-            <div className="flex items-center justify-between mb-12 relative">
+          {step <= 2 && (
+            <div className="flex items-center justify-between mb-12 relative max-w-sm mx-auto">
               <div className="absolute left-0 top-5 w-full h-0.5 bg-zinc-200 dark:bg-zinc-800 -z-10" />
-              {STEPS.map((s, i) => (
+              {STEPS.slice(0, 2).map((s) => (
                 <div key={s.id} className="flex flex-col items-center gap-2">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center transition-all text-sm font-bold border-2 ${
@@ -208,20 +181,21 @@ function OnboardingContent() {
               <div className="space-y-6">
                 <div>
                   <h2 className="text-2xl font-bold mb-2">Gym Information</h2>
-                  <p className="text-zinc-500">Tell us a bit about your business to get started.</p>
+                  <p className="text-zinc-500">Let&apos;s get your business set up.</p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-5">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium">Gym Name *</label>
+                    <label className="text-sm font-medium">Gym Name</label>
                     <input
                       placeholder="e.g. Iron Fit Arena"
                       value={gymDetails.name}
                       onChange={(e) => setGymDetails({ ...gymDetails, name: e.target.value })}
                       className={inputClass}
+                      autoFocus
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium">Mobile Number *</label>
+                    <label className="text-sm font-medium">Mobile Number</label>
                     <input
                       placeholder="e.g. 9876543210"
                       value={gymDetails.phone}
@@ -230,20 +204,11 @@ function OnboardingContent() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium">City *</label>
+                    <label className="text-sm font-medium">City</label>
                     <input
-                      placeholder="Mumbai"
+                      placeholder="e.g. Mumbai"
                       value={gymDetails.city}
                       onChange={(e) => setGymDetails({ ...gymDetails, city: e.target.value })}
-                      className={inputClass}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium">State / Province</label>
-                    <input
-                      placeholder="Maharashtra"
-                      value={gymDetails.state}
-                      onChange={(e) => setGymDetails({ ...gymDetails, state: e.target.value })}
                       className={inputClass}
                     />
                   </div>
@@ -292,147 +257,103 @@ function OnboardingContent() {
                     )}
                   </div>
                 </div>
+
+                <div className="mt-6 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+                   <div className="flex items-center justify-center gap-6 text-sm font-medium text-zinc-600 dark:text-zinc-400 flex-wrap">
+                      <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-500"/> 14-Day Free Trial</div>
+                      <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-500"/> Cancel Anytime</div>
+                      <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-500"/> No Credit Card</div>
+                   </div>
+                </div>
               </div>
             )}
 
-            {/* Step 3: Branding */}
+            {/* Step 3: Launching */}
             {step === 3 && (
-              <div className="space-y-8">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold mb-2">Upload Branding</h2>
-                    <p className="text-zinc-500">Customize your website&apos;s look and feel. You can also do this later.</p>
-                  </div>
-                  <button onClick={handleSkipBranding} className="text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                    Setup Later
-                  </button>
+              <div className="py-8 text-center max-w-sm mx-auto">
+                <div className="mb-8">
+                   {launchProgress === 5 ? (
+                      <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto bg-green-100 dark:bg-green-500/20 animate-in zoom-in duration-300">
+                        <CheckCircle2 size={40} className="text-green-500" />
+                      </div>
+                   ) : (
+                      <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto bg-[#FF5C73]/10 dark:bg-[#FF5C73]/20">
+                        <Rocket size={40} className="text-[#FF5C73] animate-pulse" />
+                      </div>
+                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                  {/* Colors */}
-                  <div className="space-y-6">
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Brand Colors</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-4">
-                        <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 shrink-0">
-                          <input 
-                            type="color" 
-                            value={branding.primaryColor}
-                            onChange={(e) => setBranding({...branding, primaryColor: e.target.value})}
-                            className="absolute -top-2 -left-2 w-16 h-16 cursor-pointer"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <label className="text-sm font-medium block mb-1">Primary Color</label>
-                          <input type="text" value={branding.primaryColor} readOnly className={inputClass} />
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 shrink-0">
-                          <input 
-                            type="color" 
-                            value={branding.secondaryColor}
-                            onChange={(e) => setBranding({...branding, secondaryColor: e.target.value})}
-                            className="absolute -top-2 -left-2 w-16 h-16 cursor-pointer"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <label className="text-sm font-medium block mb-1">Secondary Color</label>
-                          <input type="text" value={branding.secondaryColor} readOnly className={inputClass} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Images */}
-                  <div className="space-y-6">
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Brand Images</h3>
-                    <div className="space-y-4">
-                      <div className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
-                        <Upload size={20} className="text-zinc-400 mb-2" />
-                        <span className="text-sm font-medium">Upload Logo</span>
-                        <span className="text-xs text-zinc-500 mt-1">PNG, JPG (Max 2MB)</span>
-                      </div>
-                      <div className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
-                        <Upload size={20} className="text-zinc-400 mb-2" />
-                        <span className="text-sm font-medium">Upload Cover Photo</span>
-                        <span className="text-xs text-zinc-500 mt-1">PNG, JPG (Max 5MB)</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 4: Template */}
-            {step === 4 && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-bold mb-2">Choose Website Template</h2>
-                  <p className="text-zinc-500">Pick a starting layout for your new website.</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {[
-                    { id: "modern", name: "Modern Fitness", desc: "Clean & professional" },
-                    { id: "crossfit", name: "CrossFit", desc: "Aggressive & dark" },
-                    { id: "minimal", name: "Minimal", desc: "Simple & elegant" }
-                  ].map((tpl) => (
-                    <div 
-                      key={tpl.id}
-                      onClick={() => setTemplate(tpl.id)}
-                      className={`cursor-pointer border-2 rounded-xl p-4 transition-all ${
-                        template === tpl.id 
-                          ? "border-[#FF5C73] bg-[#FF5C73]/5 dark:bg-[#FF5C73]/10" 
-                          : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
-                      }`}
-                    >
-                      <div className="aspect-video bg-zinc-100 dark:bg-zinc-900 rounded-lg mb-4 mb-3 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center">
-                        <LayoutTemplate className={template === tpl.id ? "text-[#FF5C73]" : "text-zinc-400"} />
-                      </div>
-                      <h3 className="font-semibold">{tpl.name}</h3>
-                      <p className="text-xs text-zinc-500 mt-1">{tpl.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Step 5: Launch */}
-            {step === 5 && (
-              <div className="text-center py-6">
-                <Rocket size={48} className="text-[#FF5C73] mx-auto mb-6" />
-                <h2 className="text-3xl font-bold mb-4">Ready for Liftoff</h2>
-                <p className="text-zinc-500 max-w-md mx-auto mb-8">
-                  Your website <strong>{subdomain}.gmmx.app</strong> and management dashboard are ready to be created.
-                </p>
+                <h2 className="text-2xl font-bold mb-8">
+                  {launchProgress === 5 ? "Welcome to GMMX 🎉" : "Creating Your Gym..."}
+                </h2>
                 
-                <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 max-w-sm mx-auto mb-8 text-left">
-                  <div className="flex justify-between text-sm mb-3">
-                    <span className="text-zinc-500">Gym Name:</span>
-                    <span className="font-medium">{gymDetails.name}</span>
-                  </div>
-                  <div className="flex justify-between text-sm mb-3">
-                    <span className="text-zinc-500">Domain:</span>
-                    <span className="font-medium">{subdomain}.gmmx.app</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-500">Plan:</span>
-                    <span className="font-medium text-green-500">14-Day Free Trial</span>
-                  </div>
+                <div className="space-y-4 text-left">
+                  {[
+                    { step: 1, label: "Creating Account" },
+                    { step: 2, label: "Creating Database" },
+                    { step: 3, label: "Provisioning Website" },
+                    { step: 4, label: "Setting Up Dashboard" },
+                  ].map((item) => {
+                     const isDone = launchProgress > item.step || launchProgress === 5;
+                     const isCurrent = launchProgress === item.step;
+                     
+                     return (
+                      <div key={item.step} className="flex items-center gap-3">
+                        {isDone ? (
+                          <CheckCircle2 size={20} className="text-green-500 flex-shrink-0" />
+                        ) : isCurrent ? (
+                          <Loader2 size={20} className="text-[#FF5C73] animate-spin flex-shrink-0" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full border-2 border-zinc-200 dark:border-zinc-800 flex-shrink-0" />
+                        )}
+                        <span className={`text-sm font-medium ${isDone ? "text-zinc-900 dark:text-zinc-100" : isCurrent ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400"}`}>
+                          {item.label}
+                        </span>
+                      </div>
+                     );
+                  })}
                 </div>
-              </div>
-            )}
 
-            {/* Step 6: Success Redirect */}
-            {step === 6 && (
-              <div className="text-center py-12">
-                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 bg-green-100 dark:bg-green-500/20">
-                  <CheckCircle2 size={40} className="text-green-500" />
-                </div>
-                <h2 className="text-2xl font-bold mb-2">Your website is live! 🎉</h2>
-                <p className="text-zinc-500 mb-8">Redirecting you to your brand new site...</p>
-                <Loader2 size={24} className="animate-spin text-[#FF5C73] mx-auto" />
+                {launchProgress === 5 && (
+                  <div className="mt-8 animate-in fade-in slide-in-from-bottom-2">
+                    <div className="bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 text-left mb-6 space-y-4">
+                       <div>
+                         <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Website</span>
+                         <a href={`http://${subdomain}.gmmx.app`} target="_blank" rel="noreferrer" className="block text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline mt-0.5">
+                           {subdomain}.gmmx.app
+                         </a>
+                       </div>
+                       <div>
+                         <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Admin Dashboard</span>
+                         <a href={`http://${subdomain}.gmmx.app/dashboard`} target="_blank" rel="noreferrer" className="block text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline mt-0.5">
+                           {subdomain}.gmmx.app/dashboard
+                         </a>
+                       </div>
+                       <div>
+                         <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Member App</span>
+                         <a href={`http://${subdomain}.gmmx.app/dashboard`} target="_blank" rel="noreferrer" className="block text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline mt-0.5">
+                           {subdomain}.gmmx.app/dashboard
+                         </a>
+                       </div>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        const proto = window.location.protocol;
+                        const host = window.location.host;
+                        const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
+                        if (isLocalhost) {
+                           window.location.href = `${proto}//${host}/dashboard?gym=${subdomain}`;
+                        } else {
+                           const baseDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "gmmx.app";
+                           window.location.href = `${proto}//${subdomain}.${baseDomain}/dashboard`;
+                        }
+                      }}
+                      className="w-full py-3.5 rounded-xl text-base font-semibold text-white transition-all bg-[#FF5C73] hover:bg-[#FF5C73]/90 shadow-lg shadow-[#FF5C73]/20"
+                    >
+                      Go To Dashboard
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -440,26 +361,21 @@ function OnboardingContent() {
             {error && <div className="p-3 mt-6 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-500 text-sm font-medium border border-red-200 dark:border-red-500/20">{error}</div>}
 
             {/* Navigation Buttons */}
-            {step < 6 && (
-              <div className="mt-10 flex items-center justify-between pt-6 border-t border-zinc-200 dark:border-zinc-800">
-                {step > 1 ? (
-                  <button 
-                    onClick={() => setStep(s => s - 1)} 
-                    disabled={loading}
-                    className="px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
-                  >
-                    Back
-                  </button>
-                ) : <div />}
-
+            {step < 3 && (
+              <div className="mt-8 pt-6 border-t border-zinc-200 dark:border-zinc-800">
                 <button
                   onClick={handleNext}
                   disabled={loading || (step === 2 && subdomainStatus !== "available")}
-                  className="px-8 py-3 rounded-lg text-sm font-semibold text-white transition-all flex items-center gap-2 bg-[#FF5C73] hover:bg-[#FF5C73]/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#FF5C73]/20"
+                  className="w-full py-3.5 rounded-xl text-base font-semibold text-white transition-all flex items-center justify-center gap-2 bg-[#FF5C73] hover:bg-[#FF5C73]/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#FF5C73]/20"
                 >
-                  {loading && <Loader2 size={16} className="animate-spin" />}
-                  {step === 5 ? "Start 14-Day Free Trial" : "Continue"}
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : null}
+                  {step === 2 ? "Start 14-Day Free Trial" : "Continue"}
                 </button>
+                {step === 2 && (
+                   <button onClick={() => setStep(1)} className="w-full mt-3 py-2 text-sm font-medium text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200">
+                     Back
+                   </button>
+                )}
               </div>
             )}
 

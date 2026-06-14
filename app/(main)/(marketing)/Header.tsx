@@ -101,7 +101,7 @@ export default function Header() {
         {/* CTA Buttons */}
         <div className="hidden lg:flex items-center gap-6 shrink-0">
           <Link
-            href="/login"
+            href="/signin"
             className={`text-sm font-semibold transition-colors ${isHome ? 'text-slate-200 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
           >
             Login
@@ -154,7 +154,7 @@ export default function Header() {
           <hr className={isHome ? "border-white/10 my-2" : "border-slate-100 my-2"} />
           <div className="flex flex-col gap-3">
             <Link
-              href="/login"
+              href="/signin"
               className={`text-center py-3 rounded-full text-sm font-semibold border ${
                 isHome
                   ? "border-white/20 text-white hover:bg-white/5"

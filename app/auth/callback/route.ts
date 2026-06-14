@@ -4,7 +4,7 @@ import { createCorrelationId, logEvent } from "@/lib/logger";
 import { Account, Client } from "node-appwrite";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { exchangeOAuthTokenForSession } from "@/lib/appwrite/server";
+import { exchangeOAuthTokenForSession, createAdminClient } from "@/lib/appwrite/server";
 
 export async function GET(request: Request) {
   const correlationId = createCorrelationId();
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
 
   if (!userId || !secret) {
     logEvent("warn", "auth.oauth.callback_missing_params", { correlationId });
-    return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
+    return NextResponse.redirect(`${origin}/signin?error=auth_callback_failed`);
   }
 
   try {
@@ -46,12 +46,43 @@ export async function GET(request: Request) {
       correlationId,
     });
 
+    let subdomain = null;
+    if (dbUser.role === "owner" && dbUser.onboarding_status === "completed") {
+      const { databases } = await createAdminClient();
+      const { APPWRITE_DB_ID, COLLECTIONS } = await import("@/lib/appwrite/types");
+      const { Query } = await import("node-appwrite");
+      
+      const gymUsersRes = await databases.listDocuments(
+        APPWRITE_DB_ID,
+        COLLECTIONS.GYM_USERS,
+        [Query.equal("userId", appwriteUser.$id)]
+      );
+      
+      if (gymUsersRes.documents.length > 0) {
+        const gymId = gymUsersRes.documents[0].gymId;
+        try {
+          const gym = await databases.getDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gymId);
+          subdomain = gym.subdomain;
+        } catch (e) {
+          console.error("Failed to fetch gym for redirect", e);
+        }
+      }
+    }
+
     logEvent("info", "auth.oauth.completed", {
       correlationId,
       userId: dbUser.id,
     });
 
-    return NextResponse.redirect(`${origin}${routeForUser(dbUser)}`);
+    const path = routeForUser(dbUser);
+    
+    if (subdomain && path === "/dashboard") {
+      const proto = origin.startsWith("http://localhost") ? "http" : "https";
+      const baseDomain = origin.replace(/^https?:\/\//, "");
+      return NextResponse.redirect(`${proto}://${subdomain}.${baseDomain}${path}`);
+    }
+
+    return NextResponse.redirect(`${origin}${path}`);
   } catch (error) {
     logEvent("error", "auth.oauth.failed", {
       correlationId,
@@ -59,7 +90,7 @@ export async function GET(request: Request) {
     });
 
     const errorMessage = error instanceof Error ? error.message : "unknown";
-    return NextResponse.redirect(`${origin}/login?error=auth_callback_failed&details=${encodeURIComponent(errorMessage)}`);
+    return NextResponse.redirect(`${origin}/signin?error=auth_callback_failed&details=${encodeURIComponent(errorMessage)}`);
   }
 }
 

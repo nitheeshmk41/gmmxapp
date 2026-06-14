@@ -7,7 +7,7 @@ import TrueFocus from "@/components/TrueFocus";
 
 export function AuthSidebar() {
   const pathname = usePathname();
-  const isLogin = pathname?.includes("/login");
+  const isLogin = pathname?.includes("/signin");
 
   return (
     <div className="hidden lg:flex flex-col justify-between w-[480px] xl:w-[540px] p-12 relative overflow-hidden bg-slate-950">

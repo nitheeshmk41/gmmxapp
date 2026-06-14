@@ -65,7 +65,7 @@ export async function signInWithGoogle() {
   const redirectUrl = await account.createOAuth2Token(
     OAuthProvider.Google,
     `${appUrl}/auth/callback`,
-    `${appUrl}/login?error=oauth_failed`
+    `${appUrl}/signin?error=oauth_failed`
   );
 
   redirect(redirectUrl);
@@ -141,7 +141,11 @@ export async function signOut() {
   try {
     await deleteSessionCookie();
   } catch {}
-  redirect("/login");
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
+  const isRoot = host.includes("gmmx.app") && !host.match(/^[a-zA-Z0-9-]+\.gmmx\.app/);
+  
+  redirect(isRoot || host.includes("localhost") ? "/signin" : "/login");
 }
 
 export async function getCurrentUser() {

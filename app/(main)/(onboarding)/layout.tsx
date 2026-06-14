@@ -18,7 +18,7 @@ export default async function OnboardingLayout({
 
   // Not logged in — redirect to login
   if (!user) {
-    redirect("/login");
+    redirect("/signin");
   }
 
   // Super admins don't need onboarding

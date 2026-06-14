@@ -27,14 +27,12 @@ export default function LoginPage() {
 
       <p className="mt-8 text-center text-sm font-medium text-slate-500">
         Don&apos;t have an account?{" "}
-        <form action={signInWithGoogle} className="inline">
-          <button
-            type="submit"
-            className="font-bold text-[#FF5C73] hover:text-rose-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
-          >
-            Start free trial
-          </button>
-        </form>
+        <a
+          href="/signup"
+          className="font-bold text-[#FF5C73] hover:text-rose-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+        >
+          Start free trial
+        </a>
       </p>
     </div>
   );

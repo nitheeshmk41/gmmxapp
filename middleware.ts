@@ -36,12 +36,8 @@ export async function middleware(request: NextRequest) {
   // Check if we should rewrite to tenant
   if (
     subdomain &&
-    !pathname.startsWith("/dashboard") &&
-    !pathname.startsWith("/admin") &&
     !pathname.startsWith("/api") &&
-    !pathname.startsWith("/_next") &&
-    !pathname.startsWith("/login") &&
-    !pathname.startsWith("/signup")
+    !pathname.startsWith("/_next")
   ) {
     // 4. & 5. Rewrite internally and preserve query parameters
     const url = request.nextUrl.clone();
@@ -59,6 +55,7 @@ export async function middleware(request: NextRequest) {
   // ── Auth Pages Guard (redirect logged-in users away) ─────────
   const isAuthPage =
     pathname.startsWith("/login") ||
+    pathname.startsWith("/signin") ||
     pathname.startsWith("/signup") ||
     pathname.startsWith("/forgot-password");
 
@@ -81,7 +78,7 @@ export async function middleware(request: NextRequest) {
 
   if ((isDashboard || isAdmin || isOnboarding) && !hasSession) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/signin";
     url.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(url);
   }
