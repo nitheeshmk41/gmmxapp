@@ -75,6 +75,11 @@ export async function signInWithGoogle() {
 
   let redirectUrl: string;
   try {
+    console.log("OAuth URLs", {
+      appUrl,
+      successUrl: `${appUrl}/auth/callback`,
+      failureUrl: `${appUrl}/signin?error=oauth_failed`,
+    });
     redirectUrl = await account.createOAuth2Token(
       OAuthProvider.Google,
       `${appUrl}/auth/callback`,
