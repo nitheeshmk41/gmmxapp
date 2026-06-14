@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Plus, X, Loader2, Dumbbell, Phone, Mail, Trash2, Edit2 } from "lucide-react";
 import { createTrainer, deleteTrainer } from "@/features/trainers/actions";
 import { getInitials } from "@/lib/utils";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 type Trainer = {
   id: string;
@@ -50,16 +51,21 @@ export function TrainersClientPage({ trainers }: { trainers: Trainer[] }) {
 
   return (
     <div className="space-y-5 animate-in">
-      <div className="flex justify-end">
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
-          style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
-        >
-          <Plus size={14} />
-          Add Trainer
-        </button>
-      </div>
+      <PageHeader
+        title="Trainers"
+        description="Manage your staff, assign members, and track attendance."
+        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Trainers" }]}
+        action={
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
+            style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
+          >
+            <Plus size={14} />
+            Add Trainer
+          </button>
+        }
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {trainers.length === 0 ? (

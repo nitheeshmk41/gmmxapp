@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Plus, X, Loader2, Receipt, CreditCard } from "lucide-react";
 import { createPayment } from "@/features/payments/actions";
 import { formatDate, formatCurrency } from "@/lib/utils";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 type Payment = {
   id: string;
@@ -78,6 +79,22 @@ export function PaymentsClientPage({ payments, total, page, members, plans }: Pr
 
   return (
     <div className="space-y-5 animate-in">
+      <PageHeader
+        title="Payments"
+        description="Record transactions, track revenue, and monitor pending dues."
+        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Payments" }]}
+        action={
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
+            style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
+          >
+            <Plus size={14} />
+            Record Payment
+          </button>
+        }
+      />
+
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
@@ -91,17 +108,6 @@ export function PaymentsClientPage({ payments, total, page, members, plans }: Pr
             <p className="text-xl font-bold mt-1" style={{ color: "var(--color-foreground)" }}>{stat.value}</p>
           </div>
         ))}
-      </div>
-
-      <div className="flex justify-end">
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
-          style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
-        >
-          <Plus size={14} />
-          Record Payment
-        </button>
       </div>
 
       {/* Payments table */}

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { deleteMember, getMembersForExport } from "@/features/members/actions";
 import { formatDate, getExpiryStatus, downloadCSV, getInitials, formatCurrency } from "@/lib/utils";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 type Member = {
   id: string;
@@ -94,36 +95,35 @@ export function MembersClientPage({ members, total, page, search, status }: Prop
 
   return (
     <div className="space-y-5 animate-in">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div>
-          <p className="text-xs mt-0.5" style={{ color: "var(--color-muted-foreground)" }}>
-            {total} member{total !== 1 ? "s" : ""} total
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all"
-            style={{
-              background: "var(--color-surface)",
-              border: "1px solid var(--color-border)",
-              color: "var(--color-foreground)",
-            }}
-          >
-            <Download size={14} />
-            Export CSV
-          </button>
-          <Link
-            href="/dashboard/members/new"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
-            style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
-          >
-            <Plus size={14} />
-            Add Member
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        title="Members"
+        description="Manage your gym members, track payments, and monitor expirations."
+        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Members" }]}
+        action={
+          <div className="flex gap-2">
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all"
+              style={{
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-foreground)",
+              }}
+            >
+              <Download size={14} />
+              Export CSV
+            </button>
+            <Link
+              href="/dashboard/members/new"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
+              style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
+            >
+              <Plus size={14} />
+              Add Member
+            </Link>
+          </div>
+        }
+      />
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">

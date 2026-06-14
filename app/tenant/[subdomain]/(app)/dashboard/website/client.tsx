@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Globe, Loader2, ExternalLink, Eye, EyeOff } from "lucide-react";
 import { updateWebsiteSettings, toggleWebsitePublish } from "@/features/website/actions";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 type WebsiteSettings = {
   id: string;
@@ -73,7 +74,13 @@ export function WebsiteClientPage({ settings, gym }: Props) {
   const websiteUrl = gym ? `https://${gym.subdomain}.gmmx.app` : "";
 
   return (
-    <div className="max-w-3xl space-y-6 animate-in">
+    <div className="max-w-3xl space-y-6 animate-in pb-10">
+      <PageHeader
+        title="Website Builder"
+        description="Manage your gym's public website, update content, and customize the theme."
+        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Website" }]}
+      />
+
       {/* Publish status banner */}
       <div
         className="p-4 rounded-xl flex items-center justify-between"

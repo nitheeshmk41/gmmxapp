@@ -6,6 +6,7 @@ import { CalendarCheck, Check, Search, UserCheck } from "lucide-react";
 import { markAttendance, bulkMarkAttendance } from "@/features/attendance/actions";
 import { getInitials } from "@/lib/utils";
 import { format } from "date-fns";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 type Member = { id: string; name: string; phone: string; photo_url: string | null };
 type AttendanceRecord = { id: string; member_id: string; member: { name: string } };
@@ -63,6 +64,12 @@ export function AttendanceClientPage({ members, attendance, date }: Props) {
 
   return (
     <div className="space-y-5 animate-in">
+      <PageHeader
+        title="Attendance"
+        description="Mark daily attendance, generate QR codes, and view check-in history."
+        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Attendance" }]}
+      />
+
       {/* Header controls */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex items-center gap-3">
