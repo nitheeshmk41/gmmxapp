@@ -5,7 +5,7 @@ import { getCurrentGym } from "@/features/auth/actions";
 import { APPWRITE_DB_ID, COLLECTIONS, LeadDocument } from "@/lib/appwrite/types";
 import { ID, Query } from "node-appwrite";
 
-export async function getLeads(params: { search?: string; status?: string } = {}) {
+export async function getLeads(params: { search?: string; status?: string; page?: number; pageSize?: number } = {}) {
   const gym = await getCurrentGym();
   if (!gym) return { data: [], total: 0 };
 
@@ -20,6 +20,11 @@ export async function getLeads(params: { search?: string; status?: string } = {}
   }
 
   queries.push(Query.orderDesc("createdAt"));
+
+  const limit = params.pageSize || 25;
+  const offset = ((params.page || 1) - 1) * limit;
+  queries.push(Query.limit(limit));
+  queries.push(Query.offset(offset));
 
   try {
     const res = await databases.listDocuments<LeadDocument>(

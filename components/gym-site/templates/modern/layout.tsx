@@ -81,7 +81,6 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
       gymId: gym.id,
       name: joinName,
       phone: joinPhone,
-      email: joinEmail,
       source: "website",
     });
     setJoinSuccess(true);
