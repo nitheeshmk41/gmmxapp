@@ -17,8 +17,7 @@ const appwriteAdminEnvSchema = z.object({
   APPWRITE_API_KEY: z.string().min(1, "APPWRITE_API_KEY is required for Appwrite admin operations"),
 });
 
-export const env = envSchema.parse({
-
+const parsedEnv = envSchema.safeParse({
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   NEXT_PUBLIC_APP_DOMAIN: process.env.NEXT_PUBLIC_APP_DOMAIN,
   NEXT_PUBLIC_APPWRITE_ENDPOINT: process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT,
@@ -29,6 +28,14 @@ export const env = envSchema.parse({
   RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET,
   NODE_ENV: process.env.NODE_ENV,
 });
+
+if (!parsedEnv.success) {
+  console.error("❌ Invalid environment variables:", parsedEnv.error.format());
+  // We don't throw here immediately so Next.js can at least render error pages
+  // but be warned that runtime behavior may be unstable without these vars.
+}
+
+export const env = parsedEnv.success ? parsedEnv.data : ({} as z.infer<typeof envSchema>);
 
 export function getAppwriteAdminKey() {
   return appwriteAdminEnvSchema.parse({
