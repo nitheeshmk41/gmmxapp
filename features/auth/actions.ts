@@ -81,14 +81,9 @@ export async function signInWithGoogle() {
       `${appUrl}/signin?error=oauth_failed`
     );
   } catch (error: any) {
-    console.error("[signInWithGoogle] Appwrite OAuth Error:", {
-      message: error.message,
-      code: error.code,
-      type: error.type,
-      response: error.response,
-      raw: error,
-    });
-    redirect(`${appUrl}/signin?error=oauth_configuration_error`);
+    console.error("OAuth Debug Error:", error);
+    console.error("App URL:", appUrl);
+    throw error;
   }
 
   redirect(redirectUrl);
