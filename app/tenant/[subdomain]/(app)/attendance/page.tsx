@@ -1,5 +1,5 @@
 import { getMembersForAttendance, getAttendance } from "@/features/attendance/actions";
-import { AttendanceClientPage } from "@/app/(main)/(dashboard)/attendance/client";
+import { AttendanceClientPage } from "./client";
 
 interface PageProps {
   searchParams: Promise<{ date?: string }>;
