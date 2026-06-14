@@ -25,7 +25,7 @@ export async function getTrainers() {
   const response = await databases.listDocuments<TrainerDocument>(
     APPWRITE_DB_ID,
     COLLECTIONS.TRAINERS,
-    [Query.equal("gym_id", gym.$id), Query.orderAsc("name")]
+    [Query.equal("gymId", gym.$id), Query.orderAsc("name")]
   );
 
   return response.documents;
@@ -99,8 +99,8 @@ export async function createTrainer(formData: FormData) {
 
     revalidatePath("/dashboard/trainers");
     return { success: true };
-  } catch (error: any) {
-    return { error: error.message || "Failed to create trainer" };
+  } catch (error: unknown) {
+    return { error: (error as Error).message || "Failed to create trainer" };
   }
 }
 

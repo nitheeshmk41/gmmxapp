@@ -28,7 +28,7 @@ export async function getWebsiteSettings() {
   const res = await databases.listDocuments(
     APPWRITE_DB_ID,
     COLLECTIONS.SETTINGS,
-    [Query.equal("gym_id", gym.$id)]
+    [Query.equal("gymId", gym.$id)]
   );
   return res.documents.length > 0 ? res.documents[0] : null;
 }
@@ -57,7 +57,7 @@ export async function updateWebsiteSettings(formData: FormData) {
   const existing = await databases.listDocuments(
     APPWRITE_DB_ID,
     COLLECTIONS.SETTINGS,
-    [Query.equal("gym_id", gym.$id)]
+    [Query.equal("gymId", gym.$id)]
   );
 
   if (existing.documents.length > 0) {
@@ -89,7 +89,7 @@ export async function toggleWebsitePublish(isPublished: boolean) {
   const existing = await databases.listDocuments(
     APPWRITE_DB_ID,
     COLLECTIONS.SETTINGS,
-    [Query.equal("gym_id", gym.$id)]
+    [Query.equal("gymId", gym.$id)]
   );
 
   if (existing.documents.length > 0) {

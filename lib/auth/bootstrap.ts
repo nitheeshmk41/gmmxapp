@@ -1,5 +1,5 @@
 import type { Models } from "node-appwrite";
-import { ID } from "node-appwrite";
+import { ID, Query } from "node-appwrite";
 import { logEvent } from "@/lib/logger";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
@@ -19,14 +19,32 @@ export async function ensureUserRecord({
   // In our new architecture, we don't have a separate `users` DB table,
   // we just use the `gym_users` collection for mapping users to tenants.
   // We can update the Appwrite user preferences to track onboarding status.
-  const { users } = await createAdminClient();
+  const { databases, users } = await createAdminClient();
   
   const prefs = await users.getPrefs(appwriteUser.$id);
+  let detectedRole = prefs.role || "owner";
+  let onboardingStatus = prefs.onboarding_status || "pending";
+
+  try {
+    const gymUsersRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.GYM_USERS,
+      [Query.equal("userId", appwriteUser.$id)]
+    );
+
+    if (gymUsersRes.documents.length > 0) {
+      detectedRole = gymUsersRes.documents[0].role;
+      onboardingStatus = "completed";
+    }
+  } catch (error) {
+    console.error("[ensureUserRecord] Failed to query gym_users", error);
+  }
+
   if (!prefs.onboarding_status) {
     await users.updatePrefs(appwriteUser.$id, {
       ...prefs,
-      onboarding_status: "pending",
-      role: "gym_owner"
+      onboarding_status: onboardingStatus,
+      role: detectedRole
     });
   }
 
@@ -40,8 +58,8 @@ export async function ensureUserRecord({
     id: appwriteUser.$id,
     email: appwriteUser.email,
     name: displayName,
-    onboarding_status: prefs.onboarding_status || "pending",
-    role: prefs.role || "owner"
+    onboarding_status: prefs.onboarding_status || onboardingStatus,
+    role: prefs.role || detectedRole
   };
 }
 
@@ -168,7 +186,8 @@ export function routeForUser(user: {
   if (user.role === "super_admin") return "/admin";
   if (user.onboarding_status !== "completed") return "/onboarding";
   
-  const path = user.role === "TRAINER" ? "/trainer/dashboard" : user.role === "MEMBER" ? "/member/dashboard" : "/dashboard";
+  const r = (user.role || "").toUpperCase();
+  const path = r === "TRAINER" ? "/trainer/dashboard" : r === "MEMBER" ? "/member/dashboard" : "/dashboard";
 
   return path; // Domain resolution handled by middleware/redirects
 }

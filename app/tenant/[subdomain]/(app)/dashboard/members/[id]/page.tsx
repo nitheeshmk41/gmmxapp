@@ -18,8 +18,9 @@ import {
   PauseCircle,
 } from "lucide-react";
 
-export default async function MemberProfilePage({ params }: { params: { id: string } }) {
-  const member = await getMemberById(params.id);
+export default async function MemberProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const member = await getMemberById(id);
 
   if (!member) {
     notFound();

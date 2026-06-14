@@ -48,7 +48,7 @@ export default async function GymPage({ params }: Props) {
     const settingsRes = await databases.listDocuments(
       APPWRITE_DB_ID,
       COLLECTIONS.SETTINGS,
-      [Query.equal("gym_id", tenant.id)]
+      [Query.equal("gymId", tenant.id)]
     );
     rawSettings = settingsRes.documents[0] || {};
 
@@ -57,7 +57,7 @@ export default async function GymPage({ params }: Props) {
     plansRes = await databases.listDocuments<MembershipPlanDocument>(
       APPWRITE_DB_ID,
       COLLECTIONS.PLANS,
-      [Query.equal("gym_id", tenant.id), Query.equal("isActive", true)]
+      [Query.equal("gymId", tenant.id), Query.equal("isActive", true)]
     );
 
     // Fetch active trainers

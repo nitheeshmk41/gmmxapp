@@ -178,27 +178,36 @@ export async function signInWithEmail(formData: FormData) {
       correlationId,
     });
 
-    console.log("[signInWithEmail] Step 5: Checking gym linked to user");
+    console.log("[signInWithEmail] Step 5: Checking gym and role linked to user");
     let subdomain = null;
-    if (dbUser.role === "owner" && dbUser.onboarding_status === "completed") {
-      const { databases } = await createAdminClient();
-      const gymUsersRes = await databases.listDocuments<GymUserDocument>(
-        APPWRITE_DB_ID,
-        COLLECTIONS.GYM_USERS,
-        [Query.equal("userId", appwriteUser.$id)]
-      );
+    let userRole = dbUser.role || "owner";
+    let onboardingStatus = dbUser.onboarding_status || "pending";
+
+    const { databases } = await createAdminClient();
+    const gymUsersRes = await databases.listDocuments<GymUserDocument>(
+      APPWRITE_DB_ID,
+      COLLECTIONS.GYM_USERS,
+      [Query.equal("userId", appwriteUser.$id)]
+    );
+    
+    if (gymUsersRes.documents.length > 0) {
+      const gymUser = gymUsersRes.documents[0];
+      userRole = gymUser.role; // OWNER, TRAINER, MEMBER
+      onboardingStatus = "completed";
       
-      if (gymUsersRes.documents.length > 0) {
-        const gymId = gymUsersRes.documents[0].gymId;
+      const gymId = gymUser.gymId;
+      try {
         const gym = await databases.getDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gymId);
         subdomain = gym.subdomain;
+      } catch (e) {
+        console.error("Failed to fetch gym for redirect", e);
       }
     }
 
     console.log("[signInWithEmail] Step 6: Getting route for user");
     const path = routeForUser({
-      role: dbUser.role || "owner",
-      onboarding_status: dbUser.onboarding_status || "pending",
+      role: userRole,
+      onboarding_status: onboardingStatus,
       gymId: null
     });
     

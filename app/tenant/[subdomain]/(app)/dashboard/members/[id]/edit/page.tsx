@@ -4,9 +4,10 @@ import { getPlans } from "@/features/plans/actions";
 import { getTrainers } from "@/features/trainers/actions";
 import { MemberFormPage } from "../../form";
 
-export default async function EditMemberPage({ params }: { params: { id: string } }) {
+export default async function EditMemberPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const [member, plans, trainers] = await Promise.all([
-    getMemberById(params.id),
+    getMemberById(id),
     getPlans(),
     getTrainers(),
   ]);
