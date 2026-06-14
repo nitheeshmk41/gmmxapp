@@ -68,14 +68,14 @@ export function WebsiteClientPage({ gym, leadCount }: Props) {
         <h3 className="text-lg font-bold mb-4" style={{ color: "var(--color-foreground)" }}>Quick Links</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { name: "Theme", desc: "Select Template", href: `/tenant/${gym?.subdomain}/dashboard/website/theme` },
-            { name: "Content", desc: "Name & About", href: `/tenant/${gym?.subdomain}/dashboard/website/content` },
-            { name: "Hero", desc: "Banner Image", href: `/tenant/${gym?.subdomain}/dashboard/website/hero` },
-            { name: "Plans", desc: "Memberships", href: `/tenant/${gym?.subdomain}/dashboard/website/plans` },
-            { name: "Trainers", desc: "Staff Profiles", href: `/tenant/${gym?.subdomain}/dashboard/website/trainers` },
-            { name: "Gallery", desc: "Gym Photos", href: `/tenant/${gym?.subdomain}/dashboard/website/gallery` },
-            { name: "Reviews", desc: "Testimonials", href: `/tenant/${gym?.subdomain}/dashboard/website/testimonials` },
-            { name: "Contact", desc: "Phone & Maps", href: `/tenant/${gym?.subdomain}/dashboard/website/contact` },
+            { name: "Theme", desc: "Select Template", href: `/dashboard/website/theme` },
+            { name: "Content", desc: "Name & About", href: `/dashboard/website/content` },
+            { name: "Hero", desc: "Banner Image", href: `/dashboard/website/hero` },
+            { name: "Plans", desc: "Memberships", href: `/dashboard/plans` },
+            { name: "Trainers", desc: "Staff Profiles", href: `/dashboard/trainers` },
+            { name: "Gallery", desc: "Gym Photos", href: `/dashboard/website/gallery` },
+            { name: "Reviews", desc: "Testimonials", href: `/dashboard/website/testimonials` },
+            { name: "Contact", desc: "Phone & Maps", href: `/dashboard/website/contact` },
           ].map(link => (
             <a key={link.name} href={link.href} className="p-4 rounded-xl border transition-colors hover:border-gray-400 group" style={{ background: "var(--color-surface)", borderColor: "var(--color-border)" }}>
               <h4 className="font-bold text-sm transition-colors group-hover:text-brand" style={{ color: "var(--color-foreground)" }}>{link.name}</h4>

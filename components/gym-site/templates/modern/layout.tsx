@@ -114,6 +114,11 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
               {item}
             </a>
           ))}
+          <a href="/login" className="text-sm font-medium transition-colors" style={{ color: "#94A3B8" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#94A3B8")}>
+            Login
+          </a>
           <a href="#join"
             className="px-4 py-2 rounded-xl text-sm font-semibold text-white"
             style={{ background: "#FF5C73" }}
@@ -135,6 +140,7 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
             {["About", "Plans", "Trainers", "Gallery", "Contact"].map((item) => (
               <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setMenuOpen(false)} className="text-2xl font-bold text-white">{item}</a>
             ))}
+            <a href="/login" onClick={() => setMenuOpen(false)} className="text-2xl font-bold text-white">Login</a>
             <a href="#join" onClick={() => setMenuOpen(false)} className="px-8 py-3 rounded-xl text-lg font-bold text-white" style={{ background: "#FF5C73" }}>Book Free Trial</a>
           </div>
         </div>
@@ -153,7 +159,7 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
         <div className="absolute top-1/3 left-1/4 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #FF5C73, transparent)", filter: "blur(80px)" }} />
         <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full opacity-5" style={{ background: "radial-gradient(circle, #3B82F6, transparent)", filter: "blur(60px)" }} />
         <div className="relative z-10 px-6 max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-black text-white leading-tight mb-6">
+          <h1 className="text-4xl md:text-7xl font-black text-white leading-tight mb-6">
             Transform Your Body At <br />
             <span style={{ color: "#FF5C73" }}>{gym.name}</span>
           </h1>

@@ -105,6 +105,9 @@ export function CommunityTemplate({ gym, settings, plans, trainers, testimonials
               {item}
             </a>
           ))}
+          <a href="/login" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">
+            Login
+          </a>
           {whatsappUrl && (
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 rounded-lg text-sm font-bold text-white shadow-sm flex items-center gap-2" style={{ background: "#25D366" }}>
               <MessageSquare size={16} /> WhatsApp Us
@@ -125,6 +128,7 @@ export function CommunityTemplate({ gym, settings, plans, trainers, testimonials
             {["Pricing", "Location", "Contact"].map((item) => (
               <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setMenuOpen(false)} className="text-2xl font-bold text-slate-900">{item}</a>
             ))}
+            <a href="/login" onClick={() => setMenuOpen(false)} className="text-2xl font-bold text-slate-900">Login</a>
             {whatsappUrl && (
                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)} className="px-8 py-3 rounded-xl text-lg font-bold text-white flex items-center gap-2" style={{ background: "#25D366" }}>
                  <MessageSquare size={20} /> WhatsApp Us
@@ -141,7 +145,7 @@ export function CommunityTemplate({ gym, settings, plans, trainers, testimonials
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 font-bold text-sm mb-6">
               <MapPin size={16} /> {settings.address ? "Your Local Fitness Center" : "Welcome"}
             </div>
-            <h1 className="text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
+            <h1 className="text-4xl lg:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
               {settings.tagline || `Join ${gym.name} Today`}
             </h1>
             <p className="text-lg text-slate-600 mb-10 leading-relaxed max-w-lg mx-auto lg:mx-0">

@@ -105,6 +105,9 @@ export function TransformationTemplate({ gym, settings, plans, trainers, testimo
               {item}
             </a>
           ))}
+          <a href="/login" className="text-sm font-bold text-white/90 hover:text-white transition-colors uppercase tracking-wider">
+            Login
+          </a>
         </div>
         <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-white"><Menu size={28} /></button>
       </nav>
@@ -120,6 +123,7 @@ export function TransformationTemplate({ gym, settings, plans, trainers, testimo
             {["Testimonials", "Transformations", "Plans"].map((item) => (
               <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setMenuOpen(false)} className="text-3xl font-black text-gray-900 uppercase">{item}</a>
             ))}
+            <a href="/login" onClick={() => setMenuOpen(false)} className="text-3xl font-black text-gray-900 uppercase">Login</a>
             <a href="#join" onClick={() => setMenuOpen(false)} className="px-10 py-4 rounded-full text-xl font-bold text-white shadow-xl shadow-rose-500/30" style={{ background: primaryColor }}>Start Your Transformation</a>
           </div>
         </div>
@@ -136,7 +140,7 @@ export function TransformationTemplate({ gym, settings, plans, trainers, testimo
           <div className="inline-block px-4 py-1.5 rounded-full bg-rose-500/20 text-rose-400 font-bold text-sm mb-6 border border-rose-500/30 uppercase tracking-widest">
             Results Guaranteed
           </div>
-          <h1 className="text-5xl md:text-8xl font-black text-white leading-[1.1] mb-6 uppercase tracking-tight">
+          <h1 className="text-4xl md:text-8xl font-black text-white leading-[1.1] mb-6 uppercase tracking-tight">
             {settings.tagline || "Real People. Real Results."}
           </h1>
           <p className="text-xl md:text-2xl mb-12 font-medium text-gray-300 max-w-3xl">
