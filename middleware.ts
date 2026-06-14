@@ -37,7 +37,8 @@ export async function middleware(request: NextRequest) {
   if (
     subdomain &&
     !pathname.startsWith("/api") &&
-    !pathname.startsWith("/_next")
+    !pathname.startsWith("/_next") &&
+    !pathname.startsWith("/tenant/")
   ) {
     // 4. & 5. Rewrite internally and preserve query parameters
     const url = request.nextUrl.clone();

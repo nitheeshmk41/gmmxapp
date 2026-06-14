@@ -84,7 +84,7 @@ export function SettingsClientPage({ gym, user, subscription }: Props) {
               { label: "City", value: gym.city || "" },
               { label: "State", value: gym.state || "" },
               { label: "Subdomain", value: `${gym.subdomain}.gmmx.app` },
-              { label: "Plan", value: gym.plan.charAt(0).toUpperCase() + gym.plan.slice(1) },
+              { label: "Plan", value: (gym.plan || "starter").charAt(0).toUpperCase() + (gym.plan || "starter").slice(1) },
             ].map((field) => (
               <div key={field.label} className="space-y-1">
                 <label className="text-xs font-medium" style={{ color: "var(--color-muted-foreground)" }}>{field.label}</label>
@@ -110,12 +110,12 @@ export function SettingsClientPage({ gym, user, subscription }: Props) {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="text-base font-bold" style={{ color: "var(--color-foreground)" }}>
-                      {PLAN_LABELS[gym.plan] || gym.plan}
+                      {PLAN_LABELS[gym.plan || "starter"] || gym.plan || "starter"}
                     </p>
                     <p className="text-xs mt-0.5" style={{ color: "var(--color-muted-foreground)" }}>Current plan</p>
                   </div>
-                  <span className={STATUS_BADGES[gym.subscription_status] || "badge-muted"}>
-                    {gym.subscription_status.charAt(0).toUpperCase() + gym.subscription_status.slice(1)}
+                  <span className={STATUS_BADGES[gym.subscription_status || "trial"] || "badge-muted"}>
+                    {(gym.subscription_status || "trial").charAt(0).toUpperCase() + (gym.subscription_status || "trial").slice(1)}
                   </span>
                 </div>
                 {gym.subscription_status === "trial" && gym.trial_ends_at && (

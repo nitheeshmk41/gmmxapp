@@ -22,13 +22,18 @@ export async function getTrainers() {
   if (!gym) return [];
 
   const { databases } = await createAdminClient();
-  const response = await databases.listDocuments<TrainerDocument>(
-    APPWRITE_DB_ID,
-    COLLECTIONS.TRAINERS,
-    [Query.equal("gymId", gym.$id), Query.orderAsc("name")]
-  );
+  try {
+    const response = await databases.listDocuments<TrainerDocument>(
+      APPWRITE_DB_ID,
+      COLLECTIONS.TRAINERS,
+      [Query.equal("gymId", gym.$id), Query.orderAsc("name")]
+    );
 
-  return response.documents;
+    return response.documents;
+  } catch (error) {
+    console.error("Failed to fetch trainers:", error);
+    return [];
+  }
 }
 
 export async function getTrainerById(id: string) {
