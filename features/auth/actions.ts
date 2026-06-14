@@ -1,6 +1,6 @@
 "use server";
 
-import { createAdminClient, createSessionClient } from "@/lib/appwrite/server";
+import { createAdminClient, createSessionClient, createEmailPasswordSessionHelper } from "@/lib/appwrite/server";
 import { ensureUserRecord, routeForUser } from "@/lib/auth/bootstrap";
 import { getCurrentContext } from "@/lib/auth/context";
 import { env } from "@/lib/env";
@@ -111,14 +111,14 @@ export async function signUpWithEmail(formData: FormData) {
     await users.create(ID.unique(), email, undefined, password, name);
     
     // 2. Create Session
-    const session = await account.createEmailPasswordSession(email, password);
-    await setSessionCookie(session.secret);
+    const sessionSecret = await createEmailPasswordSessionHelper(email, password);
+    await setSessionCookie(sessionSecret);
 
     // 3. Sync User Record (avoid createSessionClient to bypass cookie propagation delay)
     const sessionClient = new Client()
       .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
       .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID)
-      .setSession(session.secret);
+      .setSession(sessionSecret);
     
     const sessionAccount = new Account(sessionClient);
     const appwriteUser = await sessionAccount.get();
@@ -158,16 +158,16 @@ export async function signInWithEmail(formData: FormData) {
 
   try {
     console.log("[signInWithEmail] Step 2: Creating Appwrite session");
-    const session = await account.createEmailPasswordSession(email, password);
+    const sessionSecret = await createEmailPasswordSessionHelper(email, password);
     
     console.log("[signInWithEmail] Step 3: Setting session cookie");
-    await setSessionCookie(session.secret);
+    await setSessionCookie(sessionSecret);
 
     console.log("[signInWithEmail] Step 4: Syncing user record");
     const sessionClient = new Client()
       .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
       .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID)
-      .setSession(session.secret);
+      .setSession(sessionSecret);
     
     const sessionAccount = new Account(sessionClient);
     const appwriteUser = await sessionAccount.get();
