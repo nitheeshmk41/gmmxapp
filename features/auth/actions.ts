@@ -107,7 +107,8 @@ export async function signUpWithEmail(formData: FormData) {
 
   try {
     // 1. Create Appwrite User
-    await account.create(ID.unique(), email, password, name);
+    const { account: adminAccount } = await createAdminClient();
+    await adminAccount.create(ID.unique(), email, password, name);
     
     // 2. Create Session
     const session = await account.createEmailPasswordSession(email, password);
