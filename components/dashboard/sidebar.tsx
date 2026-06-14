@@ -23,10 +23,12 @@ import { signOut } from "@/features/auth/actions";
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/members", label: "Members", icon: Users },
-  { href: "/dashboard/leads", label: "Leads", icon: UserPlus },
-  { href: "/dashboard/payments", label: "Payments", icon: CreditCard },
+  { href: "/dashboard/trainers", label: "Trainers", icon: Dumbbell },
   { href: "/dashboard/attendance", label: "Attendance", icon: CalendarCheck },
-  { href: "/dashboard/plans", label: "Plans", icon: CreditCard },
+  { href: "/dashboard/payments", label: "Payments", icon: CreditCard },
+  { href: "/dashboard/leads", label: "Leads", icon: UserPlus },
+  { href: "/dashboard/website", label: "Website", icon: Globe },
+  { href: "/dashboard/plans", label: "Plans", icon: Building2 },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
+import { BottomNav } from "@/components/dashboard/bottom-nav";
 import { getCurrentUser, getCurrentGym } from "@/features/auth/actions";
 
 export const metadata: Metadata = {
@@ -32,18 +33,23 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen" style={{ background: "var(--color-background)" }}>
-      {/* Sidebar */}
-      <Sidebar
-        gymName={gym.name}
-        gymSubdomain={gym.subdomain}
-        userEmail={user.email}
-      />
+      {/* Sidebar - hidden on mobile */}
+      <div className="hidden md:block">
+        <Sidebar
+          gymName={gym.name}
+          gymSubdomain={gym.subdomain}
+          userEmail={user.email}
+        />
+      </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-h-screen" style={{ marginLeft: "256px" }}>
+      <div className="flex-1 flex flex-col min-h-screen md:ml-64 pb-16 md:pb-0">
         <Topbar gymSubdomain={gym.subdomain} />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 }

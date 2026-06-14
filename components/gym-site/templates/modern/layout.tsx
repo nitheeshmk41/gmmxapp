@@ -136,7 +136,7 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
             {["About", "Plans", "Trainers", "Gallery", "Contact"].map((item) => (
               <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setMenuOpen(false)} className="text-2xl font-bold text-white">{item}</a>
             ))}
-            <a href="#join" onClick={() => setMenuOpen(false)} className="px-8 py-3 rounded-xl text-lg font-bold text-white" style={{ background: "#FF5C73" }}>Join Now</a>
+            <a href="#join" onClick={() => setMenuOpen(false)} className="px-8 py-3 rounded-xl text-lg font-bold text-white" style={{ background: "#FF5C73" }}>Book Free Trial</a>
           </div>
         </div>
       )}
@@ -154,28 +154,21 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
         <div className="absolute top-1/3 left-1/4 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #FF5C73, transparent)", filter: "blur(80px)" }} />
         <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full opacity-5" style={{ background: "radial-gradient(circle, #3B82F6, transparent)", filter: "blur(60px)" }} />
         <div className="relative z-10 px-6 max-w-4xl mx-auto">
-          {settings.tagline && (
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6" style={{ background: "rgba(255,92,115,0.15)", color: "#FF5C73", border: "1px solid rgba(255,92,115,0.3)" }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#FF5C73" }} />
-              {settings.tagline}
-            </div>
-          )}
-          <h1 className="text-5xl md:text-7xl font-black text-white mb-4 leading-tight">
-            Welcome to<br />
+          <h1 className="text-5xl md:text-7xl font-black text-white leading-tight mb-6">
+            Transform Your Body At <br />
             <span style={{ color: "#FF5C73" }}>{gym.name}</span>
           </h1>
-          {settings.description && (
-            <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto" style={{ color: "#94A3B8" }}>{settings.description}</p>
-          )}
+          <p className="text-xl md:text-2xl mb-10 font-medium" style={{ color: "#94A3B8" }}>
+            {settings.tagline || "Premium fitness center helping members build strength, lose weight and stay healthy."}
+          </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="#join" className="px-8 py-4 rounded-2xl text-base font-bold text-white transition-all" style={{ background: "#FF5C73", boxShadow: "0 4px 20px rgba(255,92,115,0.4)" }}>
-              Start Your Journey 💪
+            <a href="#join" className="px-8 py-4 rounded-xl text-lg font-bold text-white shadow-xl shadow-[#FF5C73]/20 hover:scale-105 transition-transform w-full sm:w-auto" style={{ background: "#FF5C73" }}>
+              Book Free Trial
             </a>
             {whatsappUrl && (
-              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 px-8 py-4 rounded-2xl text-base font-bold transition-all"
-                style={{ background: "rgba(255,255,255,0.05)", color: "white", border: "1px solid rgba(255,255,255,0.1)" }}>
-                <MessageSquare size={18} style={{ color: "#25D366" }} /> WhatsApp Us
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="px-8 py-4 rounded-xl text-lg font-bold text-white shadow-xl flex items-center justify-center gap-2 hover:scale-105 transition-transform w-full sm:w-auto" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)" }}>
+                <MessageSquare size={20} />
+                WhatsApp Us
               </a>
             )}
           </div>
@@ -449,7 +442,7 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
             </a>
           )}
           <a href="#join" className="flex-1 flex items-center justify-center font-bold px-4 py-4 rounded-xl shadow-xl shadow-[#FF5C73]/20 text-white" style={{ background: "#FF5C73" }}>
-            Join Now
+            Book Free Trial
           </a>
         </div>
       </footer>

@@ -56,12 +56,13 @@ export default async function DashboardPage() {
     { href: "/dashboard/attendance", label: "Attendance", icon: CalendarCheck, color: "text-orange-500", bg: "bg-orange-50" },
   ];
 
-  // Define Today's Overview Cards
-  const TODAY_STATS = [
-    { label: "Revenue Today", value: formatCurrency(stats.revenueToday), icon: IndianRupee, color: "var(--color-success)", bg: "var(--color-success-light)" },
-    { label: "Attendance Today", value: stats.attendanceToday, icon: CalendarCheck, color: "var(--color-info)", bg: "var(--color-info-light)" },
-    { label: "Expiring Soon", value: stats.expiringThisMonth, icon: AlertTriangle, color: "var(--color-warning)", bg: "var(--color-warning-light)" },
-    { label: "New Leads", value: stats.newLeadsThisWeek, icon: TrendingUp, color: "var(--color-brand-primary)", bg: "var(--color-brand-light)" },
+  // Top KPI Section
+  const KPI_STATS = [
+    { label: "Members", value: stats.totalMembers, icon: Users, color: "var(--color-brand-primary)", bg: "var(--color-brand-light)" },
+    { label: "Trainers", value: stats.totalTrainers || 0, icon: Dumbbell, color: "var(--color-info)", bg: "var(--color-info-light)" },
+    { label: "Revenue", value: formatCurrency(stats.revenueToday), icon: IndianRupee, color: "var(--color-success)", bg: "var(--color-success-light)" },
+    { label: "Attendance", value: stats.attendanceToday, icon: CalendarCheck, color: "var(--color-warning)", bg: "var(--color-warning-light)" },
+    { label: "Leads", value: stats.newLeadsThisWeek, icon: TrendingUp, color: "text-purple-500", bg: "bg-purple-50" },
   ];
 
   return (
@@ -105,6 +106,33 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* Top KPIs */}
+      <section>
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+          {KPI_STATS.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={stat.label}
+                className="p-4 md:p-5 rounded-2xl bg-white border border-slate-100 shadow-sm transition-all hover:shadow-md"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs md:text-sm font-medium text-slate-500">
+                    {stat.label}
+                  </span>
+                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center" style={{ background: stat.bg }}>
+                    <Icon size={14} className="md:w-4 md:h-4" style={{ color: stat.color }} />
+                  </div>
+                </div>
+                <div className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+                  {stat.value}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Welcome Checklist */}
       {!isSample && stats.totalMembers === 0 && (
         <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4">
@@ -113,14 +141,15 @@ export default async function DashboardPage() {
               <h3 className="text-xl font-bold text-slate-900 tracking-tight">Getting Started</h3>
               <p className="text-sm text-slate-500 mt-1">Complete setup in ~5 minutes</p>
             </div>
-            <div className="w-full sm:w-auto text-left sm:text-right bg-slate-50 p-3 sm:p-0 sm:bg-transparent rounded-lg">
+            <div className="w-full sm:w-64 text-left sm:text-right bg-slate-50 p-4 sm:p-0 sm:bg-transparent rounded-lg">
               <div className="flex items-center justify-between sm:justify-end gap-3 mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500">0/5 completed</span>
-                <span className="text-xs font-bold text-[#FF5C73]">0%</span>
+                <span className="text-xs font-bold text-[#FF5C73]">0% Complete</span>
               </div>
-              <div className="w-full sm:w-40 h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden mb-2">
                  <div className="h-full bg-[#FF5C73] w-0 transition-all duration-1000" />
               </div>
+              <p className="text-xs font-medium text-slate-500">Next Recommended: <span className="text-slate-900 font-bold">Add your first member</span></p>
             </div>
           </div>
           
@@ -174,35 +203,6 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      {/* Today's Overview */}
-      <section>
-        <h3 className="text-xs font-semibold tracking-wider uppercase mb-3 text-slate-500">
-          Today&apos;s Overview
-        </h3>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {TODAY_STATS.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={stat.label}
-                className="p-5 rounded-2xl bg-white border border-slate-100 shadow-sm transition-all hover:shadow-md"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-medium text-slate-500">
-                    {stat.label}
-                  </span>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: stat.bg }}>
-                    <Icon size={16} style={{ color: stat.color }} />
-                  </div>
-                </div>
-                <div className="text-2xl font-bold text-slate-900 tracking-tight">
-                  {stat.value}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
 
       {/* Recent Activity & Renewals */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

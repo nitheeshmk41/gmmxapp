@@ -23,6 +23,7 @@ export async function getDashboardStats() {
       attendanceToday: 8,
       expiringThisMonth: 2,
       newLeadsThisWeek: 5,
+      totalTrainers: 3,
     };
   }
   
@@ -35,6 +36,7 @@ export async function getDashboardStats() {
     attendanceToday: 0,
     expiringThisMonth: 0,
     newLeadsThisWeek: 0,
+    totalTrainers: 0,
   };
 }
 

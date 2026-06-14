@@ -2,11 +2,17 @@
 
 import { useState } from "react";
 import { signInWithEmail } from "@/features/auth/actions";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 
-export function TenantLoginForm() {
+interface Props {
+  roleType?: "admin" | "trainer" | "member";
+}
+
+export function TenantLoginForm({ roleType = "member" }: Props) {
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,13 +50,13 @@ export function TenantLoginForm() {
 
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-          Email or Phone
+          {roleType === "member" ? "Phone Number or Email" : "Email or Phone"}
         </label>
         <input
           type="text"
           value={emailOrPhone}
           onChange={(e) => setEmailOrPhone(e.target.value)}
-          placeholder="Enter your email or phone"
+          placeholder={roleType === "member" ? "Enter your phone number" : "Enter your email or phone"}
           className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#FF5C73]/20 focus:border-[#FF5C73] outline-none transition-all text-slate-900 placeholder-slate-400"
           required
         />
@@ -65,14 +71,36 @@ export function TenantLoginForm() {
             Forgot Password?
           </a>
         </div>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter your password"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#FF5C73]/20 focus:border-[#FF5C73] outline-none transition-all text-slate-900 placeholder-slate-400"
-          required
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#FF5C73]/20 focus:border-[#FF5C73] outline-none transition-all text-slate-900 placeholder-slate-400"
+            required
+          />
+          <button 
+            type="button" 
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 mt-2">
+        <input 
+          type="checkbox" 
+          id="remember" 
+          checked={rememberMe}
+          onChange={(e) => setRememberMe(e.target.checked)}
+          className="w-4 h-4 text-[#FF5C73] border-slate-300 rounded focus:ring-[#FF5C73]" 
         />
+        <label htmlFor="remember" className="text-sm font-medium text-slate-700 cursor-pointer">
+          Remember me
+        </label>
       </div>
 
       <button
@@ -85,11 +113,13 @@ export function TenantLoginForm() {
         {loading ? "Signing in..." : "Login"}
       </button>
 
-      <div className="text-center mt-6">
-        <a href="?method=otp" className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors">
-          Login with OTP instead
-        </a>
-      </div>
+      {roleType === "member" && (
+        <div className="text-center mt-6">
+          <a href="?method=otp" className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors">
+            Login with OTP instead
+          </a>
+        </div>
+      )}
     </form>
   );
 }
