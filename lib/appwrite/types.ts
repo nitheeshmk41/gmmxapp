@@ -12,7 +12,7 @@ export interface GymDocument extends Models.Document {
   tagline?: string;
   description?: string;
   bannerUrl?: string;
-  themeStyle?: "modern" | "luxury" | "hardcore" | "minimal";
+  themeStyle?: "modern" | "transformation" | "community";
   city?: string;
   address?: string;
   phone?: string;

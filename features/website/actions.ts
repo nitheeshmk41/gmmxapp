@@ -96,6 +96,22 @@ export async function toggleWebsitePublish(isPublished: boolean) {
   return { success: true };
 }
 
+export async function updateWebsiteTheme(template: string) {
+  const gym = await getCurrentGym();
+  if (!gym) return { error: "Unauthorized" };
+
+  try {
+    const { databases } = await createAdminClient();
+    await databases.updateDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gym.$id, { template });
+    revalidatePath("/dashboard/website");
+    revalidatePath("/dashboard/website/theme");
+    revalidatePath(`/`);
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
 // Testimonial Actions
 export async function getTestimonials() {
   const gym = await getCurrentGym();

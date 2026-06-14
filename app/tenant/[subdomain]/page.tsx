@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ModernTemplate } from "@/components/gym-site/templates/modern/layout";
+import { TransformationTemplate } from "@/components/gym-site/templates/transformation/layout";
+import { CommunityTemplate } from "@/components/gym-site/templates/community/layout";
 import { getTenantBySubdomain } from "@/lib/tenant";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { APPWRITE_DB_ID, COLLECTIONS, MembershipPlanDocument, TrainerDocument, TestimonialDocument } from "@/lib/appwrite/types";
@@ -100,6 +102,7 @@ export default async function GymPage({ params }: Props) {
     whatsapp_number: tenant.whatsapp || null,
     contact_email: tenant.email || null,
     address: tenant.address || null,
+    workingHours: tenant.workingHours || null,
   };
 
   const plansData = plansRes.documents.map((p) => ({
@@ -126,9 +129,31 @@ export default async function GymPage({ params }: Props) {
     rating: t.rating,
   }));
 
-  // In the future, we can switch based on settingsData.template
-  // if (settingsData.template === "minimal") return <MinimalTemplate ... />
-  // if (settingsData.template === "performance") return <PerformanceTemplate ... />
+  if (settingsData.template === "transformation") {
+    return (
+      <TransformationTemplate
+        gym={gymData}
+        settings={settingsData}
+        plans={plansData}
+        trainers={trainersData}
+        testimonials={testimonialsData}
+        services={tenant.services || []}
+      />
+    );
+  }
+
+  if (settingsData.template === "community") {
+    return (
+      <CommunityTemplate
+        gym={gymData}
+        settings={settingsData}
+        plans={plansData}
+        trainers={trainersData}
+        testimonials={testimonialsData}
+        services={tenant.services || []}
+      />
+    );
+  }
 
   return (
     <ModernTemplate
