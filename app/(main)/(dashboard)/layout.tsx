@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/features/auth/actions";
+import { getCurrentContext } from "@/lib/auth/context";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -7,8 +7,23 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
-  if (!user || user.role !== "super_admin") redirect("/signin");
+  const context = await getCurrentContext();
+  const user = context?.user;
+  
+  if (!user) {
+    redirect("/signin");
+  }
+
+  if (user.role !== "super_admin") {
+    // If an owner accidentally hits the root dashboard, send them to their gym
+    if (context.gym?.subdomain) {
+      const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "gmmx.app";
+      const proto = process.env.NODE_ENV === "production" ? "https" : "http";
+      redirect(`${proto}://${context.gym.subdomain}.${appDomain}/dashboard`);
+    } else {
+      redirect("/onboarding");
+    }
+  }
 
   return (
     <div className="min-h-screen" style={{ background: "var(--color-background)" }}>
