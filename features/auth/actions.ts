@@ -113,8 +113,13 @@ export async function signUpWithEmail(formData: FormData) {
     const session = await account.createEmailPasswordSession(email, password);
     await setSessionCookie(session.secret);
 
-    // 3. Sync User Record
-    const { account: sessionAccount } = await createSessionClient();
+    // 3. Sync User Record (avoid createSessionClient to bypass cookie propagation delay)
+    const sessionClient = new Client()
+      .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
+      .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID)
+      .setSession(session.secret);
+    
+    const sessionAccount = new Account(sessionClient);
     const appwriteUser = await sessionAccount.get();
     
     const dbUser = await ensureUserRecord({
@@ -158,7 +163,12 @@ export async function signInWithEmail(formData: FormData) {
     await setSessionCookie(session.secret);
 
     console.log("[signInWithEmail] Step 4: Syncing user record");
-    const { account: sessionAccount } = await createSessionClient();
+    const sessionClient = new Client()
+      .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
+      .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID)
+      .setSession(session.secret);
+    
+    const sessionAccount = new Account(sessionClient);
     const appwriteUser = await sessionAccount.get();
     
     const dbUser = await ensureUserRecord({
