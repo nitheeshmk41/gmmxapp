@@ -62,11 +62,17 @@ export async function signInWithGoogle() {
   const account = getAuthClient();
   const appUrl = await getAppUrl();
 
-  const redirectUrl = await account.createOAuth2Token(
-    OAuthProvider.Google,
-    `${appUrl}/auth/callback`,
-    `${appUrl}/signin?error=oauth_failed`
-  );
+  let redirectUrl: string;
+  try {
+    redirectUrl = await account.createOAuth2Token(
+      OAuthProvider.Google,
+      `${appUrl}/auth/callback`,
+      `${appUrl}/signin?error=oauth_failed`
+    );
+  } catch (error: any) {
+    console.error("[signInWithGoogle] Appwrite OAuth Error:", error.message);
+    redirect(`${appUrl}/signin?error=oauth_configuration_error`);
+  }
 
   redirect(redirectUrl);
 }
