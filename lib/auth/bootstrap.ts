@@ -58,6 +58,20 @@ export async function createGymTenant({
   secondaryColor,
   logoUrl,
   coverImageUrl,
+  tagline,
+  description,
+  bannerUrl,
+  themeStyle,
+  city,
+  address,
+  whatsapp,
+  workingHours,
+  mapsLink,
+  instagramUrl,
+  facebookUrl,
+  youtubeUrl,
+  services,
+  gallery,
 }: {
   userId: string;
   gymName: string;
@@ -71,6 +85,20 @@ export async function createGymTenant({
   secondaryColor?: string;
   logoUrl?: string;
   coverImageUrl?: string;
+  tagline?: string;
+  description?: string;
+  bannerUrl?: string;
+  themeStyle?: string;
+  city?: string;
+  address?: string;
+  whatsapp?: string;
+  workingHours?: string;
+  mapsLink?: string;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  youtubeUrl?: string;
+  services?: string[];
+  gallery?: string[];
 }) {
   const trialEndsAt = new Date();
   trialEndsAt.setDate(trialEndsAt.getDate() + 14);
@@ -91,6 +119,20 @@ export async function createGymTenant({
       secondaryColor,
       logoUrl,
       coverImageUrl,
+      tagline,
+      description,
+      bannerUrl,
+      themeStyle,
+      city,
+      address,
+      whatsapp,
+      workingHours,
+      mapsLink,
+      instagramUrl,
+      facebookUrl,
+      youtubeUrl,
+      services,
+      gallery,
       trialEndsAt: trialEndsAt.toISOString(),
       createdAt: new Date().toISOString()
     }

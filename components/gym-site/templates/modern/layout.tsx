@@ -46,14 +46,23 @@ interface Trainer {
   bio: string | null;
 }
 
+interface Testimonial {
+  id: string;
+  name: string;
+  review: string;
+  rating: number;
+}
+
 interface Props {
   gym: GymData;
   settings: Settings;
   plans: Plan[];
   trainers: Trainer[];
+  testimonials: Testimonial[];
+  services: string[];
 }
 
-export function ModernTemplate({ gym, settings, plans, trainers }: Props) {
+export function ModernTemplate({ gym, settings, plans, trainers, testimonials, services }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [joinName, setJoinName] = useState("");
   const [joinPhone, setJoinPhone] = useState("");
@@ -173,16 +182,30 @@ export function ModernTemplate({ gym, settings, plans, trainers }: Props) {
         </div>
       </section>
 
-      {/* About */}
+      {/* About & Services */}
       <section id="about" className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-black text-white mb-4">About {gym.name}</h2>
           <div className="w-16 h-1 rounded-full mx-auto mb-6" style={{ background: "#FF5C73" }} />
-          <p className="text-lg leading-relaxed" style={{ color: "#94A3B8" }}>
+          <p className="text-lg leading-relaxed mb-10" style={{ color: "#94A3B8" }}>
             {settings.description || `${gym.name} is committed to helping you reach your fitness goals. Join our community and transform your life.`}
           </p>
+          
+          {services && services.length > 0 && (
+            <div className="mt-12">
+              <h3 className="text-xl font-bold text-white mb-6">What We Offer</h3>
+              <div className="flex flex-wrap justify-center gap-3">
+                {services.map((service, i) => (
+                  <span key={i} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white border" style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.1)" }}>
+                    {service}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {settings.address && (
-            <div className="flex items-center justify-center gap-2 mt-6" style={{ color: "#94A3B8" }}>
+            <div className="flex items-center justify-center gap-2 mt-10" style={{ color: "#94A3B8" }}>
               <MapPin size={16} style={{ color: "#FF5C73" }} />
               <span className="text-sm">{settings.address}</span>
             </div>
@@ -268,6 +291,32 @@ export function ModernTemplate({ gym, settings, plans, trainers }: Props) {
               {settings.gallery_urls.map((url, i) => (
                 <div key={i} className="aspect-square rounded-xl overflow-hidden">
                   <img src={url} alt={`${gym.name} gallery ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Testimonials */}
+      {testimonials && testimonials.length > 0 && (
+        <section className="py-20 px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-black text-white mb-4">Success Stories</h2>
+              <div className="w-16 h-1 rounded-full mx-auto" style={{ background: "#FF5C73" }} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {testimonials.map((t) => (
+                <div key={t.id} className="p-8 rounded-2xl relative" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div className="text-[#FF5C73] text-4xl font-serif absolute top-6 left-6 opacity-30">"</div>
+                  <div className="flex mb-4 gap-1 mt-4">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className={`w-5 h-5 ${i < t.rating ? "text-yellow-400" : "text-gray-600"}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                    ))}
+                  </div>
+                  <p className="text-[#94A3B8] italic mb-6 leading-relaxed relative z-10">{t.review}</p>
+                  <div className="font-bold text-white">— {t.name}</div>
                 </div>
               ))}
             </div>
@@ -387,10 +436,22 @@ export function ModernTemplate({ gym, settings, plans, trainers }: Props) {
             Trainer Login
           </a>
         </div>
-        <p className="text-sm" style={{ color: "#475569" }}>
+        <p className="text-sm mt-4" style={{ color: "#475569" }}>
           © {new Date().getFullYear()} {gym.name}. Powered by{" "}
           <a href="https://gmmx.app" style={{ color: "#FF5C73" }}>GMMX</a>
         </p>
+
+        {/* Sticky Mobile CTA */}
+        <div className="md:hidden fixed bottom-4 left-4 right-4 z-50 flex gap-2">
+          {whatsappUrl && (
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-4 rounded-xl shadow-xl shadow-black/20" style={{ background: "#25D366", color: "white" }}>
+              <MessageSquare size={20} />
+            </a>
+          )}
+          <a href="#join" className="flex-1 flex items-center justify-center font-bold px-4 py-4 rounded-xl shadow-xl shadow-[#FF5C73]/20 text-white" style={{ background: "#FF5C73" }}>
+            Join Now
+          </a>
+        </div>
       </footer>
     </div>
   );

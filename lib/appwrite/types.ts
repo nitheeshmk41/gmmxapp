@@ -9,6 +9,22 @@ export interface GymDocument extends Models.Document {
   primaryColor?: string;
   secondaryColor?: string;
   trialEndsAt?: string; // ISO DateTime
+  tagline?: string;
+  description?: string;
+  bannerUrl?: string;
+  themeStyle?: "modern" | "luxury" | "hardcore" | "minimal";
+  city?: string;
+  address?: string;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  workingHours?: string;
+  mapsLink?: string;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  youtubeUrl?: string;
+  services?: string[];
+  gallery?: string[];
 }
 
 export interface GymUserDocument extends Models.Document {
@@ -90,6 +106,22 @@ export interface SubscriptionDocument extends Models.Document {
   currentPeriodEnd?: string;
 }
 
+export interface LeadDocument extends Models.Document {
+  gymId: string;
+  name: string;
+  phone: string;
+  status: "New" | "Contacted" | "Interested" | "Trial" | "Converted" | "Lost";
+  source?: string;
+  createdAt: string;
+}
+
+export interface TestimonialDocument extends Models.Document {
+  gymId: string;
+  name: string;
+  review: string;
+  rating: number;
+}
+
 // Appwrite Collection IDs (assumed to be matching the collection names or defined in env)
 export const COLLECTIONS = {
   GYMS: "gyms",
@@ -101,6 +133,8 @@ export const COLLECTIONS = {
   PAYMENTS: "payments",
   SUBSCRIPTIONS: "subscriptions",
   SETTINGS: "settings",
+  LEADS: "leads",
+  TESTIMONIALS: "testimonials",
 };
 
 // Ensure this matches your Appwrite configuration

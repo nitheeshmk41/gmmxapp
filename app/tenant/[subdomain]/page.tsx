@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { ModernTemplate } from "@/components/gym-site/templates/modern/layout";
 import { getTenantBySubdomain } from "@/lib/tenant";
 import { createAdminClient } from "@/lib/appwrite/server";
-import { APPWRITE_DB_ID, COLLECTIONS, MembershipPlanDocument, TrainerDocument } from "@/lib/appwrite/types";
+import { APPWRITE_DB_ID, COLLECTIONS, MembershipPlanDocument, TrainerDocument, TestimonialDocument } from "@/lib/appwrite/types";
 import { Query } from "node-appwrite";
 
 interface Props {
@@ -40,6 +40,7 @@ export default async function GymPage({ params }: Props) {
   let rawSettings: any = {};
   let plansRes = { documents: [] as MembershipPlanDocument[] };
   let trainersRes = { documents: [] as TrainerDocument[] };
+  let testimonialsRes = { documents: [] as TestimonialDocument[] };
 
   try {
     // Fetch Settings
@@ -64,7 +65,15 @@ export default async function GymPage({ params }: Props) {
     trainersRes = await databases.listDocuments<TrainerDocument>(
       APPWRITE_DB_ID,
       COLLECTIONS.TRAINERS,
-      [Query.equal("gym_id", tenant.id), Query.equal("isActive", true)]
+      [Query.equal("gymId", tenant.id), Query.equal("isActive", true)]
+    );
+
+    // Fetch testimonials
+    console.log(`[Tenant Route] Fetching TESTIMONIALS for gym_id: ${tenant.id}`);
+    testimonialsRes = await databases.listDocuments<TestimonialDocument>(
+      APPWRITE_DB_ID,
+      COLLECTIONS.TESTIMONIALS,
+      [Query.equal("gymId", tenant.id)]
     );
   } catch (error) {
     console.error(`[Tenant Route Error] Failed to fetch Appwrite collections for subdomain: ${subdomain}`, error);
@@ -80,17 +89,17 @@ export default async function GymPage({ params }: Props) {
   };
 
   const settingsData = {
-    template: rawSettings.template || tenant.template || "modern",
-    hero_image_url: tenant.coverImageUrl || null, // Assuming gym has coverImageUrl as per init-schema
-    description: rawSettings.description || null,
-    tagline: rawSettings.tagline || null,
-    gallery_urls: rawSettings.gallery_urls || [],
-    social_instagram: rawSettings.social_instagram || null,
-    social_facebook: rawSettings.social_facebook || null,
-    social_youtube: rawSettings.social_youtube || null,
-    whatsapp_number: rawSettings.whatsapp_number || null,
-    contact_email: rawSettings.contact_email || null,
-    address: rawSettings.address || null,
+    template: tenant.template || "modern",
+    hero_image_url: tenant.bannerUrl || tenant.coverImageUrl || null,
+    description: tenant.description || null,
+    tagline: tenant.tagline || null,
+    gallery_urls: tenant.gallery || [],
+    social_instagram: tenant.instagramUrl || null,
+    social_facebook: tenant.facebookUrl || null,
+    social_youtube: tenant.youtubeUrl || null,
+    whatsapp_number: tenant.whatsapp || null,
+    contact_email: tenant.email || null,
+    address: tenant.address || null,
   };
 
   const plansData = plansRes.documents.map((p) => ({
@@ -110,6 +119,13 @@ export default async function GymPage({ params }: Props) {
     bio: t.bio || null,
   }));
 
+  const testimonialsData = testimonialsRes.documents.map((t) => ({
+    id: t.$id,
+    name: t.name,
+    review: t.review,
+    rating: t.rating,
+  }));
+
   // In the future, we can switch based on settingsData.template
   // if (settingsData.template === "minimal") return <MinimalTemplate ... />
   // if (settingsData.template === "performance") return <PerformanceTemplate ... />
@@ -120,6 +136,8 @@ export default async function GymPage({ params }: Props) {
       settings={settingsData}
       plans={plansData}
       trainers={trainersData}
+      testimonials={testimonialsData}
+      services={tenant.services || []}
     />
   );
 }

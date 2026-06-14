@@ -1,4 +1,4 @@
-import { PhoneOtpForm } from "@/features/auth/components/phone-otp-form";
+import { TenantLoginForm } from "@/features/auth/components/tenant-login-form";
 import { getTenantBySubdomain } from "@/lib/tenant";
 import { notFound } from "next/navigation";
 import { Dumbbell } from "lucide-react";
@@ -30,12 +30,12 @@ export default async function TenantLoginPage({ params }: Props) {
             Sign in to {tenant.name}
           </h1>
           <p className="mt-2 text-sm text-slate-500 font-medium">
-            Enter your registered phone number to receive an OTP.
+            Enter your credentials to access your account.
           </p>
         </div>
 
         <div className="p-8">
-          <PhoneOtpForm />
+          <TenantLoginForm />
         </div>
       </div>
     </div>

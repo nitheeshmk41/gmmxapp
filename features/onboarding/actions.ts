@@ -4,7 +4,7 @@ import { createGymTenant } from "@/lib/auth/bootstrap";
 import { getCurrentContext } from "@/lib/auth/context";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
-import { Query } from "node-appwrite";
+import { Query, ID } from "node-appwrite";
 import { cookies } from "next/headers";
 
 export async function completeOnboarding(formData: FormData) {
@@ -24,17 +24,13 @@ export async function completeOnboarding(formData: FormData) {
 
   const gymName = formData.get("gymName") as string;
   const subdomain = formData.get("subdomain") as string;
-  const plan = formData.get("plan") as string;
+  const tagline = formData.get("tagline") as string;
   const phone = formData.get("phone") as string;
-  
-  const template = "modern";
-  const primaryColor = "#FF5C73";
-  const secondaryColor = "#1A1A1A";
-  const logoUrl = "";
-  const coverImageUrl = "";
-  
+  const themeStyle = formData.get("themeStyle") as string || "modern";
+  const primaryColor = formData.get("primaryColor") as string || "#FF5C73";
+
   // Basic validation
-  if (!gymName || !subdomain || !plan || !phone) {
+  if (!gymName || !subdomain || !phone) {
     return { error: "Missing required fields." };
   }
 
@@ -58,30 +54,58 @@ export async function completeOnboarding(formData: FormData) {
   );
 
   if (existingGym.documents.length > 0) {
-    return { error: "This subdomain is already taken." };
+    const gym = existingGym.documents[0];
+    try {
+      await users.get(gym.ownerId);
+      return { error: "This subdomain is already taken." };
+    } catch (e: any) {
+      if (e.code === 404) {
+        // Owner user no longer exists, so the gym is effectively abandoned. Reclaim domain!
+        await databases.deleteDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gym.$id);
+        console.log(`Reclaimed abandoned subdomain: ${subdomain}`);
+      } else {
+        return { error: "This subdomain is already taken." };
+      }
+    }
   }
 
   try {
-    await createGymTenant({
+    const gym = await createGymTenant({
       userId: context.user.id,
       gymName,
       ownerName: context.user.name || "Owner",
       email: context.user.email,
       phone,
       subdomain,
-      plan,
-      template,
+      plan: "professional", // Default plan
+      template: themeStyle,
       primaryColor,
-      secondaryColor,
-      logoUrl,
-      coverImageUrl,
+      secondaryColor: "#1A1A1A",
+      tagline,
+      // Pass empty arrays/strings for other fields to prevent errors
+      description: "",
+      bannerUrl: "",
+      city: "",
+      address: "",
+      whatsapp: phone, // fallback whatsapp to phone
+      workingHours: "Monday-Saturday 5 AM - 10 PM",
+      mapsLink: "",
+      instagramUrl: "",
+      facebookUrl: "",
+      youtubeUrl: "",
+      services: [],
+      gallery: [],
     });
     
+    // We do NOT create plans, trainers, gallery here anymore.
+    // The gym owner will do this from their dashboard.
+
     const cookieStore = await cookies();
     cookieStore.set("gmmx_sample_data", "true", { path: "/", maxAge: 60 * 60 * 24 * 30 });
     
     return { success: true, subdomain };
   } catch (error) {
+    console.error("Onboarding Error:", error);
     return { error: error instanceof Error ? error.message : "Failed to create gym." };
   }
 }
