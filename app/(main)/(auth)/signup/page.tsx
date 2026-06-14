@@ -2,6 +2,28 @@
 
 import { signInWithGoogle } from "@/features/auth/actions";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+
+function ErrorBanner() {
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
+  
+  if (!error) return null;
+
+  let message = "An error occurred during authentication.";
+  if (error === "oauth_configuration_error") {
+    message = "Login is currently disabled. The site owner must add this domain to their Appwrite OAuth Platforms.";
+  } else if (error === "oauth_failed") {
+    message = "Google login failed or was canceled.";
+  }
+
+  return (
+    <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium">
+      {message}
+    </div>
+  );
+}
 
 export default function SignupPage() {
   return (
@@ -14,6 +36,10 @@ export default function SignupPage() {
           Create your gym and get a professional website in minutes.
         </p>
       </div>
+
+      <Suspense fallback={null}>
+        <ErrorBanner />
+      </Suspense>
 
       {/* Google Signup Button */}
       <form action={signInWithGoogle}>
