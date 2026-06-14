@@ -2,7 +2,7 @@
 
 import { createAdminClient, createSessionClient, createEmailPasswordSessionHelper } from "@/lib/appwrite/server";
 import { ensureUserRecord, routeForUser } from "@/lib/auth/bootstrap";
-import { getCurrentContext } from "@/lib/auth/context";
+import { getCurrentContext, getCurrentGym as getGymContext } from "@/lib/auth/context";
 import { env } from "@/lib/env";
 import { createCorrelationId, logEvent } from "@/lib/logger";
 import { Account, Client, ID, OAuthProvider, Query } from "node-appwrite";
@@ -324,6 +324,6 @@ export async function getCurrentUser() {
 }
 
 export async function getCurrentGym() {
-  const context = await getCurrentContext();
+  const context = await getGymContext();
   return context?.gym ?? null;
 }

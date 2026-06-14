@@ -1,6 +1,10 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { createAdminClient } from "@/lib/appwrite/server";
+import { getCurrentGym } from "@/features/auth/actions";
+import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
+import { Query } from "node-appwrite";
 
 export async function clearSampleData() {
   const cookieStore = await cookies();
@@ -17,27 +21,118 @@ export async function getDashboardStats() {
     return {
       totalMembers: 12,
       activeMembers: 10,
+      expiredMembers: 2,
+      expiringThisWeek: 3,
       newLeads: 5,
       activePlans: 3,
       revenueToday: 24000,
       attendanceToday: 8,
-      expiringThisMonth: 2,
       newLeadsThisWeek: 5,
       totalTrainers: 3,
     };
   }
   
-  return {
-    totalMembers: 0,
-    activeMembers: 0,
-    newLeads: 0,
-    activePlans: 0,
-    revenueToday: 0,
-    attendanceToday: 0,
-    expiringThisMonth: 0,
-    newLeadsThisWeek: 0,
-    totalTrainers: 0,
-  };
+  const gym = await getCurrentGym();
+  if (!gym) {
+    return {
+      totalMembers: 0,
+      activeMembers: 0,
+      expiredMembers: 0,
+      expiringThisWeek: 0,
+      newLeads: 0,
+      activePlans: 0,
+      revenueToday: 0,
+      attendanceToday: 0,
+      newLeadsThisWeek: 0,
+      totalTrainers: 0,
+    };
+  }
+
+  try {
+    const { databases } = await createAdminClient();
+
+    // 1. Total Members
+    const totalMembersRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.MEMBERS,
+      [Query.equal("gymId", gym.$id), Query.limit(1)]
+    );
+    const totalMembers = totalMembersRes.total;
+
+    // 2. Active Members
+    const activeMembersRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.MEMBERS,
+      [Query.equal("gymId", gym.$id), Query.equal("status", "active"), Query.limit(1)]
+    );
+    const activeMembers = activeMembersRes.total;
+
+    // 3. Expired Members
+    const expiredMembersRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.MEMBERS,
+      [Query.equal("gymId", gym.$id), Query.equal("status", "expired"), Query.limit(1)]
+    );
+    const expiredMembers = expiredMembersRes.total;
+
+    // 4. Expiring This Week
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const endOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 23, 59, 59, 999).toISOString();
+    const expiringThisWeekRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.MEMBERS,
+      [
+        Query.equal("gymId", gym.$id),
+        Query.between("membershipEndDate", startOfToday, endOfWeek),
+        Query.limit(1)
+      ]
+    );
+    const expiringThisWeek = expiringThisWeekRes.total;
+
+    // 5. Leads Count
+    const leadsRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.LEADS,
+      [Query.equal("gymId", gym.$id), Query.limit(1)]
+    );
+    const newLeads = leadsRes.total;
+
+    // 6. Plans Count
+    const plansRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.MEMBERSHIP_PLANS,
+      [Query.equal("gymId", gym.$id), Query.equal("isActive", true), Query.limit(1)]
+    );
+    const activePlans = plansRes.total;
+
+    return {
+      totalMembers,
+      activeMembers,
+      expiredMembers,
+      expiringThisWeek,
+      newLeads,
+      activePlans,
+      revenueToday: 0,
+      attendanceToday: 0,
+      newLeadsThisWeek: newLeads,
+      totalTrainers: 0,
+    };
+  } catch (error) {
+    console.error("[getDashboardStats] Failed to load statistics:", error);
+    return {
+      totalMembers: 0,
+      activeMembers: 0,
+      expiredMembers: 0,
+      expiringThisWeek: 0,
+      newLeads: 0,
+      activePlans: 0,
+      revenueToday: 0,
+      attendanceToday: 0,
+      newLeadsThisWeek: 0,
+      totalTrainers: 0,
+    };
+  }
 }
 
 export async function getMonthlyRevenue() {

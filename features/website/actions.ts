@@ -166,3 +166,119 @@ export async function deleteTestimonial(id: string) {
     return { error: error.message };
   }
 }
+
+export async function saveDraftDetails({
+  phone,
+  address,
+  heroTitle,
+  heroSubtitle,
+  logoFileId,
+}: {
+  phone: string;
+  address: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  logoFileId?: string;
+}) {
+  const gymContext = await getCurrentGym();
+  if (!gymContext || !gymContext.gymId) return { error: "Unauthorized" };
+  const gymId = gymContext.gymId;
+
+  try {
+    const { databases } = await createAdminClient();
+
+    // 1. Update Profile (phone, address)
+    const profileRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.GYM_PROFILE,
+      [Query.equal("gymId", gymId)]
+    );
+    if (profileRes.documents.length > 0) {
+      await databases.updateDocument(
+        APPWRITE_DB_ID,
+        COLLECTIONS.GYM_PROFILE,
+        profileRes.documents[0].$id,
+        { phone, address }
+      );
+    }
+
+    // 2. Update Settings (logoFileId)
+    if (logoFileId) {
+      const settingsRes = await databases.listDocuments(
+        APPWRITE_DB_ID,
+        COLLECTIONS.GYM_SETTINGS,
+        [Query.equal("gymId", gymId)]
+      );
+      if (settingsRes.documents.length > 0) {
+        await databases.updateDocument(
+          APPWRITE_DB_ID,
+          COLLECTIONS.GYM_SETTINGS,
+          settingsRes.documents[0].$id,
+          { logoFileId }
+        );
+      }
+    }
+
+    // 3. Update Hero Section
+    const sectionsRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.WEBSITE_SECTIONS,
+      [Query.equal("gymId", gymId), Query.equal("sectionKey", "hero")]
+    );
+    if (sectionsRes.documents.length > 0) {
+      const heroSection = sectionsRes.documents[0];
+      const contentJson = JSON.parse(heroSection.contentJson);
+      contentJson.title = heroTitle || contentJson.title;
+      contentJson.subtitle = heroSubtitle || contentJson.subtitle;
+
+      await databases.updateDocument(
+        APPWRITE_DB_ID,
+        COLLECTIONS.WEBSITE_SECTIONS,
+        heroSection.$id,
+        {
+          contentJson: JSON.stringify(contentJson)
+        }
+      );
+    }
+
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error: any) {
+    console.error("[saveDraftDetails] Error:", error);
+    return { error: error.message || "Failed to save draft details." };
+  }
+}
+
+export async function publishWebsite() {
+  const gymContext = await getCurrentGym();
+  if (!gymContext || !gymContext.gymId) return { error: "Unauthorized" };
+  const gymId = gymContext.gymId;
+
+  try {
+    const { databases } = await createAdminClient();
+
+    const settingsRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.GYM_SETTINGS,
+      [Query.equal("gymId", gymId)]
+    );
+    if (settingsRes.documents.length > 0) {
+      await databases.updateDocument(
+        APPWRITE_DB_ID,
+        COLLECTIONS.GYM_SETTINGS,
+        settingsRes.documents[0].$id,
+        {
+          websiteStatus: "published",
+          publishedAt: new Date().toISOString()
+        }
+      );
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath(`/`);
+    return { success: true };
+  } catch (error: any) {
+    console.error("[publishWebsite] Error:", error);
+    return { error: error.message || "Failed to publish website." };
+  }
+}

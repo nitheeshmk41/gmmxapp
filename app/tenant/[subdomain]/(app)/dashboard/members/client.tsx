@@ -21,6 +21,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 
 type Member = {
   id: string;
+  memberCode: string;
   name: string;
   phone: string;
   email?: string | null;
@@ -28,7 +29,7 @@ type Member = {
   join_date: Date;
   photo_url?: string | null;
   plan?: { name: string; price: number } | null;
-  payments?: { membership_end?: Date | null }[];
+  membershipEndDate: Date | null;
 };
 
 interface Props {
@@ -43,7 +44,6 @@ const STATUS_OPTIONS = [
   { value: "all", label: "All Members" },
   { value: "active", label: "Active" },
   { value: "expired", label: "Expired" },
-  { value: "paused", label: "Paused" },
 ];
 
 export function MembersClientPage({ members, total, page, search, status }: Props) {
@@ -193,7 +193,7 @@ export function MembersClientPage({ members, total, page, search, status }: Prop
               </tr>
             ) : (
               members.map((member) => {
-                const membershipEnd = member.payments?.[0]?.membership_end;
+                const membershipEnd = member.membershipEndDate;
                 const expiryStatus = membershipEnd ? getExpiryStatus(membershipEnd) : null;
 
                 return (
@@ -213,7 +213,7 @@ export function MembersClientPage({ members, total, page, search, status }: Prop
                         </div>
                         <div>
                           <p className="text-sm font-medium" style={{ color: "var(--color-foreground)" }}>
-                            {member.name}
+                            {member.name} <span className="text-xs ml-1 font-semibold opacity-70" style={{ color: "var(--color-muted-foreground)" }}>({member.memberCode})</span>
                           </p>
                           {member.email && (
                             <p className="text-xs" style={{ color: "var(--color-muted-foreground)" }}>

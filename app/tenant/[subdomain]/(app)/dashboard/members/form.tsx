@@ -7,12 +7,10 @@ import { createMember, updateMember } from "@/features/members/actions";
 import Link from "next/link";
 
 type Plan = { id: string; name: string; price: number; duration_days: number };
-type Trainer = { id: string; name: string; specialization: string | null };
-type Member = { id: string; name: string; phone: string; email: string | null; gender: string | null; age: number | null; height: number | null; weight: number | null; goal: string | null; join_date: Date; notes: string | null; status: string; plan_id: string | null; trainer_id: string | null };
+type Member = { id: string; name: string; phone: string; email: string | null; join_date: Date; status: string; plan_id: string | null; notes: string | null };
 
 interface Props {
   plans: Plan[];
-  trainers: Trainer[];
   mode: "create" | "edit";
   member?: Member;
 }
@@ -26,18 +24,9 @@ const FIELD_GROUPS = [
       { name: "email", label: "Email", type: "email", placeholder: "rahul@email.com", required: false, col: 1 },
     ],
   },
-  {
-    title: "Body Metrics",
-    fields: [
-      { name: "gender", label: "Gender", type: "select", options: ["", "male", "female", "other"], required: false, col: 1 },
-      { name: "age", label: "Age", type: "number", placeholder: "25", required: false, col: 1 },
-      { name: "height", label: "Height (cm)", type: "number", placeholder: "175", required: false, col: 1 },
-      { name: "weight", label: "Weight (kg)", type: "number", placeholder: "75", required: false, col: 1 },
-    ],
-  },
 ];
 
-export function MemberFormPage({ plans, trainers, mode, member }: Props) {
+export function MemberFormPage({ plans, mode, member }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [loading, setLoading] = useState(false);
@@ -70,7 +59,6 @@ export function MemberFormPage({ plans, trainers, mode, member }: Props) {
 
   return (
     <div className="max-w-2xl animate-in">
-      {/* Back link */}
       <Link href="/dashboard/members" className="flex items-center gap-2 text-sm mb-5 transition-colors" style={{ color: "var(--color-muted-foreground)" }}>
         <ArrowLeft size={15} />
         Back to Members
@@ -99,30 +87,17 @@ export function MemberFormPage({ plans, trainers, mode, member }: Props) {
                     <label className="text-xs font-medium" style={{ color: "var(--color-foreground)" }}>
                       {field.label} {field.required && "*"}
                     </label>
-                    {field.type === "select" ? (
-                      <select
-                        name={field.name}
-                        defaultValue={(member as Record<string, unknown>)?.[field.name] as string || ""}
-                        className="w-full px-3 py-2.5 rounded-lg text-sm"
-                        style={inputStyle}
-                      >
-                        {field.options?.map((opt) => (
-                          <option key={opt} value={opt}>{opt === "" ? `Select ${field.label}` : opt.charAt(0).toUpperCase() + opt.slice(1)}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        name={field.name}
-                        type={field.type}
-                        required={field.required}
-                        placeholder={field.placeholder}
-                        defaultValue={(member as Record<string, unknown>)?.[field.name] as string || ""}
-                        className="w-full px-3 py-2.5 rounded-lg text-sm"
-                        style={inputStyle}
-                        onFocus={(e) => { e.target.style.borderColor = "var(--color-brand-primary)"; }}
-                        onBlur={(e) => { e.target.style.borderColor = "var(--color-border)"; }}
-                      />
-                    )}
+                    <input
+                      name={field.name}
+                      type={field.type}
+                      required={field.required}
+                      placeholder={field.placeholder}
+                      defaultValue={(member as Record<string, unknown>)?.[field.name] as string || ""}
+                      className="w-full px-3 py-2.5 rounded-lg text-sm"
+                      style={inputStyle}
+                      onFocus={(e) => { e.target.style.borderColor = "var(--color-brand-primary)"; }}
+                      onBlur={(e) => { e.target.style.borderColor = "var(--color-border)"; }}
+                    />
                   </div>
                 ))}
               </div>
@@ -141,46 +116,30 @@ export function MemberFormPage({ plans, trainers, mode, member }: Props) {
                   onBlur={(e) => { e.target.style.borderColor = "var(--color-border)"; }} />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium" style={{ color: "var(--color-foreground)" }}>Status</label>
-                <select name="status" defaultValue={member?.status || "active"} className="w-full px-3 py-2.5 rounded-lg text-sm" style={inputStyle}>
-                  <option value="active">Active</option>
-                  <option value="expired">Expired</option>
-                  <option value="paused">Paused</option>
-                </select>
-              </div>
-              <div className="space-y-1.5">
                 <label className="text-xs font-medium" style={{ color: "var(--color-foreground)" }}>Membership Plan</label>
                 <select name="plan_id" defaultValue={member?.plan_id || ""} className="w-full px-3 py-2.5 rounded-lg text-sm" style={inputStyle}>
                   <option value="">No plan</option>
                   {plans.map((p) => <option key={p.id} value={p.id}>{p.name} – ₹{p.price}</option>)}
                 </select>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium" style={{ color: "var(--color-foreground)" }}>Assigned Trainer</label>
-                <select name="trainer_id" defaultValue={member?.trainer_id || ""} className="w-full px-3 py-2.5 rounded-lg text-sm" style={inputStyle}>
-                  <option value="">No trainer</option>
-                  {trainers.map((t) => <option key={t.id} value={t.id}>{t.name}{t.specialization ? ` – ${t.specialization}` : ""}</option>)}
-                </select>
-              </div>
             </div>
           </div>
 
-          {/* Goal + Notes */}
+          {/* Notes */}
           <div>
-            <p className="text-xs font-semibold mb-3" style={{ color: "var(--color-muted-foreground)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Additional Details</p>
-            <div className="space-y-3">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium" style={{ color: "var(--color-foreground)" }}>Fitness Goal</label>
-                <input name="goal" placeholder="Weight loss, Muscle gain, Flexibility…" defaultValue={member?.goal || ""} className="w-full px-3 py-2.5 rounded-lg text-sm" style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = "var(--color-brand-primary)"; }}
-                  onBlur={(e) => { e.target.style.borderColor = "var(--color-border)"; }} />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium" style={{ color: "var(--color-foreground)" }}>Notes</label>
-                <textarea name="notes" rows={2} placeholder="Any notes about this member…" defaultValue={member?.notes || ""} className="w-full px-3 py-2.5 rounded-lg text-sm resize-none" style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = "var(--color-brand-primary)"; }}
-                  onBlur={(e) => { e.target.style.borderColor = "var(--color-border)"; }} />
-              </div>
+            <p className="text-xs font-semibold mb-3" style={{ color: "var(--color-muted-foreground)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Notes</p>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium" style={{ color: "var(--color-foreground)" }}>Notes / Restrictions</label>
+              <textarea
+                name="notes"
+                rows={3}
+                placeholder="Any special health warnings, injuries, or evening workout preferences..."
+                defaultValue={member?.notes || ""}
+                className="w-full px-3 py-2.5 rounded-lg text-sm resize-none"
+                style={inputStyle}
+                onFocus={(e) => { e.target.style.borderColor = "var(--color-brand-primary)"; }}
+                onBlur={(e) => { e.target.style.borderColor = "var(--color-border)"; }}
+              />
             </div>
           </div>
 

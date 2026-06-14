@@ -24,7 +24,7 @@ export default async function GymPlansPage({ params }: Props) {
   try {
     const plansRes = await databases.listDocuments<MembershipPlanDocument>(
       APPWRITE_DB_ID,
-      COLLECTIONS.PLANS,
+      COLLECTIONS.MEMBERSHIP_PLANS,
       [Query.equal("gymId", tenant.id), Query.equal("isActive", true)]
     );
     plans = plansRes.documents;
@@ -81,7 +81,7 @@ export default async function GymPlansPage({ params }: Props) {
                 <div>
                   <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
                   <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-4xl font-black text-white">₹{Number(plan.price).toLocaleString("en-IN")}</span>
+                    <span className="text-4xl font-black text-white">₹{Number(plan.amount).toLocaleString("en-IN")}</span>
                     <span className="text-sm text-slate-400">/ {plan.durationDays} days</span>
                   </div>
                   {plan.description && (

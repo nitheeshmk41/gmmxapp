@@ -18,6 +18,7 @@ interface Settings {
   hero_image_url: string | null;
   description: string | null;
   tagline: string | null;
+  hero_title?: string | null;
   gallery_urls: string[];
   social_instagram: string | null;
   social_facebook: string | null;
@@ -146,7 +147,7 @@ export function CommunityTemplate({ gym, settings, plans, trainers, testimonials
               <MapPin size={16} /> {settings.address ? "Your Local Fitness Center" : "Welcome"}
             </div>
             <h1 className="text-4xl lg:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
-              {settings.tagline || `Join ${gym.name} Today`}
+              {settings.hero_title || settings.tagline || `Join ${gym.name} Today`}
             </h1>
             <p className="text-lg text-slate-600 mb-10 leading-relaxed max-w-lg mx-auto lg:mx-0">
               {settings.description || "Affordable memberships, great equipment, and a friendly community right in your neighborhood."}

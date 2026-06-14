@@ -30,7 +30,64 @@ import { formatCurrency } from "@/lib/utils";
 import { DashboardCharts } from "./charts";
 import { formatDistanceToNow } from "date-fns";
 
+import { getCurrentGym } from "@/features/auth/actions";
+import { createAdminClient } from "@/lib/appwrite/server";
+import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
+import { Query } from "node-appwrite";
+import WelcomeDashboard from "./WelcomeDashboard";
+
 export default async function DashboardPage() {
+  const gym = await getCurrentGym();
+  if (!gym) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p style={{ color: "var(--color-muted-foreground)" }}>Failed to load gym context.</p>
+      </div>
+    );
+  }
+
+  // Fetch settings, profile, and hero section to check draft mode
+  const { databases } = await createAdminClient();
+  
+  const [settingsRes, profileRes, sectionsRes] = await Promise.all([
+    databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_SETTINGS, [Query.equal("gymId", gym.$id)]),
+    databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_PROFILE, [Query.equal("gymId", gym.$id)]),
+    databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_SECTIONS, [
+      Query.equal("gymId", gym.$id),
+      Query.equal("sectionKey", "hero")
+    ]),
+  ]);
+
+  const settingsDoc = settingsRes.documents[0] || null;
+  const profileDoc = profileRes.documents[0] || null;
+  const heroSectionDoc = sectionsRes.documents[0] || null;
+
+  const isDraft = !settingsDoc || settingsDoc.websiteStatus === "draft";
+
+  if (isDraft) {
+    let heroTitle = "";
+    let heroSubtitle = "";
+    if (heroSectionDoc?.contentJson) {
+      try {
+        const parsed = JSON.parse(heroSectionDoc.contentJson);
+        heroTitle = parsed.title || "";
+        heroSubtitle = parsed.subtitle || "";
+      } catch (e) {}
+    }
+
+    return (
+      <WelcomeDashboard
+        gymName={gym.name}
+        subdomain={gym.subdomain}
+        initialPhone={profileDoc?.phone || ""}
+        initialAddress={profileDoc?.address || ""}
+        initialHeroTitle={heroTitle}
+        initialHeroSubtitle={heroSubtitle}
+        initialLogoFileId={settingsDoc?.logoFileId || ""}
+      />
+    );
+  }
+
   const [stats, monthlyRevenue, newMembers, attendanceTrend, recentActivity, isSample] = await Promise.all([
     getDashboardStats(),
     getMonthlyRevenue(),
@@ -58,10 +115,10 @@ export default async function DashboardPage() {
 
   // Top KPI Section
   const KPI_STATS = [
-    { label: "Members", value: stats.totalMembers, icon: Users, color: "var(--color-brand-primary)", bg: "var(--color-brand-light)" },
-    { label: "Trainers", value: stats.totalTrainers || 0, icon: Dumbbell, color: "var(--color-info)", bg: "var(--color-info-light)" },
-    { label: "Revenue", value: formatCurrency(stats.revenueToday), icon: IndianRupee, color: "var(--color-success)", bg: "var(--color-success-light)" },
-    { label: "Attendance", value: stats.attendanceToday, icon: CalendarCheck, color: "var(--color-warning)", bg: "var(--color-warning-light)" },
+    { label: "Total Members", value: stats.totalMembers, icon: Users, color: "var(--color-brand-primary)", bg: "var(--color-brand-light)" },
+    { label: "Active Members", value: stats.activeMembers, icon: Users, color: "var(--color-success)", bg: "var(--color-success-light)" },
+    { label: "Expired Members", value: stats.expiredMembers || 0, icon: Users, color: "var(--color-danger)", bg: "var(--color-danger-light)" },
+    { label: "Expiring soon", value: stats.expiringThisWeek, icon: Clock, color: "var(--color-warning)", bg: "var(--color-warning-light)" },
     { label: "Leads", value: stats.newLeadsThisWeek, icon: TrendingUp, color: "text-purple-500", bg: "bg-purple-50" },
   ];
 

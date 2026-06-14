@@ -22,15 +22,15 @@ export async function getPlans() {
   try {
     const response = await databases.listDocuments<MembershipPlanDocument>(
       APPWRITE_DB_ID,
-      COLLECTIONS.PLANS,
-      [Query.equal("gymId", gym.$id), Query.orderAsc("price")]
+      COLLECTIONS.MEMBERSHIP_PLANS,
+      [Query.equal("gymId", gym.$id), Query.orderAsc("amount")]
     );
 
     return response.documents.map((doc) => ({
       id: doc.$id,
       name: doc.name,
       duration_days: doc.durationDays,
-      price: doc.price,
+      price: doc.amount,
       description: doc.description || null,
       is_active: doc.isActive,
     }));
@@ -53,13 +53,13 @@ export async function createPlan(formData: FormData): Promise<{ success?: boolea
   try {
     await databases.createDocument(
       APPWRITE_DB_ID,
-      COLLECTIONS.PLANS,
+      COLLECTIONS.MEMBERSHIP_PLANS,
       ID.unique(),
       {
         gymId: gym.$id,
         name: parsed.data.name,
         durationDays: parsed.data.duration_days,
-        price: parsed.data.price,
+        amount: parsed.data.price,
         description: parsed.data.description,
         isActive: true,
       }
@@ -85,12 +85,12 @@ export async function updatePlan(id: string, formData: FormData): Promise<{ succ
   try {
     await databases.updateDocument(
       APPWRITE_DB_ID,
-      COLLECTIONS.PLANS,
+      COLLECTIONS.MEMBERSHIP_PLANS,
       id,
       {
         name: parsed.data.name,
         durationDays: parsed.data.duration_days,
-        price: parsed.data.price,
+        amount: parsed.data.price,
         description: parsed.data.description,
       }
     );
@@ -110,7 +110,7 @@ export async function deletePlan(id: string): Promise<{ success?: boolean; error
   try {
     await databases.deleteDocument(
       APPWRITE_DB_ID,
-      COLLECTIONS.PLANS,
+      COLLECTIONS.MEMBERSHIP_PLANS,
       id
     );
 
@@ -129,7 +129,7 @@ export async function togglePlanStatus(id: string, isActive: boolean): Promise<{
   try {
     await databases.updateDocument(
       APPWRITE_DB_ID,
-      COLLECTIONS.PLANS,
+      COLLECTIONS.MEMBERSHIP_PLANS,
       id,
       { isActive }
     );
@@ -140,3 +140,4 @@ export async function togglePlanStatus(id: string, isActive: boolean): Promise<{
     return { error: (error as Error).message || "Failed to toggle plan status" };
   }
 }
+

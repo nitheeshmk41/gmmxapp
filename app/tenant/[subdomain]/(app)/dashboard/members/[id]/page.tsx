@@ -26,21 +26,18 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
     notFound();
   }
 
-  const latestPayment = member.payments?.[0];
-  const membershipEnd = latestPayment?.membership_end;
+  const membershipEnd = member.membershipEndDate ? new Date(member.membershipEndDate) : null;
   const expiryStatus = membershipEnd ? getExpiryStatus(membershipEnd) : null;
 
   const StatusIcon = {
     active: CheckCircle2,
     expired: XCircle,
-    paused: PauseCircle,
-  }[member.status as "active" | "expired" | "paused"] || User;
+  }[member.status as "active" | "expired"] || User;
 
   const statusColor = {
     active: "var(--color-success)",
     expired: "var(--color-danger)",
-    paused: "var(--color-warning)",
-  }[member.status as "active" | "expired" | "paused"] || "var(--color-muted-foreground)";
+  }[member.status as "active" | "expired"] || "var(--color-muted-foreground)";
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 animate-in">
@@ -95,6 +92,9 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
             <h1 className="text-xl font-bold" style={{ color: "var(--color-foreground)" }}>
               {member.name}
             </h1>
+            <p className="text-xs font-semibold mt-1 tracking-wider" style={{ color: "var(--color-muted-foreground)" }}>
+              Code: {member.memberCode}
+            </p>
             
             <div className="flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-xs font-medium" style={{ background: `${statusColor}15`, color: statusColor }}>
               <StatusIcon size={14} />
@@ -123,40 +123,24 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
                 </span>
               </div>
             </div>
-          </div>
-
-          {/* Quick Stats */}
-          <div
-            className="p-5 rounded-xl"
-            style={{
-              background: "var(--color-surface)",
-              border: "1px solid var(--color-border)",
-              boxShadow: "var(--shadow-card)",
-            }}
-          >
-            <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--color-foreground)" }}>
-              <Activity size={16} style={{ color: "var(--color-brand-primary)" }} />
-              Physical Details
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs" style={{ color: "var(--color-muted-foreground)" }}>Age</p>
-                <p className="font-medium" style={{ color: "var(--color-foreground)" }}>{member.age || "—"}</p>
-              </div>
-              <div>
-                <p className="text-xs" style={{ color: "var(--color-muted-foreground)" }}>Gender</p>
-                <p className="font-medium capitalize" style={{ color: "var(--color-foreground)" }}>{member.gender || "—"}</p>
-              </div>
-              <div>
-                <p className="text-xs" style={{ color: "var(--color-muted-foreground)" }}>Height</p>
-                <p className="font-medium" style={{ color: "var(--color-foreground)" }}>{member.height ? `${member.height} cm` : "—"}</p>
-              </div>
-              <div>
-                <p className="text-xs" style={{ color: "var(--color-muted-foreground)" }}>Weight</p>
-                <p className="font-medium" style={{ color: "var(--color-foreground)" }}>{member.weight ? `${member.weight} kg` : "—"}</p>
-              </div>
+          </div>          {/* Notes Card */}
+          {member.notes && (
+            <div
+              className="p-5 rounded-xl"
+              style={{
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+                boxShadow: "var(--shadow-card)",
+              }}
+            >
+              <h3 className="text-xs font-semibold mb-2" style={{ color: "var(--color-foreground)" }}>
+                Notes / Remarks
+              </h3>
+              <p className="text-xs whitespace-pre-wrap leading-relaxed animate-in" style={{ color: "var(--color-muted-foreground)" }}>
+                {member.notes}
+              </p>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Right Column - Tabs/Details */}

@@ -26,7 +26,6 @@ interface Props {
 const FILTERS = [
   { value: "today", label: "Expiring Today", icon: AlertTriangle, color: "var(--color-danger)" },
   { value: "week", label: "This Week", icon: Clock, color: "var(--color-warning)" },
-  { value: "month", label: "This Month", icon: CheckCircle2, color: "var(--color-info)" },
   { value: "expired", label: "Already Expired", icon: X, color: "var(--color-danger)" },
 ];
 
@@ -51,6 +50,7 @@ export function ExpiryClientPage({ members, plans, filter }: Props) {
   const [, startTransition] = useTransition();
   const [renewModal, setRenewModal] = useState<ExpiryMember | null>(null);
   const [selectedPlan, setSelectedPlan] = useState("");
+  const [renewalNotes, setRenewalNotes] = useState("");
   const [renewLoading, setRenewLoading] = useState(false);
 
   function updateFilter(val: string) {
@@ -61,8 +61,9 @@ export function ExpiryClientPage({ members, plans, filter }: Props) {
     if (!renewModal || !selectedPlan) return;
     setRenewLoading(true);
     startTransition(async () => {
-      await renewMembership(renewModal.member.id, selectedPlan);
+      await renewMembership(renewModal.member.id, selectedPlan, renewalNotes);
       setRenewModal(null);
+      setRenewalNotes("");
       setRenewLoading(false);
       router.refresh();
     });
@@ -181,7 +182,7 @@ export function ExpiryClientPage({ members, plans, filter }: Props) {
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => { setRenewModal(m); setSelectedPlan(plans[0]?.id || ""); }}
+                          onClick={() => { setRenewModal(m); setSelectedPlan(plans[0]?.id || ""); setRenewalNotes(""); }}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all"
                           style={{ background: "var(--color-brand-primary)" }}
                         >
@@ -245,6 +246,25 @@ export function ExpiryClientPage({ members, plans, filter }: Props) {
                   </div>
                 </button>
               ))}
+            </div>
+            <div className="space-y-1.5 mb-5">
+              <label className="text-xs font-semibold" style={{ color: "var(--color-foreground)" }}>
+                Renewal Notes
+              </label>
+              <textarea
+                value={renewalNotes}
+                onChange={(e) => setRenewalNotes(e.target.value)}
+                placeholder="Cash received, UPI reference, Discount given..."
+                className="w-full px-3 py-2 rounded-lg text-sm"
+                rows={2}
+                style={{
+                  border: "1.5px solid var(--color-border)",
+                  background: "var(--color-surface)",
+                  color: "var(--color-foreground)",
+                  outline: "none",
+                  resize: "none"
+                }}
+              />
             </div>
             <div className="flex gap-3">
               <button onClick={() => setRenewModal(null)} className="flex-1 py-2.5 rounded-lg text-sm" style={{ background: "var(--color-border)", color: "var(--color-foreground)" }}>

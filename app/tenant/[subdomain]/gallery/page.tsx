@@ -18,21 +18,7 @@ export default async function GymGalleryPage({ params }: Props) {
     notFound();
   }
 
-  const { databases } = await createAdminClient();
-  let galleryUrls: string[] = [];
-
-  try {
-    const settingsRes = await databases.listDocuments(
-      APPWRITE_DB_ID,
-      COLLECTIONS.SETTINGS,
-      [Query.equal("gymId", tenant.id)]
-    );
-    const settingsDoc = settingsRes.documents[0];
-    galleryUrls = settingsDoc?.gallery_urls || tenant.gallery || [];
-  } catch (error) {
-    console.error("Failed to fetch settings for gallery", error);
-    galleryUrls = tenant.gallery || [];
-  }
+  const galleryUrls = tenant.gallery || [];
 
   return (
     <div className="min-h-screen flex flex-col justify-between" style={{ background: "#0A0F1E", fontFamily: "'Inter', sans-serif" }}>

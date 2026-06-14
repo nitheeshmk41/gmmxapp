@@ -29,7 +29,19 @@ export default async function DashboardLayout({
     const rootUrl = process.env.NODE_ENV === "production" ? "https://gmmx.app/dashboard" : "http://localhost:3000/dashboard";
     redirect(rootUrl);
   }
-  if (!gym || user.onboarding_status !== "completed") redirect("/onboarding");
+  if (user.onboarding_status !== "completed") {
+    redirect("/onboarding");
+  }
+
+  if (!gym) {
+    const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "gmmx.app";
+    const proto = process.env.NODE_ENV === "production" ? "https" : "http";
+    let host = appDomain;
+    if (process.env.NODE_ENV !== "production") {
+      host = "localhost:3000";
+    }
+    redirect(`${proto}://${host}/dashboard`);
+  }
 
   return (
     <div className="flex min-h-screen" style={{ background: "var(--color-background)" }}>

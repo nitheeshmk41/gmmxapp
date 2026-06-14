@@ -20,6 +20,7 @@ interface Settings {
   hero_image_url: string | null;
   description: string | null;
   tagline: string | null;
+  hero_title?: string | null;
   gallery_urls: string[];
   social_instagram: string | null;
   social_facebook: string | null;
@@ -160,8 +161,14 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
         <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full opacity-5" style={{ background: "radial-gradient(circle, #3B82F6, transparent)", filter: "blur(60px)" }} />
         <div className="relative z-10 px-6 max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-7xl font-black text-white leading-tight mb-6">
-            Transform Your Body At <br />
-            <span style={{ color: "#FF5C73" }}>{gym.name}</span>
+            {settings.hero_title ? (
+              settings.hero_title
+            ) : (
+              <>
+                Transform Your Body At <br />
+                <span style={{ color: "#FF5C73" }}>{gym.name}</span>
+              </>
+            )}
           </h1>
           <p className="text-xl md:text-2xl mb-10 font-medium" style={{ color: "#94A3B8" }}>
             {settings.tagline || "Premium fitness center helping members build strength, lose weight and stay healthy."}

@@ -18,27 +18,10 @@ export default async function GymContactPage({ params }: Props) {
     notFound();
   }
 
-  const { databases } = await createAdminClient();
   let contactEmail = tenant.email || "";
   let address = tenant.address || "";
   let phone = tenant.phone || "";
   let workingHours = tenant.workingHours || "";
-
-  try {
-    const settingsRes = await databases.listDocuments(
-      APPWRITE_DB_ID,
-      COLLECTIONS.SETTINGS,
-      [Query.equal("gymId", tenant.id)]
-    );
-    const settingsDoc = settingsRes.documents[0];
-    if (settingsDoc) {
-      if (settingsDoc.contact_email) contactEmail = settingsDoc.contact_email;
-      if (settingsDoc.address) address = settingsDoc.address;
-      if (settingsDoc.whatsapp_number && !phone) phone = settingsDoc.whatsapp_number;
-    }
-  } catch (error) {
-    console.error("Failed to fetch settings for contact", error);
-  }
 
   return (
     <div className="min-h-screen flex flex-col justify-between" style={{ background: "#0A0F1E", fontFamily: "'Inter', sans-serif" }}>
