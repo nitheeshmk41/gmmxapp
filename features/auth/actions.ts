@@ -20,6 +20,17 @@ const verifyOtpSchema = z.object({
   secret: z.string().min(6, "OTP must be 6 digits"),
 });
 
+const emailSignUpSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+const emailSignInSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
 function getAuthClient() {
   const client = new Client()
     .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
@@ -81,6 +92,118 @@ export async function signInWithGoogle() {
   }
 
   redirect(redirectUrl);
+}
+
+export async function signUpWithEmail(formData: FormData) {
+  const name = formData.get("name") as string;
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+
+  const parsed = emailSignUpSchema.safeParse({ name, email, password });
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const account = getAuthClient();
+  const correlationId = createCorrelationId();
+  let redirectTo = "/onboarding";
+
+  try {
+    // 1. Create Appwrite User
+    await account.create(ID.unique(), email, password, name);
+    
+    // 2. Create Session
+    const session = await account.createEmailPasswordSession(email, password);
+    await setSessionCookie(session.secret);
+
+    // 3. Sync User Record
+    const { account: sessionAccount } = await createSessionClient();
+    const appwriteUser = await sessionAccount.get();
+    
+    const dbUser = await ensureUserRecord({
+      appwriteUser,
+      provider: "email",
+      correlationId,
+    });
+    
+    redirectTo = routeForUser({
+      role: dbUser.role || "owner",
+      onboarding_status: dbUser.onboarding_status || "pending",
+    });
+  } catch (error: any) {
+    console.error("[signUpWithEmail] Error:", error.message);
+    return { error: error.message || "Failed to create account" };
+  }
+
+  redirect(redirectTo);
+}
+
+export async function signInWithEmail(formData: FormData) {
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+
+  const parsed = emailSignInSchema.safeParse({ email, password });
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const account = getAuthClient();
+  const correlationId = createCorrelationId();
+  let redirectTo = "/dashboard";
+
+  try {
+    const session = await account.createEmailPasswordSession(email, password);
+    await setSessionCookie(session.secret);
+
+    const { account: sessionAccount } = await createSessionClient();
+    const appwriteUser = await sessionAccount.get();
+    
+    const dbUser = await ensureUserRecord({
+      appwriteUser,
+      provider: "email",
+      correlationId,
+    });
+
+    // Check if user is linked to a gym for domain redirection
+    let subdomain = null;
+    if (dbUser.role === "owner" && dbUser.onboarding_status === "completed") {
+      const { databases } = await createAdminClient();
+      const gymUsersRes = await databases.listDocuments<GymUserDocument>(
+        APPWRITE_DB_ID,
+        COLLECTIONS.GYM_USERS,
+        [Query.equal("userId", appwriteUser.$id)]
+      );
+      
+      if (gymUsersRes.documents.length > 0) {
+        const gymId = gymUsersRes.documents[0].gymId;
+        const gym = await databases.getDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gymId);
+        subdomain = gym.subdomain;
+      }
+    }
+
+    const path = routeForUser({
+      role: dbUser.role || "owner",
+      onboarding_status: dbUser.onboarding_status || "pending",
+      gymId: null
+    });
+    
+    if (subdomain && path === "/dashboard") {
+      const appUrl = await getAppUrl();
+      const baseDomain = appUrl.replace(/^https?:\/\//, "");
+      const proto = appUrl.startsWith("https") ? "https" : "http";
+      redirectTo = `${proto}://${subdomain}.${baseDomain}${path}`;
+    } else {
+      redirectTo = path;
+    }
+  } catch (error: any) {
+    console.error("[signInWithEmail] Error:", error.message);
+    return { error: "Invalid email or password." };
+  }
+
+  // Next.js redirect needs absolute URLs for cross-domain tenant routing
+  // But relative URLs for same-domain
+  if (redirectTo.startsWith("http")) {
+    // If we're changing subdomain, we must redirect
+    redirect(redirectTo);
+  } else {
+    redirect(redirectTo);
+  }
 }
 
 export async function sendOtp(formData: FormData) {
