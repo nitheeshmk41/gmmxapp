@@ -132,20 +132,28 @@ export async function signUpWithEmail(formData: FormData) {
 }
 
 export async function signInWithEmail(formData: FormData) {
+  console.log("[signInWithEmail] Step 1: Starting action");
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
   const parsed = emailSignInSchema.safeParse({ email, password });
-  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  if (!parsed.success) {
+    console.log("[signInWithEmail] Step 1b: Validation failed");
+    return { error: parsed.error.issues[0].message };
+  }
 
   const account = getAuthClient();
   const correlationId = createCorrelationId();
   let redirectTo = "/dashboard";
 
   try {
+    console.log("[signInWithEmail] Step 2: Creating Appwrite session");
     const session = await account.createEmailPasswordSession(email, password);
+    
+    console.log("[signInWithEmail] Step 3: Setting session cookie");
     await setSessionCookie(session.secret);
 
+    console.log("[signInWithEmail] Step 4: Syncing user record");
     const { account: sessionAccount } = await createSessionClient();
     const appwriteUser = await sessionAccount.get();
     
@@ -155,7 +163,7 @@ export async function signInWithEmail(formData: FormData) {
       correlationId,
     });
 
-    // Check if user is linked to a gym for domain redirection
+    console.log("[signInWithEmail] Step 5: Checking gym linked to user");
     let subdomain = null;
     if (dbUser.role === "owner" && dbUser.onboarding_status === "completed") {
       const { databases } = await createAdminClient();
@@ -172,6 +180,7 @@ export async function signInWithEmail(formData: FormData) {
       }
     }
 
+    console.log("[signInWithEmail] Step 6: Getting route for user");
     const path = routeForUser({
       role: dbUser.role || "owner",
       onboarding_status: dbUser.onboarding_status || "pending",
@@ -179,22 +188,29 @@ export async function signInWithEmail(formData: FormData) {
     });
     
     if (subdomain && path === "/dashboard") {
+      console.log("[signInWithEmail] Step 7a: Generating absolute URL for tenant");
       const appUrl = await getAppUrl();
       const baseDomain = appUrl.replace(/^https?:\/\//, "");
       const proto = appUrl.startsWith("https") ? "https" : "http";
       redirectTo = `${proto}://${subdomain}.${baseDomain}${path}`;
     } else {
+      console.log("[signInWithEmail] Step 7b: Using relative URL");
       redirectTo = path;
     }
   } catch (error: any) {
-    console.error("[signInWithEmail] Error:", error.message);
+    console.error("[signInWithEmail] Catch Block Error:", {
+      message: error?.message,
+      code: error?.code,
+      type: error?.type,
+      stack: error?.stack,
+      raw: error
+    });
     return { error: "Invalid email or password." };
   }
 
-  // Next.js redirect needs absolute URLs for cross-domain tenant routing
-  // But relative URLs for same-domain
+  console.log(`[signInWithEmail] Step 8: Triggering redirect to ${redirectTo}`);
+  
   if (redirectTo.startsWith("http")) {
-    // If we're changing subdomain, we must redirect
     redirect(redirectTo);
   } else {
     redirect(redirectTo);
