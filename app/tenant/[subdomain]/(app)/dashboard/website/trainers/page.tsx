@@ -1,19 +1,6 @@
-import { PageHeader } from "@/components/dashboard/page-header";
-import { EmptyState } from "@/components/dashboard/empty-state";
-import { Dumbbell } from "lucide-react";
+import { redirect } from "next/navigation";
 
-export default function Page() {
-  return (
-    <div className="max-w-4xl mx-auto pb-10">
-      <PageHeader 
-        title="Public Trainers" 
-        description="Showcase your best trainers on the website." 
-      />
-      <EmptyState 
-        icon={Dumbbell}
-        title="Coming Soon"
-        description="This module is part of the future GMMX roadmap. Stay tuned!"
-      />
-    </div>
-  );
+export default async function WebsiteTrainersPage({ params }: { params: Promise<{ subdomain: string }> }) {
+  const { subdomain } = await params;
+  redirect(`/tenant/${subdomain}/dashboard/trainers`);
 }

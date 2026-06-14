@@ -1,19 +1,7 @@
-import { PageHeader } from "@/components/dashboard/page-header";
-import { EmptyState } from "@/components/dashboard/empty-state";
-import { Layout } from "lucide-react";
+import { getCurrentGym } from "@/features/auth/actions";
+import { HeroClientPage } from "./client";
 
-export default function Page() {
-  return (
-    <div className="max-w-4xl mx-auto pb-10">
-      <PageHeader 
-        title="Hero Section" 
-        description="Manage your banner image and primary CTA." 
-      />
-      <EmptyState 
-        icon={Layout}
-        title="Coming Soon"
-        description="This module is part of the future GMMX roadmap. Stay tuned!"
-      />
-    </div>
-  );
+export default async function WebsiteHeroPage() {
+  const gym = await getCurrentGym();
+  return <HeroClientPage gym={gym as any} />;
 }

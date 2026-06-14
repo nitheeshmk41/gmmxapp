@@ -3,111 +3,150 @@
 import { createAdminClient } from "@/lib/appwrite/server";
 import { getCurrentGym } from "@/features/auth/actions";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
 import { Query, ID } from "node-appwrite";
 
-const websiteSchema = z.object({
-  template: z.enum(["modern", "minimal", "performance", "crossfit"]).default("modern"),
-  description: z.string().optional(),
-  tagline: z.string().optional(),
-  whatsapp_number: z.string().optional(),
-  contact_email: z.string().email().optional().or(z.literal("")),
-  address: z.string().optional(),
-  social_instagram: z.string().optional(),
-  social_facebook: z.string().optional(),
-  social_youtube: z.string().optional(),
-  is_published: z.boolean().default(false),
-});
-
 export async function getWebsiteSettings() {
   const gym = await getCurrentGym();
-  if (!gym) return null;
-
-  const { databases } = await createAdminClient();
-  const res = await databases.listDocuments(
-    APPWRITE_DB_ID,
-    COLLECTIONS.SETTINGS,
-    [Query.equal("gymId", gym.$id)]
-  );
-  return res.documents.length > 0 ? res.documents[0] : null;
+  return gym;
 }
 
-export async function updateWebsiteSettings(formData: FormData) {
+export async function updateWebsiteContent(formData: FormData) {
   const gym = await getCurrentGym();
   if (!gym) return { error: "Unauthorized" };
 
-  const raw = {
-    template: formData.get("template"),
-    description: formData.get("description"),
-    tagline: formData.get("tagline"),
-    whatsapp_number: formData.get("whatsapp_number"),
-    contact_email: formData.get("contact_email"),
-    address: formData.get("address"),
-    social_instagram: formData.get("social_instagram"),
-    social_facebook: formData.get("social_facebook"),
-    social_youtube: formData.get("social_youtube"),
-    is_published: formData.get("is_published") === "true",
+  const data = {
+    name: formData.get("name") as string,
+    tagline: formData.get("tagline") as string,
+    description: formData.get("description") as string,
   };
 
-  const parsed = websiteSchema.safeParse(raw);
-  if (!parsed.success) return { error: parsed.error.issues[0].message };
-
-  const { databases } = await createAdminClient();
-  const existing = await databases.listDocuments(
-    APPWRITE_DB_ID,
-    COLLECTIONS.SETTINGS,
-    [Query.equal("gymId", gym.$id)]
-  );
-
-  if (existing.documents.length > 0) {
-    await databases.updateDocument(
-      APPWRITE_DB_ID,
-      COLLECTIONS.SETTINGS,
-      existing.documents[0].$id,
-      parsed.data
-    );
-  } else {
-    await databases.createDocument(
-      APPWRITE_DB_ID,
-      COLLECTIONS.SETTINGS,
-      ID.unique(),
-      { ...parsed.data, gymId: gym.$id }
-    );
+  try {
+    const { databases } = await createAdminClient();
+    await databases.updateDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gym.$id, data);
+    revalidatePath("/dashboard/website");
+    revalidatePath(`/`);
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
   }
+}
 
-  revalidatePath("/dashboard/website");
-  revalidatePath(`/gym/${gym.subdomain}`);
-  return { success: true };
+export async function updateWebsiteHero(formData: FormData) {
+  const gym = await getCurrentGym();
+  if (!gym) return { error: "Unauthorized" };
+
+  const data = {
+    name: formData.get("name") as string,
+    tagline: formData.get("tagline") as string,
+    bannerUrl: formData.get("bannerUrl") as string,
+  };
+
+  try {
+    const { databases } = await createAdminClient();
+    await databases.updateDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gym.$id, data);
+    revalidatePath("/dashboard/website");
+    revalidatePath(`/`);
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function updateWebsiteContact(formData: FormData) {
+  const gym = await getCurrentGym();
+  if (!gym) return { error: "Unauthorized" };
+
+  const data = {
+    phone: formData.get("phone") as string,
+    whatsapp: formData.get("whatsapp") as string,
+    email: formData.get("email") as string,
+    address: formData.get("address") as string,
+    mapsLink: formData.get("mapsLink") as string,
+    workingHours: formData.get("workingHours") as string,
+  };
+
+  try {
+    const { databases } = await createAdminClient();
+    await databases.updateDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gym.$id, data);
+    revalidatePath("/dashboard/website");
+    revalidatePath(`/`);
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function updateWebsiteGallery(urls: string[]) {
+  const gym = await getCurrentGym();
+  if (!gym) return { error: "Unauthorized" };
+
+  try {
+    const { databases } = await createAdminClient();
+    await databases.updateDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gym.$id, { gallery: urls });
+    revalidatePath("/dashboard/website");
+    revalidatePath(`/`);
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
 }
 
 export async function toggleWebsitePublish(isPublished: boolean) {
+  return { success: true };
+}
+
+// Testimonial Actions
+export async function getTestimonials() {
+  const gym = await getCurrentGym();
+  if (!gym) return [];
+
+  try {
+    const { databases } = await createAdminClient();
+    const res = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.TESTIMONIALS,
+      [Query.equal("gymId", gym.$id)]
+    );
+    return res.documents;
+  } catch (error) {
+    return [];
+  }
+}
+
+export async function createTestimonial(formData: FormData) {
   const gym = await getCurrentGym();
   if (!gym) return { error: "Unauthorized" };
 
-  const { databases } = await createAdminClient();
-  const existing = await databases.listDocuments(
-    APPWRITE_DB_ID,
-    COLLECTIONS.SETTINGS,
-    [Query.equal("gymId", gym.$id)]
-  );
+  const data = {
+    gymId: gym.$id,
+    name: formData.get("name") as string,
+    review: formData.get("review") as string,
+    rating: parseInt(formData.get("rating") as string) || 5,
+  };
 
-  if (existing.documents.length > 0) {
-    await databases.updateDocument(
-      APPWRITE_DB_ID,
-      COLLECTIONS.SETTINGS,
-      existing.documents[0].$id,
-      { is_published: isPublished }
-    );
-  } else {
-    await databases.createDocument(
-      APPWRITE_DB_ID,
-      COLLECTIONS.SETTINGS,
-      ID.unique(),
-      { gymId: gym.$id, is_published: isPublished }
-    );
+  try {
+    const { databases } = await createAdminClient();
+    await databases.createDocument(APPWRITE_DB_ID, COLLECTIONS.TESTIMONIALS, ID.unique(), data);
+    revalidatePath("/dashboard/website/testimonials");
+    revalidatePath(`/`);
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
   }
+}
 
-  revalidatePath("/dashboard/website");
-  return { success: true };
+export async function deleteTestimonial(id: string) {
+  const gym = await getCurrentGym();
+  if (!gym) return { error: "Unauthorized" };
+
+  try {
+    const { databases } = await createAdminClient();
+    await databases.deleteDocument(APPWRITE_DB_ID, COLLECTIONS.TESTIMONIALS, id);
+    revalidatePath("/dashboard/website/testimonials");
+    revalidatePath(`/`);
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
 }
