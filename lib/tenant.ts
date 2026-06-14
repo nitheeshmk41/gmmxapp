@@ -12,6 +12,21 @@ export interface TenantData {
   secondaryColor: string | null;
   ownerId: string;
   coverImageUrl: string | null;
+  bannerUrl?: string | null;
+  tagline?: string | null;
+  description?: string | null;
+  city?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  whatsapp?: string | null;
+  email?: string | null;
+  workingHours?: string | null;
+  mapsLink?: string | null;
+  instagramUrl?: string | null;
+  facebookUrl?: string | null;
+  youtubeUrl?: string | null;
+  services?: string[];
+  gallery?: string[];
   createdAt: string;
 }
 
@@ -41,6 +56,21 @@ export async function getTenantBySubdomain(subdomain: string): Promise<TenantDat
       secondaryColor: gym.secondary_color || null,
       ownerId: gym.owner_id,
       coverImageUrl: gym.coverImageUrl || gym.cover_image_url || null,
+      bannerUrl: gym.bannerUrl || null,
+      tagline: gym.tagline || null,
+      description: gym.description || null,
+      city: gym.city || null,
+      address: gym.address || null,
+      phone: gym.phone || null,
+      whatsapp: gym.whatsapp || null,
+      email: gym.email || null,
+      workingHours: gym.workingHours || null,
+      mapsLink: gym.mapsLink || null,
+      instagramUrl: gym.instagramUrl || null,
+      facebookUrl: gym.facebookUrl || null,
+      youtubeUrl: gym.youtubeUrl || null,
+      services: gym.services || [],
+      gallery: gym.gallery || [],
       createdAt: gym.$createdAt,
     };
   } catch (error) {
