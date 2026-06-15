@@ -65,7 +65,7 @@ export function OnboardingWizard({ userName }: { userName: string }) {
       const proto = window.location.protocol;
       const host = window.location.host;
       const baseDomain = host.replace(/^[a-zA-Z0-9-]+\./, ""); // Strip any existing subdomain
-      window.location.href = `${proto}//${formData.subdomain}.${baseDomain}/dashboard`;
+      window.location.href = `${proto}//${formData.subdomain}.${baseDomain}/owner/dashboard`;
     }
   };
 
