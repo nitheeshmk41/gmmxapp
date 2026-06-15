@@ -40,6 +40,9 @@ export async function GET(request: Request) {
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
     });
 
+    // Set the session on the client so account.get() works
+    client.setSession(sessionSecret);
+    
     // Fetch the user using the authenticated client
     const appwriteUser = await account.get();
     
