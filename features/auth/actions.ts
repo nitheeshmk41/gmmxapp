@@ -3,7 +3,7 @@
 import { createAdminClient, createSessionClient, createEmailPasswordSessionHelper } from "@/lib/appwrite/server";
 import { ensureUserRecord, routeForUser } from "@/lib/auth/bootstrap";
 import { getCurrentContext, getCurrentGym as getGymContext } from "@/lib/auth/context";
-import { env } from "@/lib/env";
+import { env, getBaseUrl } from "@/lib/env";
 import { createCorrelationId, logEvent } from "@/lib/logger";
 import { Account, Client, ID, OAuthProvider, Query } from "node-appwrite";
 import { cookies, headers } from "next/headers";
@@ -39,19 +39,6 @@ function getAuthClient() {
   return new Account(client);
 }
 
-async function getAppUrl() {
-  if (env.NODE_ENV !== "production") {
-    return env.NEXT_PUBLIC_APP_URL;
-  }
-
-  const headerStore = await headers();
-  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
-  const proto =
-    headerStore.get("x-forwarded-proto") ??
-    (host?.startsWith("localhost") || host?.startsWith("127.0.0.1") ? "http" : "https");
-
-  return host ? `${proto}://${host}` : env.NEXT_PUBLIC_APP_URL;
-}
 
 async function setSessionCookie(secret: string) {
   const cookieStore = await cookies();
@@ -71,14 +58,21 @@ async function deleteSessionCookie() {
 
 export async function signInWithGoogle() {
   const account = getAuthClient();
-  const appUrl = await getAppUrl();
+  const appUrl = getBaseUrl();
+
+  console.log("[signInWithGoogle] Generating OAuth URLs using base URL:", appUrl);
 
   let redirectUrl: string;
   try {
+    const successUrl = `${appUrl}/auth/callback`;
+    const failureUrl = `${appUrl}/signin?error=oauth_failed`;
+    console.log("[signInWithGoogle] Success URL:", successUrl);
+    console.log("[signInWithGoogle] Failure URL:", failureUrl);
+
     redirectUrl = await account.createOAuth2Token(
       OAuthProvider.Google,
-      `${appUrl}/auth/callback`,
-      `${appUrl}/signin?error=oauth_failed`
+      successUrl,
+      failureUrl
     );
   } catch (error: any) {
     console.error("[signInWithGoogle] Appwrite OAuth Error:", {
@@ -213,7 +207,7 @@ export async function signInWithEmail(formData: FormData) {
     
     if (subdomain && path.includes("dashboard")) {
       console.log("[signInWithEmail] Step 7a: Generating absolute URL for tenant");
-      const appUrl = await getAppUrl();
+      const appUrl = getBaseUrl();
       const baseDomain = appUrl.replace(/^https?:\/\//, "");
       const proto = appUrl.startsWith("https") ? "https" : "http";
       redirectTo = `${proto}://${subdomain}.${baseDomain}${path}`;

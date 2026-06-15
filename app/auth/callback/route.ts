@@ -1,5 +1,5 @@
 import { ensureUserRecord, routeForUser } from "@/lib/auth/bootstrap";
-import { env } from "@/lib/env";
+import { env, getBaseUrl } from "@/lib/env";
 import { createCorrelationId, logEvent } from "@/lib/logger";
 import { Account, Client } from "node-appwrite";
 import { cookies } from "next/headers";
@@ -8,9 +8,10 @@ import { createAdminClient } from "@/lib/appwrite/server";
 
 export async function GET(request: Request) {
   const correlationId = createCorrelationId();
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const userId = searchParams.get("userId");
   const secret = searchParams.get("secret");
+  const origin = getBaseUrl();
 
   if (!userId || !secret) {
     logEvent("warn", "auth.oauth.callback_missing_params", { correlationId });
@@ -96,6 +97,8 @@ export async function GET(request: Request) {
       secure: env.NODE_ENV === "production",
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
     });
+
+    console.log(`[OAuth Callback] Session created for user ${userId}. Status: PRESENT`);
     return res;
   } catch (error) {
     logEvent("error", "auth.oauth.failed", {
