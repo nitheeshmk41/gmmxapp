@@ -4,7 +4,7 @@ import { createCorrelationId, logEvent } from "@/lib/logger";
 import { Account, Client } from "node-appwrite";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/appwrite/server";
+import { createAdminClient, createOAuthSessionHelper } from "@/lib/appwrite/server";
 
 export async function GET(request: Request) {
   const correlationId = createCorrelationId();
@@ -26,21 +26,12 @@ export async function GET(request: Request) {
 
   try {
     // The secret from OAuth callback is a short-lived token that must be exchanged for a real session
-    const client = new Client()
-      .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
-      .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
-      
-    const account = new Account(client);
-    
+    // Appwrite's node SDK strips the session secret from the response object for security reasons,
+    // so we MUST use a helper that parses the Set-Cookie header directly from the API response.
     console.log(`[OAuth Callback] Exchanging token for session for user ${userId}`);
-    const session = await account.createSession(userId, secret);
-    
-    // Now we have the real session secret
-    const sessionSecret = session.secret;
+    const sessionSecret = await createOAuthSessionHelper(userId, secret);
     
     // Create a NEW client instance for session-authenticated requests
-    // Using the same client instance after createSession can cause missing scope errors
-    // because of how node-appwrite manages internal state for guest requests.
     const sessionClient = new Client()
       .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
       .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID)

@@ -118,3 +118,21 @@ export async function createEmailPasswordSessionHelper(email: string, password: 
 
   return extractSessionSecret(res);
 }
+
+export async function createOAuthSessionHelper(userId: string, secret: string) {
+  const res = await fetch(`${env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/account/sessions/token`, {
+    method: "POST",
+    headers: {
+      "X-Appwrite-Project": env.NEXT_PUBLIC_APPWRITE_PROJECT_ID,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userId, secret }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Failed to create OAuth session");
+  }
+
+  return extractSessionSecret(res);
+}
