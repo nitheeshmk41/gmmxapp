@@ -18,8 +18,18 @@ export async function GET(request: Request) {
   }
 
   try {
-    console.log(`[OAuth Callback] Using session secret from URL for user ${userId}`);
-    const sessionSecret = secret;
+    // The secret from OAuth callback is a short-lived token that must be exchanged for a real session
+    const client = new Client()
+      .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
+      .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
+      
+    const account = new Account(client);
+    
+    console.log(`[OAuth Callback] Exchanging token for session for user ${userId}`);
+    const session = await account.createSession(userId, secret);
+    
+    // Now we have the real session secret
+    const sessionSecret = session.secret;
     
     const cookieStore = await cookies();
     cookieStore.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, sessionSecret, {
@@ -30,19 +40,8 @@ export async function GET(request: Request) {
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
     });
 
-    const res = await fetch(`${env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/account`, {
-      headers: {
-        "X-Appwrite-Project": env.NEXT_PUBLIC_APPWRITE_PROJECT_ID,
-        "X-Fallback-Cookies": JSON.stringify({ [`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`]: sessionSecret }),
-      }
-    });
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.message || "Failed to get account details with session");
-    }
-
-    const appwriteUser = await res.json();
+    // Fetch the user using the authenticated client
+    const appwriteUser = await account.get();
     
     const dbUser = await ensureUserRecord({
       appwriteUser,
