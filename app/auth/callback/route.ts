@@ -40,11 +40,12 @@ export async function GET(request: Request) {
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
     });
 
-    // Set the session on the client so account.get() works
+    // Set the session explicitly on the server client (for completeness, though we don't strictly need it now)
     client.setSession(sessionSecret);
     
-    // Fetch the user using the authenticated client
-    const appwriteUser = await account.get();
+    // Fetch the user using the Admin API to avoid scope issues
+    const { users } = await createAdminClient();
+    const appwriteUser = await users.get(userId);
     
     const dbUser = await ensureUserRecord({
       appwriteUser,
