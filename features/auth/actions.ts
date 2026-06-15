@@ -154,7 +154,7 @@ export async function signInWithEmail(formData: FormData) {
 
   const account = getAuthClient();
   const correlationId = createCorrelationId();
-  let redirectTo = "/dashboard";
+  let redirectTo = "/owner/dashboard";
 
   try {
     console.log("[signInWithEmail] Step 2: Creating Appwrite session");
@@ -211,7 +211,7 @@ export async function signInWithEmail(formData: FormData) {
       gymId: null
     });
     
-    if (subdomain && path === "/dashboard") {
+    if (subdomain && path.includes("dashboard")) {
       console.log("[signInWithEmail] Step 7a: Generating absolute URL for tenant");
       const appUrl = await getAppUrl();
       const baseDomain = appUrl.replace(/^https?:\/\//, "");
@@ -266,7 +266,7 @@ export async function verifyOtp(formData: FormData) {
 
   const account = getAuthClient();
 
-  let redirectTo = "/dashboard";
+  let redirectTo = "/owner/dashboard";
   
   try {
     const session = await account.createSession(userId, secret);

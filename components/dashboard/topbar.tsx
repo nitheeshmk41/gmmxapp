@@ -4,17 +4,17 @@ import { usePathname } from "next/navigation";
 import { Bell, Search, ExternalLink } from "lucide-react";
 
 const PAGE_TITLES: Record<string, string> = {
-  "/dashboard": "Dashboard",
-  "/dashboard/members": "Members",
-  "/dashboard/leads": "Leads",
-  "/dashboard/trainers": "Trainers",
-  "/dashboard/plans": "Membership Plans",
-  "/dashboard/payments": "Payments",
-  "/dashboard/attendance": "Attendance",
-  "/dashboard/expiry": "Expiry Management",
-  "/dashboard/website": "Website Builder",
-  "/dashboard/domain": "Domain Management",
-  "/dashboard/settings": "Settings",
+  "/owner/dashboard": "Dashboard",
+  "/owner/dashboard/members": "Members",
+  "/owner/dashboard/leads": "Leads",
+  "/owner/dashboard/trainers": "Trainers",
+  "/owner/dashboard/plans": "Membership Plans",
+  "/owner/dashboard/payments": "Payments",
+  "/owner/dashboard/attendance": "Attendance",
+  "/owner/dashboard/expiry": "Expiry Management",
+  "/owner/dashboard/website": "Website Builder",
+  "/owner/dashboard/domain": "Domain Management",
+  "/owner/dashboard/settings": "Settings",
 };
 
 interface TopbarProps {
@@ -27,7 +27,7 @@ export function Topbar({ gymSubdomain }: TopbarProps) {
   // Find the matching page title
   const title =
     Object.entries(PAGE_TITLES).find(([key]) => {
-      if (key === "/dashboard") return pathname === key;
+      if (key === "/owner/dashboard") return pathname === key;
       return pathname.startsWith(key);
     })?.[1] || "Dashboard";
 

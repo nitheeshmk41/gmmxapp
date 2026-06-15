@@ -68,12 +68,12 @@ export async function middleware(request: NextRequest) {
       return res;
     }
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/owner/dashboard";
     return NextResponse.redirect(url);
   }
 
   // ── Protected Routes Guard ────────────────────────────────────
-  const isDashboard = pathname.startsWith("/dashboard");
+  const isDashboard = pathname.startsWith("/owner/dashboard") || pathname.startsWith("/trainer/dashboard") || pathname.startsWith("/member/dashboard") || pathname.startsWith("/admin/dashboard");
   const isAdmin = pathname.startsWith("/admin");
   const isOnboarding = pathname.startsWith("/onboarding");
 

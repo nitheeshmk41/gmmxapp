@@ -271,11 +271,11 @@ export function routeForUser(user: {
   onboarding_status: string;
   gymId?: string | null;
 }) {
-  if (user.role === "super_admin") return "/admin";
+  if (user.role === "super_admin") return "/admin/dashboard";
   if (user.onboarding_status !== "completed") return "/onboarding";
   
   const r = (user.role || "").toUpperCase();
-  const path = r === "TRAINER" ? "/trainer/dashboard" : r === "MEMBER" ? "/member/dashboard" : "/dashboard";
+  const path = r === "TRAINER" ? "/trainer/dashboard" : r === "MEMBER" ? "/member/dashboard" : "/owner/dashboard";
 
   return path;
 }

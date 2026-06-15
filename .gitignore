@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# scratch scripts
+test-*.mjs
+test-*.js
+test-*.ts
+update-links.js

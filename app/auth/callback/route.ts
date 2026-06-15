@@ -4,7 +4,7 @@ import { createCorrelationId, logEvent } from "@/lib/logger";
 import { Account, Client } from "node-appwrite";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { exchangeOAuthTokenForSession, createAdminClient } from "@/lib/appwrite/server";
+import { createAdminClient } from "@/lib/appwrite/server";
 
 export async function GET(request: Request) {
   const correlationId = createCorrelationId();
@@ -18,12 +18,9 @@ export async function GET(request: Request) {
   }
 
   try {
-    console.log(`[OAuth Callback] Attempting to exchange token for user ${userId}`);
-
-    const sessionSecret = await exchangeOAuthTokenForSession(userId, secret);
+    console.log(`[OAuth Callback] Using session secret from URL for user ${userId}`);
+    const sessionSecret = secret;
     
-    console.log(`[OAuth Callback] Session created successfully for user ${userId}`);
-
     const cookieStore = await cookies();
     cookieStore.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, sessionSecret, {
       path: "/",
@@ -76,7 +73,7 @@ export async function GET(request: Request) {
 
     const path = routeForUser(dbUser);
     
-    if (subdomain && path === "/dashboard") {
+    if (subdomain && path.includes("dashboard")) {
       const proto = origin.startsWith("http://localhost") ? "http" : "https";
       const baseDomain = origin.replace(/^https?:\/\//, "");
       return NextResponse.redirect(`${proto}://${subdomain}.${baseDomain}${path}`);

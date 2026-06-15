@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, CalendarCheck, CreditCard } from "lucide-react";
+import { LayoutDashboard, Users, CalendarCheck, CreditCard, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/members", label: "Members", icon: Users },
-  { href: "/dashboard/attendance", label: "Attendance", icon: CalendarCheck },
-  { href: "/dashboard/payments", label: "Payments", icon: CreditCard },
+  { href: "/owner/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/owner/dashboard/members", label: "Members", icon: Users },
+  { href: "/owner/dashboard/attendance", label: "Attendance", icon: CalendarCheck },
+  { href: "/owner/dashboard/payments", label: "Payments", icon: CreditCard },
+  { href: "/owner/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
 export function BottomNav() {
@@ -20,7 +21,7 @@ export function BottomNav() {
       <div className="flex items-center justify-around h-16 px-2">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+          const isActive = pathname === item.href || (item.href !== "/owner/dashboard" && pathname.startsWith(item.href));
 
           return (
             <Link

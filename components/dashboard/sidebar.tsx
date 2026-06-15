@@ -23,61 +23,61 @@ import { cn } from "@/lib/utils";
 import { signOut } from "@/features/auth/actions";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/owner/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { 
-    href: "/dashboard/members", 
+    href: "/owner/dashboard/members", 
     label: "Members", 
     icon: Users,
     subItems: [
-      { href: "/dashboard/members", label: "All Members" },
-      { href: "/dashboard/members/new", label: "Add Member" }
+      { href: "/owner/dashboard/members", label: "All Members" },
+      { href: "/owner/dashboard/members/new", label: "Add Member" }
     ]
   },
   { 
-    href: "/dashboard/trainers", 
+    href: "/owner/dashboard/trainers", 
     label: "Trainers", 
     icon: Dumbbell,
     subItems: [
-      { href: "/dashboard/trainers", label: "All Trainers" },
-      { href: "/dashboard/trainers/new", label: "Add Trainer" }
+      { href: "/owner/dashboard/trainers", label: "All Trainers" },
+      { href: "/owner/dashboard/trainers/new", label: "Add Trainer" }
     ]
   },
   { 
-    href: "/dashboard/attendance", 
+    href: "/owner/dashboard/attendance", 
     label: "Attendance", 
     icon: CalendarCheck,
     subItems: [
-      { href: "/dashboard/attendance", label: "Attendance" },
-      { href: "/dashboard/attendance/qr", label: "QR Scanner" }
+      { href: "/owner/dashboard/attendance", label: "Attendance" },
+      { href: "/owner/dashboard/attendance/qr", label: "QR Scanner" }
     ]
   },
-  { href: "/dashboard/payments", label: "Payments", icon: CreditCard },
-  { href: "/dashboard/leads", label: "Leads", icon: UserPlus },
+  { href: "/owner/dashboard/payments", label: "Payments", icon: CreditCard },
+  { href: "/owner/dashboard/leads", label: "Leads", icon: UserPlus },
   { 
-    href: "/dashboard/website", 
+    href: "/owner/dashboard/website", 
     label: "Website", 
     icon: Globe,
     subItems: [
-      { href: "/dashboard/website/theme", label: "Theme" },
-      { href: "/dashboard/website/branding", label: "Branding" },
-      { href: "/dashboard/website/pages", label: "Pages" },
-      { href: "/dashboard/website/sections", label: "Sections" },
-      { href: "/dashboard/website/content", label: "Content" },
-      { href: "/dashboard/website/seo", label: "SEO" },
-      { href: "/dashboard/website/domain", label: "Domain" },
-      { href: "/dashboard/website/publish", label: "Publish" },
+      { href: "/owner/dashboard/website/theme", label: "Theme" },
+      { href: "/owner/dashboard/website/branding", label: "Branding" },
+      { href: "/owner/dashboard/website/pages", label: "Pages" },
+      { href: "/owner/dashboard/website/sections", label: "Sections" },
+      { href: "/owner/dashboard/website/content", label: "Content" },
+      { href: "/owner/dashboard/website/seo", label: "SEO" },
+      { href: "/owner/dashboard/website/domain", label: "Domain" },
+      { href: "/owner/dashboard/website/publish", label: "Publish" },
     ]
   },
-  { href: "/dashboard/plans", label: "Plans", icon: Building2 },
+  { href: "/owner/dashboard/plans", label: "Plans", icon: Building2 },
   { 
-    href: "/dashboard/settings", 
+    href: "/owner/dashboard/settings", 
     label: "Settings", 
     icon: Settings,
     subItems: [
-      { href: "/dashboard/settings", label: "General" },
-      { href: "/dashboard/settings/profile", label: "Profile" },
-      { href: "/dashboard/settings/gym", label: "Gym Info" },
-      { href: "/dashboard/settings/integrations", label: "Integrations" }
+      { href: "/owner/dashboard/settings", label: "General" },
+      { href: "/owner/dashboard/settings/profile", label: "Profile" },
+      { href: "/owner/dashboard/settings/gym", label: "Gym Info" },
+      { href: "/owner/dashboard/settings/integrations", label: "Integrations" }
     ]
   },
 ];
@@ -124,7 +124,7 @@ export function Sidebar({ gymName = "Your Gym", gymSubdomain, userEmail }: Sideb
         <div className="space-y-0.5">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+            const isActive = pathname === item.href || (item.href !== "/owner/dashboard" && pathname.startsWith(item.href));
 
             return (
               <div key={item.href} className="flex flex-col">

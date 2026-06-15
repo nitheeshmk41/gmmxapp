@@ -3,6 +3,7 @@ import { getCurrentContext } from "@/lib/auth/context";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
 import { Query } from "node-appwrite";
+import { routeForUser } from "@/lib/auth/bootstrap";
 
 export default async function DashboardRedirectPage() {
   const context = await getCurrentContext();
@@ -13,7 +14,7 @@ export default async function DashboardRedirectPage() {
   const user = context.user;
 
   if (user.role === "super_admin") {
-    redirect("/admin");
+    redirect("/admin/dashboard");
   }
 
   if (user.onboarding_status !== "completed") {
@@ -46,7 +47,8 @@ export default async function DashboardRedirectPage() {
           host = `${gym.subdomain}.localhost:3000`;
         }
         
-        redirect(`${proto}://${host}/dashboard`);
+        const path = routeForUser(user);
+        redirect(`${proto}://${host}${path}`);
       }
     }
   } catch (error) {

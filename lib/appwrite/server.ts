@@ -64,7 +64,6 @@ export async function createAdminClient() {
     },
   };
 }
-
 /**
  * Helper to bypass node-appwrite SDK stripping headers.
  * Extracts the real session secret from the Appwrite Set-Cookie header.
@@ -100,24 +99,6 @@ function extractSessionSecret(res: Response): string {
   
   if (!secret) throw new Error("Could not parse session cookie from Appwrite");
   return secret;
-}
-
-export async function exchangeOAuthTokenForSession(userId: string, secret: string) {
-  const res = await fetch(`${env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/account/sessions/token`, {
-    method: "POST",
-    headers: {
-      "X-Appwrite-Project": env.NEXT_PUBLIC_APPWRITE_PROJECT_ID,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ userId, secret }),
-  });
-
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || "Failed to exchange OAuth token");
-  }
-
-  return extractSessionSecret(res);
 }
 
 export async function createEmailPasswordSessionHelper(email: string, password: string) {
