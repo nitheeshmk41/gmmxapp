@@ -13,6 +13,12 @@ export async function GET(request: Request) {
   const secret = searchParams.get("secret");
   const origin = getBaseUrl();
 
+  console.log("Host:", request.headers.get("host"));
+  console.log("Origin:", request.headers.get("origin"));
+  console.log("Callback URL:", request.url);
+  console.log("Base URL:", origin);
+  console.log("Has secret:", !!secret);
+
   if (!userId || !secret) {
     logEvent("warn", "auth.oauth.callback_missing_params", { correlationId });
     return NextResponse.redirect(`${origin}/signin?error=auth_callback_failed`);
@@ -32,12 +38,18 @@ export async function GET(request: Request) {
     // Now we have the real session secret
     const sessionSecret = session.secret;
     
-    // Set the session explicitly on the server client
-    client.setSession(sessionSecret);
+    // Create a NEW client instance for session-authenticated requests
+    // Using the same client instance after createSession can cause missing scope errors
+    // because of how node-appwrite manages internal state for guest requests.
+    const sessionClient = new Client()
+      .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
+      .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID)
+      .setSession(sessionSecret);
+      
+    const sessionAccount = new Account(sessionClient);
     
-    // Fetch the user using the Admin API to avoid scope issues
-    const { users } = await createAdminClient();
-    const appwriteUser = await users.get(userId);
+    // Fetch the user using the properly authenticated session client
+    const appwriteUser = await sessionAccount.get();
     
     const dbUser = await ensureUserRecord({
       appwriteUser,

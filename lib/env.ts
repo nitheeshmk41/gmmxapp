@@ -50,8 +50,5 @@ export function getAppwriteAdminKey() {
 }
 
 export function getBaseUrl() {
-  if (process.env.NODE_ENV === "development") {
-    return env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  }
-  return `https://${env.NEXT_PUBLIC_APP_DOMAIN}`;
+  return process.env.NEXT_PUBLIC_APP_URL!;
 }
