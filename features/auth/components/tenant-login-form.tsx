@@ -6,9 +6,10 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 
 interface Props {
   roleType?: "admin" | "trainer" | "member";
+  hideOtpLink?: boolean;
 }
 
-export function TenantLoginForm({ roleType = "member" }: Props) {
+export function TenantLoginForm({ roleType = "member", hideOtpLink = false }: Props) {
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -113,7 +114,7 @@ export function TenantLoginForm({ roleType = "member" }: Props) {
         {loading ? "Signing in..." : "Login"}
       </button>
 
-      {roleType === "member" && (
+      {!hideOtpLink && roleType === "member" && (
         <div className="text-center mt-6">
           <a href="?method=otp" className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors">
             Login with OTP instead

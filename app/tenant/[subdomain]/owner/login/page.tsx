@@ -1,7 +1,9 @@
-import { TenantLoginForm } from "@/features/auth/components/tenant-login-form";
 import { getTenantBySubdomain } from "@/lib/tenant";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Dumbbell } from "lucide-react";
+import { OwnerLoginClient } from "./client";
+import { getCurrentUser } from "@/features/auth/actions";
+import { routeForUser } from "@/lib/auth/bootstrap";
 
 interface Props {
   params: Promise<{ subdomain: string }>;
@@ -9,6 +11,13 @@ interface Props {
 
 export default async function OwnerLoginPage({ params }: Props) {
   const { subdomain } = await params;
+
+  // Session Check
+  const user = await getCurrentUser();
+  if (user) {
+    redirect(routeForUser(user));
+  }
+
   const tenant = await getTenantBySubdomain(subdomain);
 
   if (!tenant) {
@@ -35,7 +44,7 @@ export default async function OwnerLoginPage({ params }: Props) {
         </div>
 
         <div className="p-8">
-          <TenantLoginForm roleType="admin" />
+          <OwnerLoginClient />
         </div>
       </div>
     </div>
