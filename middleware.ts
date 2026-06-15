@@ -51,6 +51,12 @@ export async function middleware(request: NextRequest) {
   // ── Session Check ────────────────────────────────────────────
   const sessionCookieName = `a_session_${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
   const sessionCookie = request.cookies.get(sessionCookieName);
+  
+  // Debug cookies
+  console.log("[Middleware] Expected Cookie Name:", sessionCookieName);
+  console.log("[Middleware] All Cookies:", request.cookies.getAll().map(c => c.name));
+  console.log("[Middleware] Session Cookie Value:", sessionCookie?.value ? "PRESENT" : "MISSING");
+  
   const hasSession = !!sessionCookie?.value;
 
   // ── Auth Pages Guard (redirect logged-in users away) ─────────

@@ -31,16 +31,7 @@ export async function GET(request: Request) {
     // Now we have the real session secret
     const sessionSecret = session.secret;
     
-    const cookieStore = await cookies();
-    cookieStore.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, sessionSecret, {
-      path: "/",
-      httpOnly: true,
-      sameSite: "lax",
-      secure: env.NODE_ENV === "production",
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
-    });
-
-    // Set the session explicitly on the server client (for completeness, though we don't strictly need it now)
+    // Set the session explicitly on the server client
     client.setSession(sessionSecret);
     
     // Fetch the user using the Admin API to avoid scope issues
@@ -86,10 +77,26 @@ export async function GET(request: Request) {
     if (subdomain && path.includes("dashboard")) {
       const proto = origin.startsWith("http://localhost") ? "http" : "https";
       const baseDomain = origin.replace(/^https?:\/\//, "");
-      return NextResponse.redirect(`${proto}://${subdomain}.${baseDomain}${path}`);
+      const res = NextResponse.redirect(`${proto}://${subdomain}.${baseDomain}${path}`);
+      res.cookies.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, sessionSecret, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        secure: env.NODE_ENV === "production",
+        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+      });
+      return res;
     }
 
-    return NextResponse.redirect(`${origin}${path}`);
+    const res = NextResponse.redirect(`${origin}${path}`);
+    res.cookies.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, sessionSecret, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      secure: env.NODE_ENV === "production",
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+    });
+    return res;
   } catch (error) {
     logEvent("error", "auth.oauth.failed", {
       correlationId,
