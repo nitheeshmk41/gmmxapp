@@ -30,13 +30,20 @@ export async function GET(request: Request) {
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
     });
 
-    const sessionClient = new Client()
-      .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
-      .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID)
-      .setSession(sessionSecret);
+    const res = await fetch(`${env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/account`, {
+      headers: {
+        "X-Appwrite-Project": env.NEXT_PUBLIC_APPWRITE_PROJECT_ID,
+        "X-Fallback-Cookies": JSON.stringify({ [`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`]: sessionSecret }),
+      }
+    });
 
-    const sessionAccount = new Account(sessionClient);
-    const appwriteUser = await sessionAccount.get();
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || "Failed to get account details with session");
+    }
+
+    const appwriteUser = await res.json();
+    
     const dbUser = await ensureUserRecord({
       appwriteUser,
       provider: "google",
