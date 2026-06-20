@@ -25,7 +25,19 @@ export async function getMembers(params: { search?: string; status?: string; pla
     );
   }
   if (params.status && params.status !== "all") {
-    queries.push(Query.equal("status", params.status));
+    if (params.status === "expiring") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const nextWeek = new Date(today);
+      nextWeek.setDate(today.getDate() + 7);
+      
+      queries.push(
+        Query.between("membershipEndDate", today.toISOString(), nextWeek.toISOString()),
+        Query.equal("status", "active")
+      );
+    } else {
+      queries.push(Query.equal("status", params.status));
+    }
   }
   if (params.plan_id && params.plan_id !== "all") {
     queries.push(Query.equal("planId", params.plan_id));
@@ -122,6 +134,20 @@ export async function getMemberById(id: string) {
       renewalNotes: p.renewalNotes || null,
     }));
 
+    // Fetch attendance
+    const attendanceRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.ATTENDANCE,
+      [Query.equal("memberId", id), Query.orderDesc("date"), Query.limit(10)]
+    );
+
+    const mappedAttendance = attendanceRes.documents.map((a: any) => ({
+      id: a.$id,
+      date: a.date,
+      time: a.time,
+      status: a.status,
+    }));
+
     return {
       id: member.$id,
       memberCode: member.memberCode,
@@ -136,6 +162,7 @@ export async function getMemberById(id: string) {
       membershipEndDate: member.membershipEndDate || null,
       plan: plan ? { name: plan.name, price: plan.amount, duration_days: plan.durationDays } : null,
       payments: mappedPayments,
+      attendance: mappedAttendance,
     };
   } catch (error) {
     console.error("[getMemberById] Failed to fetch member by ID:", error);

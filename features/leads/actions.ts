@@ -126,13 +126,21 @@ export async function convertLeadToMember(leadId: string): Promise<{ success?: b
     );
 
     const password = ID.unique() + ID.unique();
-    const appwriteUser = await users.create(
-      ID.unique(),
-      undefined,
-      lead.phone,
-      password,
-      lead.name
-    );
+    let appwriteUser;
+    try {
+      appwriteUser = await users.create(
+        ID.unique(),
+        undefined,
+        lead.phone,
+        password,
+        lead.name
+      );
+    } catch (err: any) {
+      if (err.message?.includes("already exists")) {
+        return { error: "A user with this phone number is already registered in the system." };
+      }
+      throw err;
+    }
 
     await databases.createDocument(
       APPWRITE_DB_ID,
@@ -141,7 +149,8 @@ export async function convertLeadToMember(leadId: string): Promise<{ success?: b
       {
         gymId: gym.$id,
         userId: appwriteUser.$id,
-        role: "MEMBER"
+        role: "MEMBER",
+        status: "ACTIVE"
       }
     );
 

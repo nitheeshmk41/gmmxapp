@@ -51,18 +51,33 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
           <ChevronLeft size={16} />
           Back to Members
         </Link>
-        <Link
-          href={`/owner/dashboard/members/${member.id}/edit`}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all"
-          style={{
-            background: "var(--color-surface)",
-            border: "1px solid var(--color-border)",
-            color: "var(--color-foreground)",
-          }}
-        >
-          <Edit2 size={14} />
-          Edit Member
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`https://wa.me/${member.phone.replace(/\D/g, "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+            style={{
+              background: "#25D366",
+              color: "white",
+            }}
+          >
+            <Phone size={14} />
+            WhatsApp
+          </Link>
+          <Link
+            href={`/owner/dashboard/members/${member.id}/edit`}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+            style={{
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-border)",
+              color: "var(--color-foreground)",
+            }}
+          >
+            <Edit2 size={14} />
+            Edit Member
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -263,6 +278,58 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
                       <td className="px-5 py-4">
                         <span className="px-2 py-1 rounded-md text-xs font-medium" style={{ background: "var(--color-success-light)", color: "var(--color-success)" }}>
                           {payment.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Attendance History */}
+          <div
+            className="rounded-2xl overflow-hidden"
+            style={{
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-border)",
+              boxShadow: "var(--shadow-card)",
+            }}
+          >
+            <div className="p-5" style={{ borderBottom: "1px solid var(--color-border)" }}>
+              <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: "var(--color-foreground)" }}>
+                <Calendar size={18} style={{ color: "var(--color-brand-primary)" }} />
+                Recent Attendance
+              </h3>
+            </div>
+            
+            {!member.attendance || member.attendance.length === 0 ? (
+              <div className="p-8 text-center text-sm" style={{ color: "var(--color-muted-foreground)" }}>
+                No attendance records yet.
+              </div>
+            ) : (
+              <table className="w-full">
+                <thead>
+                  <tr style={{ background: "var(--color-border-muted)" }}>
+                    <th className="px-5 py-3 text-left text-xs font-semibold" style={{ color: "var(--color-muted-foreground)" }}>Date</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold" style={{ color: "var(--color-muted-foreground)" }}>Time</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold" style={{ color: "var(--color-muted-foreground)" }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {member.attendance.map((record: any) => (
+                    <tr key={record.id} style={{ borderTop: "1px solid var(--color-border-muted)" }}>
+                      <td className="px-5 py-4 text-sm font-medium" style={{ color: "var(--color-foreground)" }}>
+                        {formatDate(record.date)}
+                      </td>
+                      <td className="px-5 py-4 text-sm" style={{ color: "var(--color-muted-foreground)" }}>
+                        {record.time || "—"}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className={`px-2 py-1 rounded-md text-xs font-medium ${
+                          record.status === "present" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+                        }`}>
+                          {record.status === "present" ? "Present" : "Absent"}
                         </span>
                       </td>
                     </tr>

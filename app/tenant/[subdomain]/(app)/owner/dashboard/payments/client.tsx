@@ -115,8 +115,8 @@ export function PaymentsClientPage({ payments, total, page, members, plans }: Pr
         <table className="w-full">
           <thead>
             <tr style={{ borderBottom: "1px solid var(--color-border)", background: "var(--color-border-muted)" }}>
-              {["Receipt", "Member", "Plan", "Amount", "Method", "Status", "Date", "Membership End"].map((h) => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: "var(--color-muted-foreground)" }}>{h}</th>
+              {["Receipt", "Member", "Plan", "Amount", "Method", "Status", "Date", "Membership End", ""].map((h, i) => (
+                <th key={i} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: "var(--color-muted-foreground)" }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -155,6 +155,22 @@ export function PaymentsClientPage({ payments, total, page, members, plans }: Pr
                   </td>
                   <td className="px-4 py-3.5">
                     <span className="text-xs" style={{ color: "var(--color-muted-foreground)" }}>{formatDate(payment.membership_end)}</span>
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="flex justify-end">
+                      <a
+                        href={`https://wa.me/${payment.member.phone.replace(/\D/g, "")}?text=Hi%20${encodeURIComponent(payment.member.name)},%20this%20is%20a%20reminder%20for%20your%20pending%20payment%20of%20₹${payment.amount}.`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Send Reminder on WhatsApp"
+                        className="p-1.5 rounded-lg transition-all"
+                        style={{ color: "#25D366" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "#25D36620")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      >
+                        <CreditCard size={15} />
+                      </a>
+                    </div>
                   </td>
                 </tr>
               ))

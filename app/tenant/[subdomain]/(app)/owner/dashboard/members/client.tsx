@@ -278,6 +278,18 @@ export function MembersClientPage({ members, total, page, search, status }: Prop
                     <td className="px-4 py-3.5">
                       <div className="relative flex items-center gap-2 justify-end">
                         <Link
+                          href={`https://wa.me/${member.phone.replace(/\D/g, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Message on WhatsApp"
+                          className="p-1.5 rounded-lg transition-all"
+                          style={{ color: "#25D366" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "#25D36620")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        >
+                          <Phone size={15} />
+                        </Link>
+                        <Link
                           href={`/owner/dashboard/members/${member.id}`}
                           className="p-1.5 rounded-lg transition-all"
                           style={{ color: "var(--color-muted-foreground)" }}

@@ -1,19 +1,5 @@
-import { PageHeader } from "@/components/dashboard/page-header";
-import { EmptyState } from "@/components/dashboard/empty-state";
-import { Building2 } from "lucide-react";
+import { redirect } from "next/navigation";
 
-export default function Page() {
-  return (
-    <div className="max-w-4xl mx-auto pb-10">
-      <PageHeader 
-        title="Gym Details" 
-        description="Update your gym name, logo, and timezone." 
-      />
-      <EmptyState 
-        icon={Building2}
-        title="Coming Soon"
-        description="This module is part of the future GMMX roadmap. Stay tuned!"
-      />
-    </div>
-  );
+export default function GymSettingsRedirect() {
+  redirect("/owner/dashboard/settings");
 }

@@ -26,9 +26,11 @@ export async function getDashboardStats() {
       newLeads: 5,
       activePlans: 3,
       revenueToday: 24000,
+      monthlyRevenue: 150000,
       attendanceToday: 8,
       newLeadsThisWeek: 5,
       totalTrainers: 3,
+      pendingPayments: 4,
     };
   }
   
@@ -42,9 +44,11 @@ export async function getDashboardStats() {
       newLeads: 0,
       activePlans: 0,
       revenueToday: 0,
+      monthlyRevenue: 0,
       attendanceToday: 0,
       newLeadsThisWeek: 0,
       totalTrainers: 0,
+      pendingPayments: 0,
     };
   }
 
@@ -106,6 +110,40 @@ export async function getDashboardStats() {
     );
     const activePlans = plansRes.total;
 
+    // 7. Today's Attendance
+    const todayStr = startOfToday.split("T")[0];
+    const attendanceRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.ATTENDANCE,
+      [Query.equal("gymId", gym.$id), Query.equal("date", todayStr)]
+    );
+    // Since attendance record is per member per date, total represents today's attendance count
+    const attendanceToday = attendanceRes.total;
+
+    // 8. Monthly Revenue
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const paymentsRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.PAYMENTS,
+      [
+        Query.equal("gymId", gym.$id), 
+        Query.equal("status", "success"),
+        Query.greaterThanEqual("paidAt", startOfMonth)
+      ]
+    );
+    const monthlyRevenue = paymentsRes.documents.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+
+    // 9. Pending Payments
+    const pendingRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.PAYMENTS,
+      [
+        Query.equal("gymId", gym.$id), 
+        Query.equal("status", "pending")
+      ]
+    );
+    const pendingPayments = pendingRes.total;
+
     return {
       totalMembers,
       activeMembers,
@@ -114,9 +152,11 @@ export async function getDashboardStats() {
       newLeads,
       activePlans,
       revenueToday: 0,
-      attendanceToday: 0,
+      monthlyRevenue,
+      attendanceToday,
       newLeadsThisWeek: newLeads,
       totalTrainers: 0,
+      pendingPayments,
     };
   } catch (error) {
     console.error("[getDashboardStats] Failed to load statistics:", error);
@@ -128,9 +168,11 @@ export async function getDashboardStats() {
       newLeads: 0,
       activePlans: 0,
       revenueToday: 0,
+      monthlyRevenue: 0,
       attendanceToday: 0,
       newLeadsThisWeek: 0,
       totalTrainers: 0,
+      pendingPayments: 0,
     };
   }
 }

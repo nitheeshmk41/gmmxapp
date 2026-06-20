@@ -69,13 +69,21 @@ export async function createTrainer(formData: FormData) {
     if (parsed.data.phone) {
       // Create Appwrite Auth User for the Trainer to allow OTP login
       const password = ID.unique() + ID.unique();
-      const appwriteUser = await users.create(
-        ID.unique(),
-        parsed.data.email || undefined,
-        parsed.data.phone,
-        password,
-        parsed.data.name
-      );
+      let appwriteUser;
+      try {
+        appwriteUser = await users.create(
+          ID.unique(),
+          parsed.data.email || undefined,
+          parsed.data.phone,
+          password,
+          parsed.data.name
+        );
+      } catch (err: any) {
+        if (err.message?.includes("already exists")) {
+          return { error: "A user with this email or phone is already registered in the system. Please use a different one." };
+        }
+        throw err;
+      }
       userId = appwriteUser.$id;
 
       // Link to gym_users
@@ -86,7 +94,8 @@ export async function createTrainer(formData: FormData) {
         {
           gymId: gym.$id,
           userId: userId,
-          role: "TRAINER"
+          role: "TRAINER",
+          status: "ACTIVE"
         }
       );
     }

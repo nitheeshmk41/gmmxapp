@@ -91,11 +91,10 @@ export default async function DashboardPage() {
 
   // Top KPI Section
   const KPI_STATS = [
-    { label: "Total Members", value: stats.totalMembers, icon: Users, color: "var(--color-brand-primary)", bg: "var(--color-brand-light)" },
-    { label: "Active Members", value: stats.activeMembers, icon: Users, color: "var(--color-success)", bg: "var(--color-success-light)" },
-    { label: "Expired Members", value: stats.expiredMembers || 0, icon: Users, color: "var(--color-danger)", bg: "var(--color-danger-light)" },
+    { label: "Active Members", value: stats.activeMembers, icon: Users, color: "var(--color-brand-primary)", bg: "var(--color-brand-light)" },
+    { label: "Today's Attendance", value: stats.attendanceToday, icon: CalendarCheck, color: "var(--color-success)", bg: "var(--color-success-light)" },
+    { label: "Monthly Revenue", value: formatCurrency(stats.monthlyRevenue), icon: IndianRupee, color: "var(--color-success)", bg: "var(--color-success-light)" },
     { label: "Expiring soon", value: stats.expiringThisWeek, icon: Clock, color: "var(--color-warning)", bg: "var(--color-warning-light)" },
-    { label: "Leads", value: stats.newLeadsThisWeek, icon: TrendingUp, color: "text-purple-500", bg: "bg-purple-50" },
   ];
 
   return (
@@ -147,23 +146,29 @@ export default async function DashboardPage() {
             {stats.expiringThisWeek} memberships expire in 7 days
           </div>
         )}
+        {stats.pendingPayments > 0 && (
+          <div className="bg-orange-50 text-orange-700 border border-orange-200 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold shadow-sm animate-in fade-in">
+            <AlertTriangle size={18} />
+            {stats.pendingPayments} pending payments
+          </div>
+        )}
         {isDraft && (
           <div className="bg-yellow-50 text-yellow-700 border border-yellow-200 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold shadow-sm animate-in fade-in">
-            <AlertTriangle size={18} />
+            <Globe size={18} />
             Website not published
           </div>
         )}
-        {isSample && (
-          <div className="bg-orange-50 text-orange-700 border border-orange-200 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold shadow-sm animate-in fade-in">
-            <AlertTriangle size={18} />
-            4 pending payments
+        {stats.newLeads > 0 && (
+          <div className="bg-purple-50 text-purple-700 border border-purple-200 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold shadow-sm animate-in fade-in">
+            <UserPlus size={18} />
+            {stats.newLeads} new leads
           </div>
         )}
       </section>
 
       {/* Top KPIs */}
       <section>
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {KPI_STATS.map((stat) => {
             const Icon = stat.icon;
             return (
