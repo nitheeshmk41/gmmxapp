@@ -21,9 +21,10 @@ export default async function MemberLayout({ children }: { children: React.React
             </div>
             <div className="flex items-center gap-4">
               <Link href="/member/dashboard" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Dashboard</Link>
-              <Link href="/member/profile" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Profile</Link>
-              <Link href="/member/payments" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Payments</Link>
+              <Link href="/member/membership" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Membership</Link>
               <Link href="/member/attendance" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Attendance</Link>
+              <Link href="/member/payments" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Payments</Link>
+              <Link href="/member/profile" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Profile</Link>
               <form action={signOut}>
                 <button type="submit" className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors">Sign out</button>
               </form>

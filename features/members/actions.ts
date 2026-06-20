@@ -138,7 +138,7 @@ export async function getMemberById(id: string) {
     const attendanceRes = await databases.listDocuments(
       APPWRITE_DB_ID,
       COLLECTIONS.ATTENDANCE,
-      [Query.equal("memberId", id), Query.orderDesc("date"), Query.limit(10)]
+      [Query.equal("memberId", id), Query.orderDesc("date"), Query.limit(30)]
     );
 
     const mappedAttendance = attendanceRes.documents.map((a: any) => ({
