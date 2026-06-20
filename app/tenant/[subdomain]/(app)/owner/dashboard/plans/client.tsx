@@ -9,7 +9,6 @@ type Plan = {
   name: string;
   duration_days: number;
   price: number;
-  description: string | null;
   is_active: boolean;
 };
 
@@ -99,10 +98,7 @@ export function PlansClientPage({ plans }: { plans: Plan[] }) {
                   {plan.duration_days} day{plan.duration_days !== 1 ? "s" : ""}
                 </span>
               </div>
-              {plan.description && (
-                <p className="text-xs mb-4" style={{ color: "var(--color-muted-foreground)" }}>{plan.description}</p>
-              )}
-              <div className="flex gap-2 pt-3" style={{ borderTop: "1px solid var(--color-border-muted)" }}>
+              <div className="flex items-center gap-4 text-xs font-medium" style={{ color: "var(--color-muted-foreground)" }}>
                 <button
                   onClick={() => handleToggle(plan.id, plan.is_active)}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all"
@@ -165,12 +161,6 @@ export function PlansClientPage({ plans }: { plans: Plan[] }) {
                     onFocus={(e) => { e.target.style.borderColor = "var(--color-brand-primary)"; }}
                     onBlur={(e) => { e.target.style.borderColor = "var(--color-border)"; }} />
                 </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium" style={{ color: "var(--color-foreground)" }}>Description</label>
-                <textarea name="description" defaultValue={editPlan?.description || ""} rows={2} placeholder="What's included…" className="w-full px-3 py-2.5 rounded-lg text-sm resize-none" style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = "var(--color-brand-primary)"; }}
-                  onBlur={(e) => { e.target.style.borderColor = "var(--color-border)"; }} />
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => { setShowModal(false); setEditPlan(null); }} className="flex-1 py-2.5 rounded-lg text-sm" style={{ background: "var(--color-border)", color: "var(--color-foreground)" }}>Cancel</button>

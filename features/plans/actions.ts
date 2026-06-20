@@ -31,7 +31,6 @@ export async function getPlans() {
       name: doc.name,
       duration_days: doc.durationDays,
       price: doc.amount,
-      description: doc.description || null,
       is_active: doc.isActive,
     }));
   } catch (error) {
@@ -60,7 +59,6 @@ export async function createPlan(formData: FormData): Promise<{ success?: boolea
         name: parsed.data.name,
         durationDays: parsed.data.duration_days,
         amount: parsed.data.price,
-        description: parsed.data.description,
         isActive: true,
       }
     );
@@ -91,7 +89,6 @@ export async function updatePlan(id: string, formData: FormData): Promise<{ succ
         name: parsed.data.name,
         durationDays: parsed.data.duration_days,
         amount: parsed.data.price,
-        description: parsed.data.description,
       }
     );
 

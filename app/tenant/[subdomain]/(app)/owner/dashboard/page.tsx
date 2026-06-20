@@ -301,7 +301,7 @@ export default async function DashboardPage() {
       {isDraft && (
         <section className="bg-zinc-900 text-white rounded-2xl border border-zinc-800 shadow-md p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <h3 className="text-xl font-bold tracking-tight">Website Setup Progress</h3>
+            <h3 className="text-xl font-bold tracking-tight text-white">Website Setup Progress</h3>
             <p className="text-sm text-zinc-400 mt-1">Configure your branding to publish your public website.</p>
           </div>
           <Link href="/owner/dashboard/website/setup" className="px-5 py-2.5 bg-[#FF5C73] hover:bg-[#FF5C73]/90 text-white rounded-xl text-sm font-semibold transition-all whitespace-nowrap text-center">
