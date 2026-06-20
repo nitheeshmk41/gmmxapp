@@ -126,10 +126,74 @@ export async function signUpWithEmail(formData: FormData) {
       correlationId,
     });
     
-    redirectTo = routeForUser({
-      role: dbUser.role || "owner",
-      onboarding_status: dbUser.onboarding_status || "pending",
+    let subdomain = null;
+    let userRole = dbUser.role || "owner";
+    let onboardingStatus = dbUser.onboarding_status || "pending";
+
+    const { databases } = await createAdminClient();
+    
+    // Check GymUserDocument
+    const gymUsersRes = await databases.listDocuments<GymUserDocument>(
+      APPWRITE_DB_ID,
+      COLLECTIONS.GYM_USERS,
+      [Query.equal("userId", appwriteUser.$id)]
+    );
+    
+    if (gymUsersRes.documents.length > 0) {
+      const gymUser = gymUsersRes.documents[0];
+      userRole = gymUser.role; // OWNER, TRAINER, MEMBER
+      onboardingStatus = "completed";
+      
+      const gymId = gymUser.gymId;
+      try {
+        const gym = await databases.getDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gymId);
+        subdomain = gym.subdomain;
+      } catch (e) {
+        console.error("Failed to fetch gym for redirect", e);
+      }
+    } else {
+      const queries = [];
+      if (appwriteUser.email && !appwriteUser.email.endsWith('@phone.gmmx.app')) {
+        queries.push(Query.equal("email", appwriteUser.email));
+      } else if (appwriteUser.email && appwriteUser.email.endsWith('@phone.gmmx.app')) {
+        queries.push(Query.equal("phone", appwriteUser.email.split('@')[0]));
+      }
+
+      if (queries.length > 0) {
+        const memberRes = await databases.listDocuments(
+          APPWRITE_DB_ID,
+          COLLECTIONS.MEMBERS,
+          queries
+        );
+
+        if (memberRes.documents.length > 0) {
+          userRole = "member";
+          onboardingStatus = "completed"; // BYPASS ONBOARDING
+          
+          try {
+            const gym = await databases.getDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, memberRes.documents[0].gymId);
+            subdomain = gym.subdomain;
+          } catch (e) {
+            console.error("Failed to fetch gym for member redirect", e);
+          }
+        }
+      }
+    }
+
+    const path = routeForUser({
+      role: userRole,
+      onboarding_status: onboardingStatus,
+      gymId: null
     });
+
+    if (subdomain && path.includes("dashboard")) {
+      const appUrl = getBaseUrl();
+      const baseDomain = appUrl.replace(/^https?:\/\//, "");
+      const proto = appUrl.startsWith("https") ? "https" : "http";
+      redirectTo = `${proto}://${subdomain}.${baseDomain}${path}`;
+    } else {
+      redirectTo = path;
+    }
   } catch (error: any) {
     console.error("[signUpWithEmail] Error:", error.message);
     return { error: error.message || "Failed to create account" };
@@ -198,6 +262,33 @@ export async function signInWithEmail(formData: FormData) {
         subdomain = gym.subdomain;
       } catch (e) {
         console.error("Failed to fetch gym for redirect", e);
+      }
+    } else {
+      const queries = [];
+      if (appwriteUser.email && !appwriteUser.email.endsWith('@phone.gmmx.app')) {
+        queries.push(Query.equal("email", appwriteUser.email));
+      } else if (appwriteUser.email && appwriteUser.email.endsWith('@phone.gmmx.app')) {
+        queries.push(Query.equal("phone", appwriteUser.email.split('@')[0]));
+      }
+
+      if (queries.length > 0) {
+        const memberRes = await databases.listDocuments(
+          APPWRITE_DB_ID,
+          COLLECTIONS.MEMBERS,
+          queries
+        );
+
+        if (memberRes.documents.length > 0) {
+          userRole = "member";
+          onboardingStatus = "completed"; // BYPASS ONBOARDING
+          
+          try {
+            const gym = await databases.getDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, memberRes.documents[0].gymId);
+            subdomain = gym.subdomain;
+          } catch (e) {
+            console.error("Failed to fetch gym for member redirect", e);
+          }
+        }
       }
     }
 

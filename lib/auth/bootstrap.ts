@@ -33,12 +33,37 @@ export async function ensureUserRecord({
     if (gymUsersRes.documents.length > 0) {
       detectedRole = gymUsersRes.documents[0].role;
       onboardingStatus = "completed";
+    } else {
+      const queries = [];
+      if (appwriteUser.email && !appwriteUser.email.endsWith('@phone.gmmx.app')) {
+        queries.push(Query.equal("email", appwriteUser.email));
+      } else if (appwriteUser.email && appwriteUser.email.endsWith('@phone.gmmx.app')) {
+        queries.push(Query.equal("phone", appwriteUser.email.split('@')[0]));
+      }
+
+      if (queries.length > 0) {
+        const memberRes = await databases.listDocuments(
+          APPWRITE_DB_ID,
+          COLLECTIONS.MEMBERS,
+          queries
+        );
+
+        if (memberRes.documents.length > 0) {
+          detectedRole = "member";
+          onboardingStatus = "completed";
+        }
+      }
     }
   } catch (error) {
-    console.error("[ensureUserRecord] Failed to query gym_users", error);
+    console.error("[ensureUserRecord] Failed to query gym_users or members", error);
   }
 
-  if (!prefs.onboarding_status) {
+  const needsUpdate = 
+    prefs.onboarding_status !== onboardingStatus || 
+    prefs.role !== detectedRole ||
+    !prefs.onboarding_status;
+
+  if (needsUpdate) {
     await users.updatePrefs(appwriteUser.$id, {
       ...prefs,
       onboarding_status: onboardingStatus,
@@ -56,8 +81,8 @@ export async function ensureUserRecord({
     id: appwriteUser.$id,
     email: appwriteUser.email,
     name: displayName,
-    onboarding_status: prefs.onboarding_status || onboardingStatus,
-    role: prefs.role || detectedRole
+    onboarding_status: onboardingStatus,
+    role: detectedRole
   };
 }
 

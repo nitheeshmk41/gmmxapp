@@ -13,7 +13,8 @@ export async function ensureStorageInfrastructure() {
     // 1. gym-logos
     try {
       await storage.getBucket("gym-logos");
-      console.log("[Bootstrap] Bucket 'gym-logos' exists.");
+      await storage.updateBucket("gym-logos", "Gym Logos", [Permission.read(Role.any())], false, false, 5 * 1024 * 1024, ["png", "jpg", "jpeg", "webp", "svg", "gif"]);
+      console.log("[Bootstrap] Bucket 'gym-logos' exists and permissions verified.");
     } catch (e: any) {
       if (e.code === 404 || String(e.message || e).toLowerCase().includes("not found")) {
         console.log("[Bootstrap] Creating 'gym-logos' bucket...");
@@ -34,7 +35,8 @@ export async function ensureStorageInfrastructure() {
     // 2. gym-gallery
     try {
       await storage.getBucket("gym-gallery");
-      console.log("[Bootstrap] Bucket 'gym-gallery' exists.");
+      await storage.updateBucket("gym-gallery", "Gym Gallery", [Permission.read(Role.any())], false, false, 10 * 1024 * 1024, ["png", "jpg", "jpeg", "webp", "svg", "mp4"]);
+      console.log("[Bootstrap] Bucket 'gym-gallery' exists and permissions verified.");
     } catch (e: any) {
       if (e.code === 404 || String(e.message || e).toLowerCase().includes("not found")) {
         console.log("[Bootstrap] Creating 'gym-gallery' bucket...");
@@ -55,7 +57,8 @@ export async function ensureStorageInfrastructure() {
     // 3. trainer-images
     try {
       await storage.getBucket("trainer-images");
-      console.log("[Bootstrap] Bucket 'trainer-images' exists.");
+      await storage.updateBucket("trainer-images", "Trainer Images", [Permission.read(Role.any())], false, false, 5 * 1024 * 1024, ["png", "jpg", "jpeg", "webp"]);
+      console.log("[Bootstrap] Bucket 'trainer-images' exists and permissions verified.");
     } catch (e: any) {
       if (e.code === 404 || String(e.message || e).toLowerCase().includes("not found")) {
         console.log("[Bootstrap] Creating 'trainer-images' bucket...");

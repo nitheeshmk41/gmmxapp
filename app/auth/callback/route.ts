@@ -49,10 +49,12 @@ export async function GET(request: Request) {
     });
 
     let subdomain = null;
-    if (dbUser.role === "owner" && dbUser.onboarding_status === "completed") {
-      const { databases } = await createAdminClient();
-      const { APPWRITE_DB_ID, COLLECTIONS } = await import("@/lib/appwrite/types");
-      const { Query } = await import("node-appwrite");
+    let userRole = dbUser.role || "owner";
+    let onboardingStatus = dbUser.onboarding_status || "pending";
+
+    const { databases } = await createAdminClient();
+    const { APPWRITE_DB_ID, COLLECTIONS } = await import("@/lib/appwrite/types");
+    const { Query } = await import("node-appwrite");
       
       const gymUsersRes = await databases.listDocuments(
         APPWRITE_DB_ID,
@@ -61,6 +63,7 @@ export async function GET(request: Request) {
       );
       
       if (gymUsersRes.documents.length > 0) {
+        userRole = gymUsersRes.documents[0].role;
         const gymId = gymUsersRes.documents[0].gymId;
         try {
           const gym = await databases.getDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gymId);
@@ -68,15 +71,45 @@ export async function GET(request: Request) {
         } catch (e) {
           console.error("Failed to fetch gym for redirect", e);
         }
+      } else {
+        const queries = [];
+        if (appwriteUser.email && !appwriteUser.email.endsWith('@phone.gmmx.app')) {
+          queries.push(Query.equal("email", appwriteUser.email));
+        } else if (appwriteUser.email && appwriteUser.email.endsWith('@phone.gmmx.app')) {
+          queries.push(Query.equal("phone", appwriteUser.email.split('@')[0]));
+        }
+
+        if (queries.length > 0) {
+          const memberRes = await databases.listDocuments(
+            APPWRITE_DB_ID,
+            COLLECTIONS.MEMBERS,
+            queries
+          );
+
+          if (memberRes.documents.length > 0) {
+            userRole = "member";
+            onboardingStatus = "completed"; // BYPASS ONBOARDING
+            
+            try {
+              const gym = await databases.getDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, memberRes.documents[0].gymId);
+              subdomain = gym.subdomain;
+            } catch (e) {
+              console.error("Failed to fetch gym for member redirect", e);
+            }
+          }
+        }
       }
-    }
 
     logEvent("info", "auth.oauth.completed", {
       correlationId,
       userId: dbUser.id,
     });
 
-    const path = routeForUser(dbUser);
+    const path = routeForUser({
+      role: userRole,
+      onboarding_status: onboardingStatus,
+      gymId: null
+    });
     
     if (subdomain && path.includes("dashboard")) {
       const proto = origin.startsWith("http://localhost") ? "http" : "https";
