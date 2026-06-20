@@ -45,6 +45,12 @@ export default async function OwnerLoginPage({ params }: Props) {
 
         <div className="p-8">
           <OwnerLoginClient />
+
+          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-4 text-sm font-medium text-slate-500">
+            <a href="/member/login" className="hover:text-slate-800 transition-colors">Member Login</a>
+            <span className="hidden sm:inline text-slate-300">•</span>
+            <a href="/trainer/login" className="hover:text-slate-800 transition-colors">Trainer Login</a>
+          </div>
         </div>
       </div>
     </div>
