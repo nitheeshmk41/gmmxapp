@@ -20,9 +20,9 @@ export default async function DashboardLayout({
 
   if (!user) {
     // Session cookie is stale/invalid. 
-    // We redirect to login with a redirectTo parameter.
+    // We redirect to owner login with a redirectTo parameter.
     // The middleware will intercept this and delete the stale cookie.
-    redirect("/login?redirectTo=/dashboard");
+    redirect("/owner/login?redirectTo=/owner/dashboard");
   }
 
   if (user.role === "super_admin") {

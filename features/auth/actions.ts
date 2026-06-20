@@ -342,5 +342,8 @@ export async function changeInitialPassword(formData: FormData) {
     return { error: error.message || "Failed to change password" };
   }
   
-  redirect("/owner/dashboard");
+  // Appwrite invalidates sessions on password change.
+  // We need to clear the cookie and redirect to login.
+  await deleteSessionCookie();
+  redirect("/owner/login");
 }
