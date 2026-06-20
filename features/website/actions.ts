@@ -182,8 +182,8 @@ export async function saveDraftDetails({
   logoFileId?: string;
 }) {
   const gymContext = await getCurrentGym();
-  if (!gymContext || !gymContext.gymId) return { error: "Unauthorized" };
-  const gymId = gymContext.gymId;
+  if (!gymContext || !gymContext.$id) return { error: "Unauthorized" };
+  const gymId = gymContext.$id;
 
   try {
     const { databases } = await createAdminClient();
@@ -252,8 +252,8 @@ export async function saveDraftDetails({
 
 export async function publishWebsite() {
   const gymContext = await getCurrentGym();
-  if (!gymContext || !gymContext.gymId) return { error: "Unauthorized" };
-  const gymId = gymContext.gymId;
+  if (!gymContext || !gymContext.$id) return { error: "Unauthorized" };
+  const gymId = gymContext.$id;
 
   try {
     const { databases } = await createAdminClient();
@@ -286,7 +286,7 @@ export async function publishWebsite() {
 
 export async function uploadLogo(formData: FormData) {
   const gymContext = await getCurrentGym();
-  if (!gymContext || !gymContext.gymId) return { error: "Unauthorized" };
+  if (!gymContext || !gymContext.$id) return { error: "Unauthorized" };
 
   const file = formData.get("file") as File;
   if (!file || file.size === 0) return { error: "No file provided" };
