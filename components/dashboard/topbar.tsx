@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell, Search, ExternalLink } from "lucide-react";
+import { Bell, ExternalLink } from "lucide-react";
+import { GlobalSearch } from "./global-search";
 
 const PAGE_TITLES: Record<string, string> = {
   "/owner/dashboard": "Dashboard",
@@ -47,32 +48,10 @@ export function Topbar({ gymSubdomain }: TopbarProps) {
         </h1>
       </div>
 
+
       {/* Right actions */}
       <div className="flex items-center gap-3">
-        {/* Search shortcut */}
-        <button
-          className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all"
-          style={{
-            background: "var(--color-surface)",
-            border: "1px solid var(--color-border)",
-            color: "var(--color-muted-foreground)",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.borderColor = "var(--color-brand-primary)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border)";
-          }}
-        >
-          <Search size={13} />
-          <span>Search…</span>
-          <kbd
-            className="ml-2 px-1.5 py-0.5 rounded text-xs"
-            style={{ background: "var(--color-border)", color: "var(--color-muted-foreground)", fontFamily: "monospace" }}
-          >
-            ⌘K
-          </kbd>
-        </button>
+        <GlobalSearch />
 
         {/* View website */}
         {gymSubdomain && (

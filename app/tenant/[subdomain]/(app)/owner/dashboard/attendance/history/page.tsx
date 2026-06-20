@@ -1,24 +1,8 @@
-import { PageHeader } from "@/components/dashboard/page-header";
-import { EmptyState } from "@/components/dashboard/empty-state";
-import { History } from "lucide-react";
-
-export default async function AttendanceHistoryPage() {
+export default function PlaceholderPage() {
   return (
-    <div className="space-y-6 animate-in">
-      <PageHeader
-        title="Attendance History"
-        description="View check-in logs for all members."
-        breadcrumbs={[
-          { label: "Dashboard", href: "/owner/dashboard" },
-          { label: "Attendance", href: "/owner/dashboard/attendance" },
-          { label: "History" },
-        ]}
-      />
-      <EmptyState
-        icon={History}
-        title="No historical logs found"
-        description="When members check in via QR or manual marking, the history will be compiled here."
-      />
+    <div className="flex flex-col items-center justify-center h-96 text-slate-500 animate-in fade-in">
+      <h2 className="text-2xl font-bold text-slate-900 mb-2">Coming Soon</h2>
+      <p>The HISTORY page is under development.</p>
     </div>
   );
 }

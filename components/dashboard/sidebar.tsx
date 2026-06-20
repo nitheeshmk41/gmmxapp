@@ -18,6 +18,7 @@ import {
   LogOut,
   ChevronRight,
   Building2,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "@/features/auth/actions";
@@ -30,16 +31,9 @@ const NAV_ITEMS = [
     icon: Users,
     subItems: [
       { href: "/owner/dashboard/members", label: "All Members" },
-      { href: "/owner/dashboard/members/new", label: "Add Member" }
-    ]
-  },
-  { 
-    href: "/owner/dashboard/trainers", 
-    label: "Trainers", 
-    icon: Dumbbell,
-    subItems: [
-      { href: "/owner/dashboard/trainers", label: "All Trainers" },
-      { href: "/owner/dashboard/trainers/new", label: "Add Trainer" }
+      { href: "/owner/dashboard/members/new", label: "Add Member" },
+      { href: "/owner/dashboard/members/expiring", label: "Expiring Soon" },
+      { href: "/owner/dashboard/members/renewals", label: "Renewals" }
     ]
   },
   { 
@@ -47,28 +41,63 @@ const NAV_ITEMS = [
     label: "Attendance", 
     icon: CalendarCheck,
     subItems: [
-      { href: "/owner/dashboard/attendance", label: "Attendance" },
-      { href: "/owner/dashboard/attendance/qr", label: "QR Scanner" }
+      { href: "/owner/dashboard/attendance", label: "Today" },
+      { href: "/owner/dashboard/attendance/history", label: "History" }
     ]
   },
-  { href: "/owner/dashboard/payments", label: "Payments", icon: CreditCard },
-  { href: "/owner/dashboard/leads", label: "Leads", icon: UserPlus },
+  { 
+    href: "/owner/dashboard/payments", 
+    label: "Payments", 
+    icon: CreditCard,
+    subItems: [
+      { href: "/owner/dashboard/payments", label: "Transactions" },
+      { href: "/owner/dashboard/payments/renewals", label: "Renewals" },
+      { href: "/owner/dashboard/payments/pending", label: "Pending" },
+      { href: "/owner/dashboard/payments/revenue", label: "Revenue" }
+    ]
+  },
+  { 
+    href: "/owner/dashboard/leads", 
+    label: "Leads", 
+    icon: UserPlus,
+    subItems: [
+      { href: "/owner/dashboard/leads", label: "Pipeline" },
+      { href: "/owner/dashboard/leads/new", label: "Add Lead" }
+    ]
+  },
+  { 
+    href: "/owner/dashboard/team", 
+    label: "Team", 
+    icon: Dumbbell,
+    subItems: [
+      { href: "/owner/dashboard/team/trainers", label: "Trainers" },
+      { href: "/owner/dashboard/team/receptionists", label: "Receptionists" }
+    ]
+  },
+  { href: "/owner/dashboard/plans", label: "Plans", icon: Building2 },
   { 
     href: "/owner/dashboard/website", 
     label: "Website", 
     icon: Globe,
     subItems: [
-      { href: "/owner/dashboard/website/theme", label: "Theme" },
+      { href: "/owner/dashboard/website/templates", label: "Templates" },
       { href: "/owner/dashboard/website/branding", label: "Branding" },
-      { href: "/owner/dashboard/website/pages", label: "Pages" },
-      { href: "/owner/dashboard/website/sections", label: "Sections" },
       { href: "/owner/dashboard/website/content", label: "Content" },
-      { href: "/owner/dashboard/website/seo", label: "SEO" },
-      { href: "/owner/dashboard/website/domain", label: "Domain" },
+      { href: "/owner/dashboard/website/gallery", label: "Gallery" },
+      { href: "/owner/dashboard/website/trainers", label: "Trainers" },
       { href: "/owner/dashboard/website/publish", label: "Publish" },
     ]
   },
-  { href: "/owner/dashboard/plans", label: "Plans", icon: Building2 },
+  { 
+    href: "/owner/dashboard/reports", 
+    label: "Reports", 
+    icon: TrendingUp,
+    subItems: [
+      { href: "/owner/dashboard/reports/revenue", label: "Revenue" },
+      { href: "/owner/dashboard/reports/attendance", label: "Attendance" },
+      { href: "/owner/dashboard/reports/members", label: "Members" }
+    ]
+  },
   { 
     href: "/owner/dashboard/settings", 
     label: "Settings", 
@@ -76,8 +105,8 @@ const NAV_ITEMS = [
     subItems: [
       { href: "/owner/dashboard/settings", label: "General" },
       { href: "/owner/dashboard/settings/profile", label: "Profile" },
-      { href: "/owner/dashboard/settings/gym", label: "Gym Info" },
-      { href: "/owner/dashboard/settings/integrations", label: "Integrations" }
+      { href: "/owner/dashboard/settings/billing", label: "Billing" },
+      { href: "/owner/dashboard/settings/team", label: "Team" }
     ]
   },
 ];
@@ -124,7 +153,10 @@ export function Sidebar({ gymName = "Your Gym", gymSubdomain, userEmail }: Sideb
         <div className="space-y-0.5">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || (item.href !== "/owner/dashboard" && pathname.startsWith(item.href));
+            const isActive = pathname === item.href || 
+                             (item.href !== "/owner/dashboard" && 
+                              (pathname.startsWith(item.href) || 
+                               item.subItems?.some(sub => pathname.startsWith(sub.href))));
 
             return (
               <div key={item.href} className="flex flex-col">

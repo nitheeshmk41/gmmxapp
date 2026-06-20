@@ -34,7 +34,6 @@ import { getCurrentGym } from "@/features/auth/actions";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
 import { Query } from "node-appwrite";
-import WelcomeDashboard from "./WelcomeDashboard";
 
 export default async function DashboardPage() {
   const gym = await getCurrentGym();
@@ -62,31 +61,8 @@ export default async function DashboardPage() {
   const profileDoc = profileRes.documents[0] || null;
   const heroSectionDoc = sectionsRes.documents[0] || null;
 
+  // isDraft indicates if the website is not yet published
   const isDraft = !settingsDoc || settingsDoc.websiteStatus === "draft";
-
-  if (isDraft) {
-    let heroTitle = "";
-    let heroSubtitle = "";
-    if (heroSectionDoc?.contentJson) {
-      try {
-        const parsed = JSON.parse(heroSectionDoc.contentJson);
-        heroTitle = parsed.title || "";
-        heroSubtitle = parsed.subtitle || "";
-      } catch (e) {}
-    }
-
-    return (
-      <WelcomeDashboard
-        gymName={gym.name}
-        subdomain={gym.subdomain}
-        initialPhone={profileDoc?.phone || ""}
-        initialAddress={profileDoc?.address || ""}
-        initialHeroTitle={heroTitle}
-        initialHeroSubtitle={heroSubtitle}
-        initialLogoFileId={settingsDoc?.logoFileId || ""}
-      />
-    );
-  }
 
   const [stats, monthlyRevenue, newMembers, attendanceTrend, recentActivity, isSample] = await Promise.all([
     getDashboardStats(),
@@ -163,6 +139,28 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* Alerts */}
+      <section className="space-y-3">
+        {stats.expiringThisWeek > 0 && (
+          <div className="bg-red-50 text-red-700 border border-red-200 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold shadow-sm animate-in fade-in">
+            <AlertTriangle size={18} />
+            {stats.expiringThisWeek} memberships expire in 7 days
+          </div>
+        )}
+        {isDraft && (
+          <div className="bg-yellow-50 text-yellow-700 border border-yellow-200 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold shadow-sm animate-in fade-in">
+            <AlertTriangle size={18} />
+            Website not published
+          </div>
+        )}
+        {isSample && (
+          <div className="bg-orange-50 text-orange-700 border border-orange-200 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold shadow-sm animate-in fade-in">
+            <AlertTriangle size={18} />
+            4 pending payments
+          </div>
+        )}
+      </section>
+
       {/* Top KPIs */}
       <section>
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
@@ -190,70 +188,21 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      {/* Welcome Checklist */}
-      {!isSample && stats.totalMembers === 0 && (
-        <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-6">
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 tracking-tight">Getting Started</h3>
-              <p className="text-sm text-slate-500 mt-1">Complete setup in ~5 minutes</p>
-            </div>
-            <div className="w-full sm:w-64 text-left sm:text-right bg-slate-50 p-4 sm:p-0 sm:bg-transparent rounded-lg">
-              <div className="flex items-center justify-between sm:justify-end gap-3 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">0/5 completed</span>
-                <span className="text-xs font-bold text-[#FF5C73]">0% Complete</span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden mb-2">
-                 <div className="h-full bg-[#FF5C73] w-0 transition-all duration-1000" />
-              </div>
-              <p className="text-xs font-medium text-slate-500">Next Recommended: <span className="text-slate-900 font-bold">Add your first member</span></p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { label: "Add your first member", desc: "Start tracking payments", icon: UserPlus, href: "/owner/dashboard/members/new" },
-              { label: "Add your first trainer", desc: "Invite your staff", icon: Dumbbell, href: "/owner/dashboard/trainers/new" },
-              { label: "Generate attendance QR", desc: "Automate check-ins", icon: QrCode, href: "/owner/dashboard/settings/attendance" },
-              { label: "Share your gym website", desc: "Start generating leads", icon: Globe, href: "/owner/dashboard/website" },
-              { label: "Record first attendance", desc: "Log a member visit", icon: CalendarCheck, href: "/owner/dashboard/attendance" },
-            ].map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="flex items-start gap-4 p-4 rounded-xl border border-slate-200 hover:border-[#FF5C73]/50 hover:bg-[#FF5C73]/5 transition-all group"
-              >
-                <div className="mt-0.5 text-slate-300 group-hover:text-[#FF5C73] transition-colors">
-                  <Circle size={22} />
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-slate-900">{item.label}</h4>
-                  <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Quick Actions */}
+      {/* Quick Actions (Prominent) */}
       <section>
-        <h3 className="text-xs font-semibold tracking-wider uppercase mb-3 text-slate-500">
-          Quick Actions
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {QUICK_ACTIONS.map((action) => {
             const Icon = action.icon;
             return (
               <Link
                 key={action.label}
                 href={action.href}
-                className="flex items-center gap-3 p-3 rounded-xl transition-all hover:-translate-y-0.5 bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md shadow-sm"
+                className={`flex flex-col items-center justify-center gap-3 p-5 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-lg shadow-sm border border-slate-100 ${action.bg}`}
               >
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${action.bg}`}>
-                  <Icon size={18} className={action.color} />
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center bg-white shadow-sm`}>
+                  <Icon size={22} className={action.color} />
                 </div>
-                <span className="font-semibold text-sm text-slate-700">{action.label}</span>
+                <span className="font-bold text-sm text-slate-800">{action.label}</span>
               </Link>
             );
           })}
@@ -347,6 +296,19 @@ export default async function DashboardPage() {
           </div>
         </section>
       </div>
+
+      {/* Setup Progress */}
+      {isDraft && (
+        <section className="bg-zinc-900 text-white rounded-2xl border border-zinc-800 shadow-md p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div>
+            <h3 className="text-xl font-bold tracking-tight">Website Setup Progress</h3>
+            <p className="text-sm text-zinc-400 mt-1">Configure your branding to publish your public website.</p>
+          </div>
+          <Link href="/owner/dashboard/website/setup" className="px-5 py-2.5 bg-[#FF5C73] hover:bg-[#FF5C73]/90 text-white rounded-xl text-sm font-semibold transition-all whitespace-nowrap text-center">
+            Continue Setup
+          </Link>
+        </section>
+      )}
 
       {/* Charts */}
       <section>
