@@ -108,7 +108,7 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
         </div>
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-6">
-          {["About", "Plans", "Trainers", "Gallery", "Contact"].map((item) => (
+          {["About", "Plans", "Trainers", "Testimonials", "Gallery", "Contact"].map((item) => (
             <a key={item} href={`#${item.toLowerCase()}`} className="text-sm font-medium transition-colors" style={{ color: "#94A3B8" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "#94A3B8")}>
@@ -138,7 +138,7 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
             <button onClick={() => setMenuOpen(false)} className="text-white"><X size={22} /></button>
           </div>
           <div className="flex flex-col items-center justify-center flex-1 gap-8">
-            {["About", "Plans", "Trainers", "Gallery", "Contact"].map((item) => (
+            {["About", "Plans", "Trainers", "Testimonials", "Gallery", "Contact"].map((item) => (
               <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setMenuOpen(false)} className="text-2xl font-bold text-white">{item}</a>
             ))}
             <a href="/login" onClick={() => setMenuOpen(false)} className="text-2xl font-bold text-white">Login</a>
@@ -151,9 +151,9 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
       <section
         className="relative min-h-screen flex items-center justify-center text-center pt-20"
         style={{
-          background: settings.hero_image_url
-            ? `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url(${settings.hero_image_url}) center/cover`
-            : "linear-gradient(135deg, #0A0F1E 0%, #1E293B 50%, #0F172A 100%)",
+          background: `linear-gradient(rgba(10, 15, 30, 0.7), rgba(10, 15, 30, 0.9)), url(${
+            settings.hero_image_url || "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop"
+          }) center/cover`,
         }}
       >
         {/* Decorative elements */}
@@ -165,24 +165,41 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
               settings.hero_title
             ) : (
               <>
-                Transform Your Body At <br />
-                <span style={{ color: "#FF5C73" }}>{gym.name}</span>
+                Train Hard. <br />
+                <span style={{ color: "#FF5C73" }}>Stay Strong.</span>
               </>
             )}
           </h1>
           <p className="text-xl md:text-2xl mb-10 font-medium" style={{ color: "#94A3B8" }}>
-            {settings.tagline || "Premium fitness center helping members build strength, lose weight and stay healthy."}
+            {settings.tagline || `Premium Strength & Fitness Training in your city.`}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a href="#join" className="px-8 py-4 rounded-xl text-lg font-bold text-white shadow-xl shadow-[#FF5C73]/20 hover:scale-105 transition-transform w-full sm:w-auto" style={{ background: "#FF5C73" }}>
               Book Free Trial
             </a>
-            {whatsappUrl && (
-              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="px-8 py-4 rounded-xl text-lg font-bold text-white shadow-xl flex items-center justify-center gap-2 hover:scale-105 transition-transform w-full sm:w-auto" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)" }}>
-                <MessageSquare size={20} />
-                WhatsApp Us
-              </a>
-            )}
+            <a href="#plans" className="px-8 py-4 rounded-xl text-lg font-bold text-white shadow-xl flex items-center justify-center gap-2 hover:scale-105 transition-transform w-full sm:w-auto" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)" }}>
+              View Plans
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Indicators */}
+      <section className="py-12 px-6" style={{ background: "rgba(255,255,255,0.02)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-center gap-10 md:gap-20 text-center">
+          <div>
+            <div className="text-3xl md:text-4xl font-black text-white mb-1">500+</div>
+            <div className="text-sm font-semibold uppercase tracking-wider" style={{ color: "#FF5C73" }}>Active Members</div>
+          </div>
+          <div className="hidden md:block w-px h-12" style={{ background: "rgba(255,255,255,0.1)" }} />
+          <div>
+            <div className="text-3xl md:text-4xl font-black text-white mb-1">10+</div>
+            <div className="text-sm font-semibold uppercase tracking-wider" style={{ color: "#FF5C73" }}>Years Experience</div>
+          </div>
+          <div className="hidden md:block w-px h-12" style={{ background: "rgba(255,255,255,0.1)" }} />
+          <div>
+            <div className="text-3xl md:text-4xl font-black text-white mb-1">5</div>
+            <div className="text-sm font-semibold uppercase tracking-wider" style={{ color: "#FF5C73" }}>Expert Trainers</div>
           </div>
         </div>
       </section>
@@ -218,6 +235,30 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
         </div>
       </section>
 
+      {/* Why Choose Us */}
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-black text-white mb-4">Why Choose Us</h2>
+            <div className="w-16 h-1 rounded-full mx-auto" style={{ background: "#FF5C73" }} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { title: "Modern Equipment", icon: "🏋️‍♂️", desc: "Top of the line machines and free weights." },
+              { title: "Certified Trainers", icon: "👨‍🏫", desc: "Expert guidance to reach your goals safely." },
+              { title: "Nutrition Guidance", icon: "🥗", desc: "Personalized diet plans for maximum results." },
+              { title: "Flexible Timings", icon: "🕒", desc: "Open early morning to late night." },
+            ].map((feature, i) => (
+              <div key={i} className="p-6 rounded-2xl text-center transition-transform hover:scale-105" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <div className="text-4xl mb-4">{feature.icon}</div>
+                <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
+                <p className="text-sm" style={{ color: "#94A3B8" }}>{feature.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Plans */}
       {plans.length > 0 && (
         <section id="plans" className="py-20 px-6" style={{ background: "rgba(255,255,255,0.02)" }}>
@@ -245,6 +286,16 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
                     <span className="text-sm" style={{ color: i === 1 ? "rgba(255,255,255,0.7)" : "#94A3B8" }}>/ {plan.duration_days} days</span>
                   </div>
                   {plan.description && <p className="text-sm mb-4" style={{ color: i === 1 ? "rgba(255,255,255,0.8)" : "#94A3B8" }}>{plan.description}</p>}
+                  <div className="space-y-2 mb-6 text-left">
+                    {["Gym Access", "Trainer Support", "Locker Access"].map((feature) => (
+                      <div key={feature} className="flex items-center gap-2 text-sm font-medium" style={{ color: i === 1 ? "white" : "#E2E8F0" }}>
+                        <svg className="w-4 h-4 flex-shrink-0" style={{ color: i === 1 ? "white" : "#10B981" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
                   <a href="#join" className="block text-center py-3 rounded-xl text-sm font-bold transition-all"
                     style={{ background: i === 1 ? "rgba(255,255,255,0.2)" : "#FF5C73", color: "white" }}>
                     Get Started →
@@ -257,16 +308,19 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
       )}
 
       {/* Trainers */}
-      {trainers.length > 0 && (
-        <section id="trainers" className="py-20 px-6">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-black text-white mb-4">Our Trainers</h2>
-              <div className="w-16 h-1 rounded-full mx-auto" style={{ background: "#FF5C73" }} />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {trainers.map((trainer) => (
-                <div key={trainer.id} className="p-6 rounded-2xl text-center" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+      <section id="trainers" className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-black text-white mb-4">Our Trainers</h2>
+            <div className="w-16 h-1 rounded-full mx-auto" style={{ background: "#FF5C73" }} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {(trainers.length > 0 ? trainers : [
+              { id: '1', name: 'Arun Kumar', specialization: 'Strength Coach', experience_years: 8, photo_url: null, bio: 'Certified strength and conditioning specialist.' },
+              { id: '2', name: 'Priya Singh', specialization: 'Yoga & Mobility', experience_years: 5, photo_url: null, bio: 'Expert in flexibility, recovery, and core strength.' },
+              { id: '3', name: 'Vikram Reddy', specialization: 'HIIT & Cardio', experience_years: 6, photo_url: null, bio: 'High energy trainer to push you to your limits.' },
+            ]).map((trainer) => (
+              <div key={trainer.id} className="p-6 rounded-2xl text-center" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
                   <div className="w-20 h-20 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold overflow-hidden"
                     style={{ background: "linear-gradient(135deg, #FF5C73, #E64A61)" }}>
                     {trainer.photo_url ? <img src={trainer.photo_url} alt={trainer.name} className="w-full h-full object-cover" /> : trainer.name[0]}
@@ -281,39 +335,45 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
               ))}
             </div>
           </div>
-        </section>
-      )}
-
+      </section>
       {/* Gallery */}
-      {settings.gallery_urls.length > 0 && (
-        <section id="gallery" className="py-20 px-6" style={{ background: "rgba(255,255,255,0.02)" }}>
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-black text-white mb-4">Gallery</h2>
-              <div className="w-16 h-1 rounded-full mx-auto" style={{ background: "#FF5C73" }} />
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {settings.gallery_urls.map((url, i) => (
-                <div key={i} className="aspect-square rounded-xl overflow-hidden">
-                  <img src={url} alt={`${gym.name} gallery ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                </div>
-              ))}
-            </div>
+      <section id="gallery" className="py-20 px-6" style={{ background: "rgba(255,255,255,0.02)" }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-black text-white mb-4">Gallery</h2>
+            <div className="w-16 h-1 rounded-full mx-auto" style={{ background: "#FF5C73" }} />
           </div>
-        </section>
-      )}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {(settings.gallery_urls.length > 0 ? settings.gallery_urls : [
+              "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=500&q=80",
+              "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=500&q=80",
+              "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=500&q=80",
+              "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=500&q=80",
+              "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=500&q=80",
+              "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=500&q=80",
+            ]).map((url, i) => (
+              <div key={i} className="aspect-square rounded-xl overflow-hidden">
+                <img src={url} alt={`${gym.name} gallery ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Testimonials */}
-      {testimonials && testimonials.length > 0 && (
-        <section className="py-20 px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-black text-white mb-4">Success Stories</h2>
-              <div className="w-16 h-1 rounded-full mx-auto" style={{ background: "#FF5C73" }} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {testimonials.map((t) => (
-                <div key={t.id} className="p-8 rounded-2xl relative" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+      <section id="testimonials" className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-black text-white mb-4">Success Stories</h2>
+            <div className="w-16 h-1 rounded-full mx-auto" style={{ background: "#FF5C73" }} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {(testimonials && testimonials.length > 0 ? testimonials : [
+              { id: '1', name: 'Rahul', review: 'Lost 12kg in 4 months. The trainers here are incredibly supportive and the equipment is top-notch. Highly recommended!', rating: 5 },
+              { id: '2', name: 'Priya', review: 'Best trainers in the city! They really push you to achieve your potential. I’ve never felt stronger.', rating: 5 },
+              { id: '3', name: 'Sanjay', review: 'Great community and positive environment. The flexible timings make it super easy to stay consistent with my workouts.', rating: 5 },
+            ]).map((t) => (
+              <div key={t.id} className="p-8 rounded-2xl relative" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
                   <div className="text-[#FF5C73] text-4xl font-serif absolute top-6 left-6 opacity-30">"</div>
                   <div className="flex mb-4 gap-1 mt-4">
                     {[...Array(5)].map((_, i) => (
@@ -327,7 +387,6 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
             </div>
           </div>
         </section>
-      )}
 
       {/* Contact */}
       <section id="contact" className="py-20 px-6">
@@ -428,36 +487,62 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-6 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-        <div className="flex justify-center gap-6 mb-6">
-          <a href="/login" className="text-sm font-semibold transition-colors" style={{ color: "#94A3B8" }}
-             onMouseEnter={(e) => (e.currentTarget.style.color = "#FF5C73")}
-             onMouseLeave={(e) => (e.currentTarget.style.color = "#94A3B8")}>
-            Member Login
-          </a>
-          <a href="/login" className="text-sm font-semibold transition-colors" style={{ color: "#94A3B8" }}
-             onMouseEnter={(e) => (e.currentTarget.style.color = "#FF5C73")}
-             onMouseLeave={(e) => (e.currentTarget.style.color = "#94A3B8")}>
-            Trainer Login
-          </a>
+      <footer className="pt-20 pb-8 px-6" style={{ background: "rgba(0,0,0,0.3)", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 mb-16">
+          <div className="col-span-1 md:col-span-2">
+            <div className="flex items-center gap-3 mb-6">
+              {gym.logo_url
+                ? <img src={gym.logo_url} alt={gym.name} className="w-10 h-10 rounded-xl object-contain bg-white/5" />
+                : <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold" style={{ background: "#FF5C73" }}>{gym.name[0]}</div>
+              }
+              <span className="font-bold text-white text-2xl">{gym.name}</span>
+            </div>
+            <p className="text-sm leading-relaxed mb-6" style={{ color: "#94A3B8" }}>
+              {settings.description || "Premium fitness center helping members build strength, lose weight and stay healthy."}
+            </p>
+            <div className="flex gap-4">
+              {settings.social_instagram && <a href={settings.social_instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 text-white transition-colors"><Share2 size={18} /></a>}
+              {settings.social_facebook && <a href={settings.social_facebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 text-white transition-colors"><Hash size={18} /></a>}
+              {whatsappUrl && <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 text-white transition-colors"><MessageSquare size={18} /></a>}
+            </div>
+          </div>
+          <div>
+            <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-sm" style={{ color: "#FF5C73" }}>Contact</h4>
+            <div className="space-y-4">
+              {gym.phone && <a href={`tel:${gym.phone}`} className="flex items-center gap-3 text-sm hover:text-white transition-colors" style={{ color: "#94A3B8" }}><Phone size={16} /> {gym.phone}</a>}
+              {settings.contact_email && <a href={`mailto:${settings.contact_email}`} className="flex items-center gap-3 text-sm hover:text-white transition-colors" style={{ color: "#94A3B8" }}>✉️ {settings.contact_email}</a>}
+              {settings.address && <div className="flex items-start gap-3 text-sm" style={{ color: "#94A3B8" }}><MapPin size={16} className="mt-0.5 flex-shrink-0" /> {settings.address}</div>}
+            </div>
+          </div>
+          <div>
+            <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-sm" style={{ color: "#FF5C73" }}>Links</h4>
+            <div className="space-y-3">
+              <a href="/login" className="block text-sm hover:text-white transition-colors" style={{ color: "#94A3B8" }}>Member Login</a>
+              <a href="/login" className="block text-sm hover:text-white transition-colors" style={{ color: "#94A3B8" }}>Trainer Login</a>
+            </div>
+          </div>
         </div>
-        <p className="text-sm mt-4" style={{ color: "#475569" }}>
-          © {new Date().getFullYear()} {gym.name}. Powered by{" "}
-          <a href="https://gmmx.app" style={{ color: "#FF5C73" }}>GMMX</a>
-        </p>
-
-        {/* Sticky Mobile CTA */}
-        <div className="md:hidden fixed bottom-4 left-4 right-4 z-50 flex gap-2">
-          {whatsappUrl && (
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-4 rounded-xl shadow-xl shadow-black/20" style={{ background: "#25D366", color: "white" }}>
-              <MessageSquare size={20} />
-            </a>
-          )}
-          <a href="#join" className="flex-1 flex items-center justify-center font-bold px-4 py-4 rounded-xl shadow-xl shadow-[#FF5C73]/20 text-white" style={{ background: "#FF5C73" }}>
-            Book Free Trial
-          </a>
+        <div className="text-center pt-8 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+          <p className="text-sm" style={{ color: "#475569" }}>
+            © {new Date().getFullYear()} {gym.name}. Powered by <a href="https://gmmx.app" className="font-bold hover:underline" style={{ color: "#FF5C73" }}>GMMX</a>
+          </p>
         </div>
       </footer>
+
+      {/* Floating WhatsApp CTA */}
+      {whatsappUrl && (
+        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 z-50 flex items-center justify-center gap-2 px-5 py-3 rounded-full shadow-2xl hover:scale-105 transition-transform" style={{ background: "#25D366", color: "white" }}>
+          <MessageSquare size={24} />
+          <span className="font-bold hidden sm:block text-sm">Chat on WhatsApp</span>
+        </a>
+      )}
+
+      {/* Sticky Mobile CTA */}
+      <div className="md:hidden fixed bottom-6 left-6 z-50 flex gap-2" style={{ right: whatsappUrl ? '90px' : '24px' }}>
+        <a href="#join" className="flex-1 flex items-center justify-center font-bold px-4 py-3 rounded-full shadow-2xl shadow-[#FF5C73]/20 text-white text-sm" style={{ background: "#FF5C73" }}>
+          Book Free Trial
+        </a>
+      </div>
     </div>
   );
 }
