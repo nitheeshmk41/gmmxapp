@@ -6,7 +6,7 @@ import { PhoneOtpForm } from "@/features/auth/components/phone-otp-form";
 import { TenantLoginForm } from "@/features/auth/components/tenant-login-form";
 
 export function OwnerLoginClient() {
-  const [showEmailForm, setShowEmailForm] = useState(true);
+  const [showOtpForm, setShowOtpForm] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -33,29 +33,39 @@ export function OwnerLoginClient() {
           <div className="w-full border-t border-slate-200"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-3 bg-white text-slate-500 font-medium">or continue with OTP</span>
+          <span className="px-3 bg-white text-slate-500 font-medium">
+            {showOtpForm ? "or continue with OTP" : "or continue with email"}
+          </span>
         </div>
       </div>
 
-      <PhoneOtpForm />
-
-      {!showEmailForm ? (
-        <div className="text-center pt-2">
-          <button
-            type="button"
-            onClick={() => setShowEmailForm(true)}
-            className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            Or continue with Email
-          </button>
+      {!showOtpForm ? (
+        <div className="animate-in fade-in">
+          <TenantLoginForm roleType="admin" hideOtpLink={true} />
+          
+          <div className="text-center mt-6">
+            <button
+              type="button"
+              onClick={() => setShowOtpForm(true)}
+              className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+            >
+              Or continue with Phone OTP
+            </button>
+          </div>
         </div>
       ) : (
-        <div className="pt-6 border-t border-slate-100 animate-in fade-in slide-in-from-bottom-4">
-          <div className="mb-4 text-center">
-            <h3 className="text-sm font-bold text-slate-700">Email & Password</h3>
-            <p className="text-xs text-slate-500">Log in with your owner credentials</p>
+        <div className="animate-in fade-in slide-in-from-bottom-4">
+          <PhoneOtpForm />
+          
+          <div className="text-center mt-6">
+            <button
+              type="button"
+              onClick={() => setShowOtpForm(false)}
+              className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+            >
+              Back to Email Login
+            </button>
           </div>
-          <TenantLoginForm roleType="admin" hideOtpLink={true} />
         </div>
       )}
     </div>
