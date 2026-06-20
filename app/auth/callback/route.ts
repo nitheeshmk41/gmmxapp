@@ -82,8 +82,10 @@ export async function GET(request: Request) {
       const proto = origin.startsWith("http://localhost") ? "http" : "https";
       const baseDomain = origin.replace(/^https?:\/\//, "");
       const res = NextResponse.redirect(`${proto}://${subdomain}.${baseDomain}${path}`);
+      const cookieDomain = env.NEXT_PUBLIC_APP_DOMAIN === "localhost" ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
       res.cookies.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, sessionSecret, {
         path: "/",
+        domain: cookieDomain,
         httpOnly: true,
         sameSite: "lax",
         secure: env.NODE_ENV === "production",
@@ -93,8 +95,10 @@ export async function GET(request: Request) {
     }
 
     const res = NextResponse.redirect(`${origin}${path}`);
+    const cookieDomain = env.NEXT_PUBLIC_APP_DOMAIN === "localhost" ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
     res.cookies.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, sessionSecret, {
       path: "/",
+      domain: cookieDomain,
       httpOnly: true,
       sameSite: "lax",
       secure: env.NODE_ENV === "production",

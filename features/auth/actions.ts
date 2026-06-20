@@ -42,8 +42,11 @@ function getAuthClient() {
 
 async function setSessionCookie(secret: string) {
   const cookieStore = await cookies();
+  const domain = env.NEXT_PUBLIC_APP_DOMAIN === "localhost" ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
+  
   cookieStore.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, secret, {
     path: "/",
+    domain: domain,
     httpOnly: true,
     sameSite: "lax",
     secure: env.NODE_ENV === "production",
