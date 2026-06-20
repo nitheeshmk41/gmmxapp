@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { usePathname, useRouter } from "next/navigation";
 import { saveDraftDetails, publishWebsite } from "@/features/website/actions";
 import { uploadLogo } from "@/features/website/actions";
-import { Loader2, Check, Upload, Globe, Phone, MapPin, Edit3 } from "lucide-react";
+import { Loader2, Check, Upload, Globe, Phone, MapPin, Edit3, LayoutTemplate, Palette, Type, Rocket } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Props {
   gymName: string;
@@ -39,6 +41,9 @@ export default function WelcomeDashboard({
   const [publishing, setPublishing] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+
+  const pathname = usePathname() || "";
+  const router = useRouter();
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -174,13 +179,42 @@ export default function WelcomeDashboard({
         </div>
       </div>
 
-      {errorMsg && <div className="p-4 rounded-2xl bg-red-950/40 text-red-400 border border-red-900/50 text-sm font-medium animate-in">{errorMsg}</div>}
-      {successMsg && <div className="p-4 rounded-2xl bg-emerald-950/40 text-emerald-400 border border-emerald-900/50 text-sm font-medium animate-in">{successMsg}</div>}
+      {errorMsg && <div className="p-4 rounded-2xl bg-red-50 text-red-600 border border-red-200 text-sm font-medium animate-in">{errorMsg}</div>}
+      {successMsg && <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 text-sm font-medium animate-in">{successMsg}</div>}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Tabs Navigation */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200">
+        {[
+          { id: "templates", label: "Templates", icon: <LayoutTemplate size={16} /> },
+          { id: "branding", label: "Branding", icon: <Palette size={16} /> },
+          { id: "content", label: "Content", icon: <Type size={16} /> },
+          { id: "publish", label: "Publish", icon: <Rocket size={16} /> },
+        ].map(tab => {
+          const isActive = pathname.includes(`/website/${tab.id}`) || (pathname.endsWith("/website/setup") && tab.id === "branding");
+          return (
+            <button
+              key={tab.id}
+              onClick={() => router.push(`/owner/dashboard/website/${tab.id}`)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-sm font-bold transition-all border-b-2",
+                isActive 
+                  ? "border-[#FF5C73] text-[#FF5C73] bg-red-50/50" 
+                  : "border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+              )}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
         {/* Step inputs */}
         <div className="md:col-span-2 space-y-6">
-          <Card className="border-slate-200 bg-white shadow-sm">
+          {(pathname.includes("/website/branding") || pathname.endsWith("/website/setup")) && (
+            <div className="space-y-6">
+              <Card className="border-slate-200 bg-white shadow-sm">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2 text-slate-900"><Upload size={18} className="text-[#FF5C73]" /> 1. Upload Gym Logo</CardTitle>
               <CardDescription className="text-slate-500">A clean PNG/JPEG. Recommended size under 2MB.</CardDescription>
@@ -246,35 +280,77 @@ export default function WelcomeDashboard({
               </div>
             </CardContent>
           </Card>
+          </div>
+          )}
 
-          <Card className="border-slate-200 bg-white shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2 text-slate-900"><Edit3 size={18} className="text-[#FF5C73]" /> 3. Website Hero Section</CardTitle>
-              <CardDescription className="text-slate-500">The primary headline and subheadline visitors see first.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="heroTitle" className="text-slate-700">Hero Title</Label>
-                <Input 
-                  id="heroTitle" 
-                  placeholder="Transform Your Body Today" 
-                  value={heroTitle} 
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setHeroTitle(e.target.value)} 
-                  className="border-slate-300 bg-white text-slate-900"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="heroSubtitle" className="text-slate-700">Hero Subtitle</Label>
-                <Input 
-                  id="heroSubtitle" 
-                  placeholder="Premium fitness center helping you get stronger." 
-                  value={heroSubtitle} 
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setHeroSubtitle(e.target.value)} 
-                  className="border-slate-300 bg-white text-slate-900"
-                />
-              </div>
-            </CardContent>
-          </Card>
+          {pathname.includes("/website/content") && (
+            <div className="space-y-6">
+              <Card className="border-slate-200 bg-white shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2 text-slate-900"><Edit3 size={18} className="text-[#FF5C73]" /> Website Hero Section</CardTitle>
+                  <CardDescription className="text-slate-500">The primary headline and subheadline visitors see first.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="heroTitle" className="text-slate-700">Hero Title</Label>
+                    <Input 
+                      id="heroTitle" 
+                      placeholder="Transform Your Body Today" 
+                      value={heroTitle} 
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setHeroTitle(e.target.value)} 
+                      className="border-slate-300 bg-white text-slate-900"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="heroSubtitle" className="text-slate-700">Hero Subtitle</Label>
+                    <Input 
+                      id="heroSubtitle" 
+                      placeholder="Premium fitness center helping you get stronger." 
+                      value={heroSubtitle} 
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setHeroSubtitle(e.target.value)} 
+                      className="border-slate-300 bg-white text-slate-900"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {pathname.includes("/website/templates") && (
+            <Card className="border-slate-200 bg-white shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2 text-slate-900"><LayoutTemplate size={18} className="text-[#FF5C73]" /> Choose Template</CardTitle>
+                <CardDescription className="text-slate-500">Select a layout for your website.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-8 border-2 border-dashed border-slate-200 rounded-xl text-center bg-slate-50">
+                  <p className="text-slate-500 font-medium">Templates module coming soon. Default template applied.</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {pathname.includes("/website/publish") && (
+            <Card className="border-slate-200 bg-white shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2 text-slate-900"><Rocket size={18} className="text-[#FF5C73]" /> Ready to Launch</CardTitle>
+                <CardDescription className="text-slate-500">Review and publish your site.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-8 border-2 border-dashed border-slate-200 rounded-xl text-center bg-slate-50">
+                  <p className="text-slate-500 font-medium mb-4">You have completed {pct}% of your setup.</p>
+                  <Button 
+                    onClick={handlePublish} 
+                    disabled={uploading || saving || publishing || pct < 50}
+                    className="bg-[#FF5C73] hover:bg-[#ff405b] text-white"
+                  >
+                    {publishing ? <Loader2 size={16} className="animate-spin mr-2" /> : "Publish Website Now"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
         </div>
 
         {/* Sidebar Status / Actions */}

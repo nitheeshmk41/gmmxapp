@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/appwrite/server";
 import { getCurrentGym } from "@/features/auth/actions";
 import { revalidatePath } from "next/cache";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
-import { Query, ID } from "node-appwrite";
+import { Query, ID, Permission, Role } from "node-appwrite";
 import { InputFile } from "node-appwrite/file";
 
 export async function getWebsiteSettings() {
@@ -300,9 +300,31 @@ export async function uploadLogo(formData: FormData) {
     // Create InputFile
     const inputFile = InputFile.fromBuffer(buffer, file.name);
 
-    const res = await storage.createFile("gym-logos", ID.unique(), inputFile);
+    let fileId: string;
+    try {
+      const res = await storage.createFile("gym-logos", ID.unique(), inputFile);
+      fileId = res.$id;
+    } catch (createErr: any) {
+      const errMsg = String(createErr?.message || createErr).toLowerCase();
+      if (errMsg.includes("bucket") || errMsg.includes("not found") || createErr?.code === 404) {
+        console.log("[uploadLogo] Bucket gym-logos not found. Creating it...");
+        await storage.createBucket(
+          "gym-logos",
+          "Gym Logos",
+          [Permission.read(Role.any())],
+          false,
+          false,
+          5 * 1024 * 1024,
+          ["png", "jpg", "jpeg", "webp", "svg", "gif"]
+        );
+        const res = await storage.createFile("gym-logos", ID.unique(), inputFile);
+        fileId = res.$id;
+      } else {
+        throw createErr;
+      }
+    }
 
-    return { success: true, fileId: res.$id };
+    return { success: true, fileId };
   } catch (error: any) {
     console.error("[uploadLogo] Error:", error);
     return { error: error.message || "Failed to upload logo to server." };
