@@ -29,6 +29,11 @@ export default async function DashboardLayout({
     const rootUrl = process.env.NODE_ENV === "production" ? "https://gmmx.app/dashboard" : "http://localhost:3000/dashboard";
     redirect(rootUrl);
   }
+  
+  if ((user as any).requiresPasswordChange) {
+    redirect("/owner/change-password");
+  }
+
   if (user.onboarding_status !== "completed") {
     redirect("/onboarding");
   }

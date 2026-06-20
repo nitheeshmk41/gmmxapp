@@ -19,7 +19,8 @@ export async function getCurrentContext() {
         email: appwriteUser.email, 
         name: appwriteUser.name, 
         onboarding_status: (appwriteUser.prefs && appwriteUser.prefs.onboarding_status) || "pending",
-        role: (appwriteUser.prefs && appwriteUser.prefs.role) || "owner"
+        role: (appwriteUser.prefs && appwriteUser.prefs.role) || "owner",
+        requiresPasswordChange: (appwriteUser.prefs && appwriteUser.prefs.requiresPasswordChange) || false
       }
     };
   } catch (error) {

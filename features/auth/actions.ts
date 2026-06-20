@@ -321,3 +321,26 @@ export async function getCurrentGym() {
   const context = await getGymContext();
   return context?.gym ?? null;
 }
+
+export async function changeInitialPassword(formData: FormData) {
+  const password = formData.get("password") as string;
+  if (!password || password.length < 8) return { error: "Password must be at least 8 characters" };
+  
+  const context = await getCurrentContext();
+  if (!context) return { error: "Not authenticated" };
+  
+  try {
+    const { users } = await createAdminClient();
+    await users.updatePassword(context.user.id, password);
+    
+    const prefs = await users.getPrefs(context.user.id);
+    await users.updatePrefs(context.user.id, {
+      ...prefs,
+      requiresPasswordChange: false
+    });
+  } catch (error: any) {
+    return { error: error.message || "Failed to change password" };
+  }
+  
+  redirect("/owner/dashboard");
+}

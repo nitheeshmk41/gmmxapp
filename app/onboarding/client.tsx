@@ -70,7 +70,7 @@ export function OnboardingWizard({ userName }: { userName: string }) {
         baseDomain = host.includes(".") ? host.substring(host.indexOf(".") + 1) : host;
       }
       
-      window.location.href = `${proto}//${formData.subdomain}.${baseDomain}/owner/dashboard`;
+      window.location.href = `${proto}//${formData.subdomain}.${baseDomain}/owner/login`;
     }
   };
 
