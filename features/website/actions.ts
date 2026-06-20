@@ -5,6 +5,7 @@ import { getCurrentGym } from "@/features/auth/actions";
 import { revalidatePath } from "next/cache";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
 import { Query, ID } from "node-appwrite";
+import { InputFile } from "node-appwrite/file";
 
 export async function getWebsiteSettings() {
   const gym = await getCurrentGym();
@@ -282,3 +283,29 @@ export async function publishWebsite() {
     return { error: error.message || "Failed to publish website." };
   }
 }
+
+export async function uploadLogo(formData: FormData) {
+  const gymContext = await getCurrentGym();
+  if (!gymContext || !gymContext.gymId) return { error: "Unauthorized" };
+
+  const file = formData.get("file") as File;
+  if (!file || file.size === 0) return { error: "No file provided" };
+
+  try {
+    const { storage } = await createAdminClient();
+    
+    // Convert Web File to Node Buffer
+    const buffer = Buffer.from(await file.arrayBuffer());
+    
+    // Create InputFile
+    const inputFile = InputFile.fromBuffer(buffer, file.name);
+
+    const res = await storage.createFile("gym-logos", ID.unique(), inputFile);
+
+    return { success: true, fileId: res.$id };
+  } catch (error: any) {
+    console.error("[uploadLogo] Error:", error);
+    return { error: error.message || "Failed to upload logo to server." };
+  }
+}
+
