@@ -6,7 +6,7 @@ import { PhoneOtpForm } from "@/features/auth/components/phone-otp-form";
 import { TenantLoginForm } from "@/features/auth/components/tenant-login-form";
 
 export function OwnerLoginClient() {
-  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(true);
 
   return (
     <div className="space-y-6">
@@ -53,7 +53,7 @@ export function OwnerLoginClient() {
         <div className="pt-6 border-t border-slate-100 animate-in fade-in slide-in-from-bottom-4">
           <div className="mb-4 text-center">
             <h3 className="text-sm font-bold text-slate-700">Email & Password</h3>
-            <p className="text-xs text-slate-500">Only if you explicitly set a password</p>
+            <p className="text-xs text-slate-500">Log in with your owner credentials</p>
           </div>
           <TenantLoginForm roleType="admin" hideOtpLink={true} />
         </div>
