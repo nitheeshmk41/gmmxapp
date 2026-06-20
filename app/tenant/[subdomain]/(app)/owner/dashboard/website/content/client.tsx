@@ -1,85 +1,138 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Loader2, CheckCircle2 } from "lucide-react";
-import { updateWebsiteContent } from "@/features/website/actions";
-import { PageHeader } from "@/components/dashboard/page-header";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { saveDraftDetails } from "@/features/website/actions";
+import { Loader2, Phone, MapPin, Edit3 } from "lucide-react";
 
 interface Props {
-  gym: {
-    name: string;
-    tagline: string | null;
-    description: string | null;
-  } | null;
+  initialPhone: string;
+  initialAddress: string;
+  initialHeroTitle: string;
+  initialHeroSubtitle: string;
 }
 
-export function ContentClientPage({ gym }: Props) {
-  const [loading, setLoading] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [error, setError] = useState("");
-  const [, startTransition] = useTransition();
+export function ContentClient({ 
+  initialPhone, 
+  initialAddress, 
+  initialHeroTitle, 
+  initialHeroSubtitle 
+}: Props) {
+  const [phone, setPhone] = useState(initialPhone);
+  const [address, setAddress] = useState(initialAddress);
+  const [heroTitle, setHeroTitle] = useState(initialHeroTitle || "Transform Your Body Today");
+  const [heroSubtitle, setHeroSubtitle] = useState(initialHeroSubtitle || "Join the best fitness community in the city.");
+  
+  const [saving, setSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const inputStyle = {
-    border: "1.5px solid var(--color-border)",
-    background: "var(--color-surface)",
-    color: "var(--color-foreground)",
-    outline: "none",
+  const handleSave = async () => {
+    setSaving(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const res = await saveDraftDetails({
+        phone,
+        address,
+        heroTitle,
+        heroSubtitle,
+      });
+
+      if (res.error) {
+        setErrorMsg(res.error);
+      } else {
+        setSuccessMsg("Content settings saved successfully!");
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to save details.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSaved(false);
-    const formData = new FormData(e.currentTarget);
-    startTransition(async () => {
-      const result = await updateWebsiteContent(formData);
-      if (result?.error) setError(result.error);
-      else setSaved(true);
-      setLoading(false);
-    });
-  }
-
   return (
-    <div className="max-w-3xl space-y-6 animate-in pb-10">
-      <PageHeader
-        title="Website Content"
-        description="Manage your gym's main content, name, tagline, and description."
-        breadcrumbs={[{ label: "Website", href: ".." }, { label: "Content" }]}
-      />
+    <div className="space-y-6">
+      {errorMsg && <div className="p-4 rounded-2xl bg-red-50 text-red-600 border border-red-200 text-sm font-medium animate-in">{errorMsg}</div>}
+      {successMsg && <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 text-sm font-medium animate-in">{successMsg}</div>}
 
-      <form onSubmit={handleSubmit} className="p-6 rounded-xl space-y-5" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
-        {error && <div className="p-3 rounded-lg text-sm bg-red-500/10 text-red-500">{error}</div>}
-        {saved && <div className="p-3 rounded-lg text-sm flex items-center gap-2 bg-green-500/10 text-green-500"><CheckCircle2 size={16} /> Changes saved successfully!</div>}
+      <Card className="border-slate-200 bg-white shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2 text-slate-900"><Phone size={18} className="text-[#FF5C73]" /> Business Details</CardTitle>
+          <CardDescription className="text-slate-500">Contact info that will be displayed on your gym website.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="phone" className="text-slate-700">Contact Phone</Label>
+            <div className="relative">
+              <Input 
+                id="phone" 
+                placeholder="+91 9876543210" 
+                value={phone} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)} 
+                className="border-slate-300 bg-white text-slate-900 pl-10"
+              />
+              <Phone size={16} className="absolute left-3.5 top-3 text-slate-400" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="address" className="text-slate-700">Gym Address</Label>
+            <div className="relative">
+              <Input 
+                id="address" 
+                placeholder="123 Main St, Near Central Park" 
+                value={address} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddress(e.target.value)} 
+                className="border-slate-300 bg-white text-slate-900 pl-10"
+              />
+              <MapPin size={16} className="absolute left-3.5 top-3 text-slate-400" />
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleSave} disabled={saving} className="bg-slate-900 text-white hover:bg-slate-800">
+            {saving ? <Loader2 size={16} className="animate-spin mr-2" /> : "Save Details"}
+          </Button>
+        </CardFooter>
+      </Card>
 
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold" style={{ color: "var(--color-foreground)" }}>Gym Name</label>
-          <input name="name" defaultValue={gym?.name || ""} placeholder="E.g. NithQ Fitness" required className="w-full px-3 py-2.5 rounded-lg text-sm" style={inputStyle}
-            onFocus={(e) => { e.target.style.borderColor = "var(--color-brand-primary)"; }}
-            onBlur={(e) => { e.target.style.borderColor = "var(--color-border)"; }} />
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold" style={{ color: "var(--color-foreground)" }}>Tagline</label>
-          <input name="tagline" defaultValue={gym?.tagline || ""} placeholder="E.g. Transform your body with expert trainers." className="w-full px-3 py-2.5 rounded-lg text-sm" style={inputStyle}
-            onFocus={(e) => { e.target.style.borderColor = "var(--color-brand-primary)"; }}
-            onBlur={(e) => { e.target.style.borderColor = "var(--color-border)"; }} />
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold" style={{ color: "var(--color-foreground)" }}>About Us (Short Description)</label>
-          <textarea name="description" defaultValue={gym?.description || ""} rows={4} placeholder="E.g. Welcome to NithQ Fitness. We are located in Coimbatore..." className="w-full px-3 py-2.5 rounded-lg text-sm resize-none" style={inputStyle}
-            onFocus={(e) => { e.target.style.borderColor = "var(--color-brand-primary)"; }}
-            onBlur={(e) => { e.target.style.borderColor = "var(--color-border)"; }} />
-        </div>
-
-        <div className="flex justify-end pt-2">
-          <button type="submit" disabled={loading} className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold text-white transition-opacity" style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)", opacity: loading ? 0.7 : 1 }}>
-            {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-            Save Content
-          </button>
-        </div>
-      </form>
+      <Card className="border-slate-200 bg-white shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2 text-slate-900"><Edit3 size={18} className="text-[#FF5C73]" /> Website Hero Section</CardTitle>
+          <CardDescription className="text-slate-500">The primary headline and subheadline visitors see first.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="heroTitle" className="text-slate-700">Hero Title</Label>
+            <Input 
+              id="heroTitle" 
+              placeholder="Transform Your Body Today" 
+              value={heroTitle} 
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setHeroTitle(e.target.value)} 
+              className="border-slate-300 bg-white text-slate-900"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="heroSubtitle" className="text-slate-700">Hero Subtitle</Label>
+            <Input 
+              id="heroSubtitle" 
+              placeholder="Premium fitness center helping you get stronger." 
+              value={heroSubtitle} 
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setHeroSubtitle(e.target.value)} 
+              className="border-slate-300 bg-white text-slate-900"
+            />
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleSave} disabled={saving} className="bg-slate-900 text-white hover:bg-slate-800">
+            {saving ? <Loader2 size={16} className="animate-spin mr-2" /> : "Save Content"}
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

@@ -9,7 +9,35 @@ import { InputFile } from "node-appwrite/file";
 
 export async function getWebsiteSettings() {
   const gym = await getCurrentGym();
-  return gym;
+  if (!gym || !gym.$id) return { settings: null, profile: null, heroSection: null };
+
+  try {
+    const { databases } = await createAdminClient();
+    const [settingsRes, profileRes, sectionsRes] = await Promise.all([
+      databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_SETTINGS, [Query.equal("gymId", gym.$id)]),
+      databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_PROFILE, [Query.equal("gymId", gym.$id)]),
+      databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_SECTIONS, [
+        Query.equal("gymId", gym.$id),
+        Query.equal("sectionKey", "hero")
+      ]),
+    ]);
+
+    const settings = settingsRes.documents[0] || null;
+    const profile = profileRes.documents[0] || null;
+    const heroDoc = sectionsRes.documents[0] || null;
+    
+    let heroSection = null;
+    if (heroDoc?.contentJson) {
+      try {
+        heroSection = JSON.parse(heroDoc.contentJson);
+      } catch (e) {}
+    }
+
+    return { settings, profile, heroSection };
+  } catch (error) {
+    console.error("[getWebsiteSettings] Error:", error);
+    return { settings: null, profile: null, heroSection: null };
+  }
 }
 
 export async function updateWebsiteContent(formData: FormData) {
@@ -175,10 +203,10 @@ export async function saveDraftDetails({
   heroSubtitle,
   logoFileId,
 }: {
-  phone: string;
-  address: string;
-  heroTitle: string;
-  heroSubtitle: string;
+  phone?: string;
+  address?: string;
+  heroTitle?: string;
+  heroSubtitle?: string;
   logoFileId?: string;
 }) {
   const gymContext = await getCurrentGym();
@@ -194,12 +222,16 @@ export async function saveDraftDetails({
       COLLECTIONS.GYM_PROFILE,
       [Query.equal("gymId", gymId)]
     );
-    if (profileRes.documents.length > 0) {
+    if (profileRes.documents.length > 0 && (phone !== undefined || address !== undefined)) {
+      const currentProfile = profileRes.documents[0];
       await databases.updateDocument(
         APPWRITE_DB_ID,
         COLLECTIONS.GYM_PROFILE,
-        profileRes.documents[0].$id,
-        { phone, address }
+        currentProfile.$id,
+        { 
+          phone: phone !== undefined ? phone : currentProfile.phone, 
+          address: address !== undefined ? address : currentProfile.address 
+        }
       );
     }
 
@@ -229,8 +261,8 @@ export async function saveDraftDetails({
     if (sectionsRes.documents.length > 0) {
       const heroSection = sectionsRes.documents[0];
       const contentJson = JSON.parse(heroSection.contentJson);
-      contentJson.title = heroTitle || contentJson.title;
-      contentJson.subtitle = heroSubtitle || contentJson.subtitle;
+      if (heroTitle !== undefined) contentJson.title = heroTitle;
+      if (heroSubtitle !== undefined) contentJson.subtitle = heroSubtitle;
 
       await databases.updateDocument(
         APPWRITE_DB_ID,
@@ -300,31 +332,9 @@ export async function uploadLogo(formData: FormData) {
     // Create InputFile
     const inputFile = InputFile.fromBuffer(buffer, file.name);
 
-    let fileId: string;
-    try {
-      const res = await storage.createFile("gym-logos", ID.unique(), inputFile);
-      fileId = res.$id;
-    } catch (createErr: any) {
-      const errMsg = String(createErr?.message || createErr).toLowerCase();
-      if (errMsg.includes("bucket") || errMsg.includes("not found") || createErr?.code === 404) {
-        console.log("[uploadLogo] Bucket gym-logos not found. Creating it...");
-        await storage.createBucket(
-          "gym-logos",
-          "Gym Logos",
-          [Permission.read(Role.any())],
-          false,
-          false,
-          5 * 1024 * 1024,
-          ["png", "jpg", "jpeg", "webp", "svg", "gif"]
-        );
-        const res = await storage.createFile("gym-logos", ID.unique(), inputFile);
-        fileId = res.$id;
-      } else {
-        throw createErr;
-      }
-    }
+    const res = await storage.createFile("gym-logos", ID.unique(), inputFile);
 
-    return { success: true, fileId };
+    return { success: true, fileId: res.$id };
   } catch (error: any) {
     console.error("[uploadLogo] Error:", error);
     return { error: error.message || "Failed to upload logo to server." };

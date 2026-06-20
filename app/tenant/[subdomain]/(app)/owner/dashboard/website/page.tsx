@@ -1,11 +1,6 @@
-import { getCurrentGym } from "@/features/auth/actions";
-import { getLeads } from "@/features/leads/actions";
-import { WebsiteClientPage } from "./client";
+import { redirect } from "next/navigation";
 
-export default async function WebsitePage() {
-  const gym = await getCurrentGym();
-  const { data: leads } = await getLeads({});
-  const websiteLeads = leads.filter(l => l.source?.toLowerCase() === "website").length;
-
-  return <WebsiteClientPage gym={gym as any} leadCount={websiteLeads} />;
+export default async function WebsitePage({ params }: { params: Promise<{ subdomain: string }> }) {
+  const { subdomain } = await params;
+  redirect(`/tenant/${subdomain}/owner/dashboard/website/publish`);
 }
