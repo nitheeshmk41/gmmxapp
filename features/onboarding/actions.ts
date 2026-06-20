@@ -27,8 +27,9 @@ export async function completeOnboardingWizard(formData: {
 
     const { users } = await createAdminClient();
     
-    // 1. Update user password to the gymcode (subdomain)
-    await users.updatePassword(context.user.id, formData.subdomain);
+    // 1. Update user password to the gymcode (subdomain) padded to 8 chars
+    const defaultPassword = formData.subdomain.padEnd(8, '0');
+    await users.updatePassword(context.user.id, defaultPassword);
     
     // 2. Set user prefs requiring password change
     const prefs = await users.getPrefs(context.user.id);

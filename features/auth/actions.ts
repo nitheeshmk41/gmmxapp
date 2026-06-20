@@ -28,7 +28,7 @@ const emailSignUpSchema = z.object({
 
 const emailSignInSchema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string().min(1, "Password is required"),
 });
 
 function getAuthClient() {
@@ -138,12 +138,17 @@ export async function signUpWithEmail(formData: FormData) {
 export async function signInWithEmail(formData: FormData) {
   console.log("[signInWithEmail] Step 1: Starting action");
   const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  let password = formData.get("password") as string;
 
   const parsed = emailSignInSchema.safeParse({ email, password });
   if (!parsed.success) {
     console.log("[signInWithEmail] Step 1b: Validation failed");
     return { error: parsed.error.issues[0].message };
+  }
+
+  // Pad short passwords with zeros to meet Appwrite's 8-character requirement for temporary gymcodes
+  if (password.length > 0 && password.length < 8) {
+    password = password.padEnd(8, '0');
   }
 
   const account = getAuthClient();
