@@ -64,7 +64,12 @@ export function OnboardingWizard({ userName }: { userName: string }) {
       // Redirect to the new dashboard on their subdomain
       const proto = window.location.protocol;
       const host = window.location.host;
-      const baseDomain = host.replace(/^[a-zA-Z0-9-]+\./, ""); // Strip any existing subdomain
+      
+      let baseDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "gmmx.app";
+      if (window.location.hostname === "localhost") {
+        baseDomain = host.includes(".") ? host.substring(host.indexOf(".") + 1) : host;
+      }
+      
       window.location.href = `${proto}//${formData.subdomain}.${baseDomain}/owner/dashboard`;
     }
   };
