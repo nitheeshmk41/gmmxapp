@@ -2,12 +2,15 @@ export const dynamic = "force-dynamic";
 
 import {
   Building2, Globe, CheckCircle2, Clock, XCircle, Search,
-  ArrowUpRight, MoreHorizontal, Filter,
+  ArrowUpRight, MoreHorizontal, Filter, Activity
 } from "lucide-react";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
 import { Query } from "node-appwrite";
 import { formatRelativeDate } from "@/lib/utils";
+import { CountUp } from "@/components/animations/CountUp";
+import { CircularRing } from "@/components/animations/CircularRing";
+import { PulseAlert } from "@/components/animations/PulseAlert";
 
 async function getAllGyms() {
   try {
@@ -26,8 +29,24 @@ async function getAllGyms() {
     const allSubs = subsRes.status === "fulfilled" ? subsRes.value.documents : [];
     const totalMembers = membersCountRes.status === "fulfilled" ? membersCountRes.value.total : 0;
 
-    const gyms = allGyms.map((gym: any) => {
+    const gyms = await Promise.all(allGyms.map(async (gym: any) => {
       const sub = allSubs.find((s: any) => s.gymId === gym.$id);
+
+      // Fast counts for Health Score
+      const [membersRes, settingsRes] = await Promise.all([
+        databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.MEMBERS, [Query.equal("gymId", gym.$id), Query.limit(1)]),
+        databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_SETTINGS, [Query.equal("gymId", gym.$id), Query.limit(1)])
+      ]);
+
+      const hasMembers = membersRes.total > 0;
+      const isPublished = settingsRes.documents[0]?.websiteStatus === "published";
+
+      let healthScore = 20;
+      if (sub?.status === "active") healthScore += 30;
+      if (sub?.status === "trial") healthScore += 10;
+      if (hasMembers) healthScore += 30;
+      if (isPublished) healthScore += 20;
+
       return {
         id: gym.$id,
         name: gym.name,
@@ -39,8 +58,9 @@ async function getAllGyms() {
         endsAt: sub?.endsAt || null,
         created_at: gym.$createdAt,
         ownerId: gym.ownerId,
+        healthScore,
       };
-    });
+    }));
 
     const activeCount = gyms.filter((g) => g.subscription_status === "active").length;
     const trialCount = gyms.filter((g) => g.subscription_status === "trial").length;
@@ -108,7 +128,9 @@ export default async function AdminGymsPage() {
                 <Icon size={18} style={{ color: c.color }} />
               </div>
               <div>
-                <p className="text-2xl font-black" style={{ color: "var(--color-foreground)" }}>{c.value}</p>
+                <p className="text-2xl font-black" style={{ color: "var(--color-foreground)" }}>
+                  <CountUp to={c.value} />
+                </p>
                 <p className="text-xs" style={{ color: "var(--color-muted-foreground)" }}>{c.label}</p>
               </div>
             </div>
@@ -117,13 +139,11 @@ export default async function AdminGymsPage() {
       </div>
 
       {/* Table */}
-      <div className="card rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 flex items-center justify-between"
-          style={{ borderBottom: "1px solid var(--color-border)" }}>
-          <h2 className="text-sm font-bold" style={{ color: "var(--color-foreground)" }}>All Gyms</h2>
+      <div className="card rounded-2xl overflow-hidden shadow-sm">
+        <div className="px-5 py-4 flex items-center justify-between border-b border-slate-100">
+          <h2 className="text-sm font-bold text-slate-900">All Gyms</h2>
           <div className="flex items-center gap-2">
-            <span className="text-xs px-2.5 py-1 rounded-full font-medium"
-              style={{ background: "var(--color-border-muted)", color: "var(--color-muted-foreground)" }}>
+            <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-slate-100 text-slate-500">
               {gyms.length} total
             </span>
           </div>
@@ -131,17 +151,16 @@ export default async function AdminGymsPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr style={{ background: "var(--color-background)", borderBottom: "1px solid var(--color-border)" }}>
-                {["Gym", "Subdomain", "Subscription", "Plan", "Trial Ends", "Joined", "Actions"].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-xs font-semibold"
-                    style={{ color: "var(--color-muted-foreground)" }}>{h}</th>
+              <tr className="bg-slate-50/50 border-b border-slate-100">
+                {["Gym", "Subdomain", "Subscription", "Health Score", "Trial Ends", "Joined", "Actions"].map((h) => (
+                  <th key={h} className="px-5 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {gyms.map((gym, i) => (
-                <tr key={gym.id} className="table-row-hover transition-colors group"
-                  style={{ borderBottom: i < gyms.length - 1 ? "1px solid var(--color-border-muted)" : "none" }}>
+                <tr key={gym.id} className="hover:bg-slate-50/50 transition-colors group"
+                  style={{ borderBottom: i < gyms.length - 1 ? "1px solid #f1f5f9" : "none" }}>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-black flex-shrink-0"
@@ -149,17 +168,16 @@ export default async function AdminGymsPage() {
                         {gym.name?.charAt(0)?.toUpperCase() || "G"}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold" style={{ color: "var(--color-foreground)" }}>{gym.name}</p>
+                        <p className="text-sm font-semibold text-slate-900">{gym.name}</p>
                         {gym.customDomain && (
-                          <p className="text-xs" style={{ color: "var(--color-subtle)" }}>{gym.customDomain}</p>
+                          <p className="text-xs text-slate-400">{gym.customDomain}</p>
                         )}
                       </div>
                     </div>
                   </td>
                   <td className="px-5 py-4">
                     <a href={`https://${gym.subdomain}.gmmx.app`} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-xs font-mono hover:underline"
-                      style={{ color: "var(--color-brand-primary)" }}>
+                      className="flex items-center gap-1.5 text-xs font-mono hover:underline text-blue-600">
                       <Globe size={10} />{gym.subdomain}.gmmx.app
                     </a>
                   </td>
@@ -167,18 +185,41 @@ export default async function AdminGymsPage() {
                     <StatusPill status={gym.subscription_status} />
                   </td>
                   <td className="px-5 py-4">
-                    <span className="text-xs capitalize font-medium px-2.5 py-1 rounded-full"
-                      style={{ background: "var(--color-border-muted)", color: "var(--color-muted-foreground)" }}>
-                      {gym.plan}
-                    </span>
+                    <PulseAlert active={gym.healthScore <= 40} className="rounded-full flex items-center justify-center">
+                      <CircularRing 
+                        progress={gym.healthScore} 
+                        size={36} 
+                        strokeWidth={3} 
+                        color={gym.healthScore > 70 ? "#10b981" : gym.healthScore > 40 ? "#f59e0b" : "#ef4444"} 
+                      />
+                    </PulseAlert>
                   </td>
                   <td className="px-5 py-4">
-                    <span className="text-xs" style={{ color: "var(--color-muted-foreground)" }}>
-                      {gym.endsAt ? new Date(gym.endsAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
-                    </span>
+                    {(() => {
+                      if (!gym.endsAt) return <span className="text-xs text-slate-400">—</span>;
+                      if (gym.subscription_status === "trial") {
+                        const diff = new Date(gym.endsAt).getTime() - new Date().getTime();
+                        if (diff > 0) {
+                          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                          return (
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-orange-600">{days}d {hours}h left</span>
+                              <span className="text-[10px] text-slate-400">Ends {new Date(gym.endsAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>
+                            </div>
+                          );
+                        }
+                        return (
+                          <PulseAlert active={true} colorClass="bg-red-500">
+                            <span className="text-xs font-bold text-red-600 px-2 py-1 bg-red-50 rounded-md">Expired</span>
+                          </PulseAlert>
+                        );
+                      }
+                      return <span className="text-xs text-slate-500">{new Date(gym.endsAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>;
+                    })()}
                   </td>
                   <td className="px-5 py-4">
-                    <span className="text-xs" style={{ color: "var(--color-muted-foreground)" }}>
+                    <span className="text-xs text-slate-500">
                       {formatRelativeDate(gym.created_at)}
                     </span>
                   </td>
@@ -194,8 +235,8 @@ export default async function AdminGymsPage() {
               {gyms.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-5 py-12 text-center">
-                    <Building2 size={32} className="mx-auto mb-3 opacity-20" style={{ color: "var(--color-muted-foreground)" }} />
-                    <p className="text-sm" style={{ color: "var(--color-muted-foreground)" }}>No gyms registered yet</p>
+                    <Building2 size={32} className="mx-auto mb-3 opacity-20 text-slate-400" />
+                    <p className="text-sm text-slate-500">No gyms registered yet</p>
                   </td>
                 </tr>
               )}

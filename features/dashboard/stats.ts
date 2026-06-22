@@ -144,6 +144,14 @@ export async function getDashboardStats() {
     );
     const pendingPayments = pendingRes.total;
 
+    // 10. Trainers Count
+    const trainersRes = await databases.listDocuments(
+      APPWRITE_DB_ID,
+      COLLECTIONS.TRAINERS,
+      [Query.equal("gymId", gym.$id), Query.limit(1)]
+    );
+    const totalTrainers = trainersRes.total;
+
     return {
       totalMembers,
       activeMembers,
@@ -155,7 +163,7 @@ export async function getDashboardStats() {
       monthlyRevenue,
       attendanceToday,
       newLeadsThisWeek: newLeads,
-      totalTrainers: 0,
+      totalTrainers,
       pendingPayments,
     };
   } catch (error) {
@@ -224,17 +232,100 @@ export async function getRecentActivity() {
   if (await isSampleDataEnabled()) {
     return {
       recentPayments: [
-        { id: "1", amount: 15000, paid_at: new Date().toISOString(), member: { name: "Rahul Sharma" } },
-        { id: "2", amount: 9000, paid_at: new Date(Date.now() - 86400000).toISOString(), member: { name: "Priya Patel" } }
+        { id: "1", amount: 15000, paid_at: new Date().toISOString(), member: { name: "Rahul Sharma", phone: "9876543210" } },
+        { id: "2", amount: 9000, paid_at: new Date(Date.now() - 86400000).toISOString(), member: { name: "Priya Patel", phone: "9876543211" } }
       ],
       recentMembers: [
         { id: "3", name: "Amit Kumar", join_date: new Date().toISOString() },
         { id: "4", name: "Neha Singh", join_date: new Date(Date.now() - 172800000).toISOString() }
       ],
       upcomingRenewals: [
-        { id: "5", membership_end: new Date(Date.now() + 86400000 * 2).toISOString(), member: { name: "Vikram Reddy", phone: "9876543210" } }
+        { id: "5", membership_end: new Date(Date.now() + 86400000 * 2).toISOString(), planPrice: 5000, member: { name: "Vikram Reddy", phone: "9876543210" } }
+      ],
+      recentLeads: [
+        { id: "6", name: "Anjali", phone: "9876543211", status: "New", intent: "Weight Loss", created_at: new Date().toISOString() }
       ]
     };
   }
-  return { recentPayments: [] as any[], recentMembers: [] as any[], upcomingRenewals: [] as any[] };
+  
+  const gym = await getCurrentGym();
+  if (!gym) return { recentPayments: [], recentMembers: [], upcomingRenewals: [], recentLeads: [] };
+
+  try {
+    const { databases } = await createAdminClient();
+
+    const [paymentsRes, membersRes, leadsRes, plansRes] = await Promise.allSettled([
+      databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.PAYMENTS, [
+        Query.equal("gymId", gym.$id),
+        Query.equal("status", "success"),
+        Query.orderDesc("paidAt"),
+        Query.limit(5)
+      ]),
+      databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.MEMBERS, [
+        Query.equal("gymId", gym.$id),
+        Query.orderDesc("joinedAt"),
+        Query.limit(5)
+      ]),
+      databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.LEADS, [
+        Query.equal("gymId", gym.$id),
+        Query.orderDesc("$createdAt"),
+        Query.limit(5)
+      ]),
+      databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.MEMBERSHIP_PLANS, [
+        Query.equal("gymId", gym.$id)
+      ])
+    ]);
+
+    const plans = plansRes.status === "fulfilled" ? plansRes.value.documents : [];
+    const planPriceMap: Record<string, number> = {};
+    plans.forEach((p: any) => { planPriceMap[p.$id] = p.price || 0; });
+
+    const recentPayments = paymentsRes.status === "fulfilled" ? paymentsRes.value.documents.map((p: any) => ({
+      id: p.$id,
+      amount: p.amount,
+      paid_at: p.paidAt,
+      member: { name: p.memberNameSnapshot || "Member", phone: p.memberPhoneSnapshot || null }
+    })) : [];
+
+    const recentMembers = membersRes.status === "fulfilled" ? membersRes.value.documents.map((m: any) => ({
+      id: m.$id,
+      name: m.name,
+      join_date: m.joinedAt
+    })) : [];
+
+    const recentLeads = leadsRes.status === "fulfilled" ? leadsRes.value.documents.map((l: any) => ({
+      id: l.$id,
+      name: l.name,
+      phone: l.phone,
+      status: l.status,
+      intent: l.notes || "Interested",
+      created_at: l.$createdAt
+    })) : [];
+
+    // Expiring soon (Next 7 days + Expired in last 7 days)
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7).toISOString();
+    const nextSevenDays = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 23, 59, 59, 999).toISOString();
+    
+    const renewalsRes = await databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.MEMBERS, [
+      Query.equal("gymId", gym.$id),
+      Query.between("membershipEndDate", sevenDaysAgo, nextSevenDays),
+      Query.limit(10)
+    ]);
+
+    const upcomingRenewals = renewalsRes.documents.map((m: any) => ({
+      id: m.$id,
+      membership_end: m.membershipEndDate,
+      planPrice: planPriceMap[m.planId] || 0,
+      member: { name: m.name, phone: m.phone }
+    }));
+
+    // Sort renewals by end date
+    upcomingRenewals.sort((a, b) => new Date(a.membership_end).getTime() - new Date(b.membership_end).getTime());
+
+    return { recentPayments, recentMembers, upcomingRenewals, recentLeads };
+  } catch (error) {
+    console.error("[getRecentActivity] Failed to load:", error);
+    return { recentPayments: [], recentMembers: [], upcomingRenewals: [], recentLeads: [] };
+  }
 }

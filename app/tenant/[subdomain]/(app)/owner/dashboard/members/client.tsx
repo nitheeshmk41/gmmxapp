@@ -18,6 +18,8 @@ import {
 import { deleteMember, getMembersForExport } from "@/features/members/actions";
 import { formatDate, getExpiryStatus, downloadCSV, getInitials, formatCurrency } from "@/lib/utils";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { FadeInStagger, FadeInItem } from "@/components/animations/FadeIn";
+import { SkeletonRow } from "@/components/animations/Skeleton";
 
 type Member = {
   id: string;
@@ -178,8 +180,16 @@ export function MembersClientPage({ members, total, page, search, status }: Prop
               ))}
             </tr>
           </thead>
-          <tbody>
-            {members.length === 0 ? (
+          <FadeInStagger as="tbody">
+            {isPending ? (
+              <>
+                <SkeletonRow />
+                <SkeletonRow />
+                <SkeletonRow />
+                <SkeletonRow />
+                <SkeletonRow />
+              </>
+            ) : members.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-12 text-center">
                   <User size={32} className="mx-auto mb-3" style={{ color: "var(--color-border)" }} />
@@ -197,7 +207,8 @@ export function MembersClientPage({ members, total, page, search, status }: Prop
                 const expiryStatus = membershipEnd ? getExpiryStatus(membershipEnd) : null;
 
                 return (
-                  <tr
+                  <FadeInItem
+                    as="tr"
                     key={member.id}
                     className="table-row-hover"
                     style={{ borderBottom: "1px solid var(--color-border-muted)" }}
@@ -338,11 +349,11 @@ export function MembersClientPage({ members, total, page, search, status }: Prop
                         )}
                       </div>
                     </td>
-                  </tr>
+                  </FadeInItem>
                 );
               })
             )}
-          </tbody>
+          </FadeInStagger>
         </table>
 
         {/* Pagination */}
