@@ -54,6 +54,20 @@ async function setSessionCookie(secret: string) {
   });
 }
 
+async function setTenantCookie(subdomain: string, role: string) {
+  const cookieStore = await cookies();
+  const domain = env.NEXT_PUBLIC_APP_DOMAIN === "localhost" ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
+  
+  cookieStore.set("gmmx_tenant", `${subdomain}:${role}`, {
+    path: "/",
+    domain: domain,
+    httpOnly: false, // Accessible by middleware if needed
+    sameSite: "lax",
+    secure: env.NODE_ENV === "production",
+    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+  });
+}
+
 async function deleteSessionCookie() {
   const cookieStore = await cookies();
   cookieStore.delete(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`);
@@ -186,6 +200,10 @@ export async function signUpWithEmail(formData: FormData) {
       gymId: null
     });
 
+    if (subdomain) {
+      await setTenantCookie(subdomain, userRole);
+    }
+
     if (subdomain && path.includes("dashboard")) {
       const appUrl = getBaseUrl();
       const baseDomain = appUrl.replace(/^https?:\/\//, "");
@@ -299,6 +317,10 @@ export async function signInWithEmail(formData: FormData) {
       gymId: null
     });
     
+    if (subdomain) {
+      await setTenantCookie(subdomain, userRole);
+    }
+
     if (subdomain && path.includes("dashboard")) {
       console.log("[signInWithEmail] Step 7a: Generating absolute URL for tenant");
       const appUrl = getBaseUrl();
@@ -377,6 +399,17 @@ export async function verifyOtp(formData: FormData) {
     );
 
     const gymUser = gymUsersRes.documents.length > 0 ? gymUsersRes.documents[0] : null;
+
+    if (gymUser) {
+      try {
+        const gym = await databases.getDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gymUser.gymId);
+        if (gym.subdomain) {
+          await setTenantCookie(gym.subdomain, gymUser.role);
+        }
+      } catch (e) {
+        console.error("Failed to fetch gym in verifyOtp", e);
+      }
+    }
 
     redirectTo = routeForUser({
       role: gymUser?.role || "OWNER",

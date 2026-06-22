@@ -66,16 +66,38 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/signup") ||
     pathname.startsWith("/forgot-password");
 
-  if (isAuthPage && hasSession) {
-    const redirectTo = searchParams.get("redirectTo");
-    if (redirectTo) {
-      const res = NextResponse.next({ request });
-      res.cookies.delete(sessionCookieName);
-      return res;
+  if (isAuthPage) {
+    const tenantCookie = request.cookies.get("gmmx_tenant")?.value;
+    if (tenantCookie && !subdomain) {
+      const [cachedSubdomain, cachedRole] = tenantCookie.split(":");
+      if (cachedSubdomain && cachedRole) {
+        const url = request.nextUrl.clone();
+        const port = host.split(":")[1];
+        let baseHost = hostname.replace(/^www\./, "");
+        if (port) baseHost += `:${port}`;
+        
+        url.host = `${cachedSubdomain}.${baseHost}`;
+        url.pathname = hasSession ? `/${cachedRole.toLowerCase()}/dashboard` : `/${cachedRole.toLowerCase()}/login`;
+        return NextResponse.redirect(url);
+      }
     }
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+
+    if (hasSession) {
+      const redirectTo = searchParams.get("redirectTo");
+      if (redirectTo) {
+        const res = NextResponse.next({ request });
+        res.cookies.delete(sessionCookieName);
+        return res;
+      }
+      const url = request.nextUrl.clone();
+      if (subdomain) {
+         // They are already on the tenant subdomain
+         url.pathname = "/owner/dashboard"; 
+      } else {
+         url.pathname = "/dashboard";
+      }
+      return NextResponse.redirect(url);
+    }
   }
 
   // ── Protected Routes Guard ────────────────────────────────────
@@ -85,7 +107,14 @@ export async function middleware(request: NextRequest) {
 
   if ((isDashboard || isAdmin || isOnboarding) && !hasSession) {
     const url = request.nextUrl.clone();
-    url.pathname = "/signin";
+    if (subdomain) {
+       if (pathname.startsWith("/owner")) url.pathname = "/owner/login";
+       else if (pathname.startsWith("/trainer")) url.pathname = "/trainer/login";
+       else if (pathname.startsWith("/member")) url.pathname = "/member/login";
+       else url.pathname = "/login";
+    } else {
+       url.pathname = "/signin";
+    }
     url.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(url);
   }
