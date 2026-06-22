@@ -178,6 +178,33 @@ export interface ActivityLogDocument extends Models.Document {
   timestamp: string; // ISO Datetime
 }
 
+// SaaS Operations
+export interface CouponDocument extends Models.Document {
+  code: string;
+  type: "percent" | "flat";
+  value: number;
+  maxUses: number;
+  usedCount: number;
+  expiresAt: string; // ISO Datetime
+  isActive: boolean;
+  description?: string;
+  createdAt: string; // ISO Datetime
+}
+
+export interface BlogDocument extends Models.Document {
+  title: string;
+  slug: string;
+  content: string;
+  excerpt?: string;
+  status: "draft" | "published";
+  category?: string;
+  tags?: string;
+  featuredImageFileId?: string;
+  authorId: string;
+  publishedAt?: string; // ISO Datetime
+  createdAt: string; // ISO Datetime
+}
+
 // Appwrite Collection IDs (assumed to be matching the collection names or defined in env)
 export const COLLECTIONS = {
   SAAS_PLANS: "saas_plans",
@@ -198,6 +225,8 @@ export const COLLECTIONS = {
   GYM_GALLERY: "gym_gallery",
   ACTIVITY_LOGS: "activity_logs",
   TESTIMONIALS: "testimonials",
+  COUPONS: "coupons",
+  BLOGS: "blogs",
 };
 
 // Ensure this matches your Appwrite configuration

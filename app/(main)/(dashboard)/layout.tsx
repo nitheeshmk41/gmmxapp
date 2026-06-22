@@ -4,53 +4,81 @@ import { getCurrentGym } from "@/lib/auth/context";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  LayoutDashboard,
-  Building2,
-  CreditCard,
-  TrendingUp,
-  Users,
-  MessageSquare,
-  Layers,
-  Headphones,
-  Settings,
-  LogOut,
-  Shield,
-  ChevronRight,
-  Zap,
+  LayoutDashboard, Building2, Users, Dumbbell, CreditCard,
+  Tag, Receipt, Globe, BookOpen, MessageSquare, Headphones,
+  BarChart3, Settings, LogOut, Shield, ChevronRight, Zap,
+  PlusCircle, Layers,
 } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Super Admin – GMMX",
 };
 
-const NAV_SECTIONS = [
+const NAV_TREE = [
   {
-    label: "Platform",
+    label: null,
     items: [
-      { href: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
-      { href: "/admin/gyms", label: "Gyms", icon: Building2 },
-      { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard },
-      { href: "/admin/revenue", label: "Revenue", icon: TrendingUp },
+      { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "Gyms",
+    items: [
+      { href: "/admin/gyms", label: "All Gyms", icon: Building2 },
     ],
   },
   {
     label: "People",
     items: [
-      { href: "/admin/users", label: "Users", icon: Users },
-      { href: "/admin/leads", label: "Leads", icon: MessageSquare },
+      { href: "/admin/members", label: "All Members", icon: Users },
+      { href: "/admin/trainers", label: "All Trainers", icon: Dumbbell },
     ],
   },
   {
-    label: "Product",
+    label: "Subscriptions",
+    items: [
+      { href: "/admin/pricing", label: "Plans & Pricing", icon: CreditCard },
+      { href: "/admin/coupons", label: "Coupons", icon: Tag },
+      { href: "/admin/payments", label: "Transactions", icon: Receipt },
+    ],
+  },
+  {
+    label: "Website",
     items: [
       { href: "/admin/templates", label: "Templates", icon: Layers },
+      { href: "/admin/blogs", label: "Blogs", icon: BookOpen },
+    ],
+  },
+  {
+    label: "Sales",
+    items: [
+      { href: "/admin/leads", label: "Leads", icon: MessageSquare },
       { href: "/admin/support", label: "Support", icon: Headphones },
+    ],
+  },
+  {
+    label: "Insights",
+    items: [
+      { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "System",
+    items: [
       { href: "/admin/settings", label: "Settings", icon: Settings },
     ],
   },
 ];
 
-function AdminSidebar({ userEmail, userName, pathname }: { userEmail: string; userName: string; pathname: string }) {
+function AdminSidebar({
+  userEmail,
+  userName,
+  pathname,
+}: {
+  userEmail: string;
+  userName: string;
+  pathname: string;
+}) {
   return (
     <aside
       className="fixed inset-y-0 left-0 w-60 flex flex-col z-40"
@@ -61,7 +89,7 @@ function AdminSidebar({ userEmail, userName, pathname }: { userEmail: string; us
     >
       {/* Brand */}
       <div
-        className="flex items-center gap-3 h-14 px-5"
+        className="flex items-center gap-3 h-14 px-5 flex-shrink-0"
         style={{ borderBottom: "1px solid var(--color-sidebar-border)" }}
       >
         <div
@@ -83,34 +111,40 @@ function AdminSidebar({ userEmail, userName, pathname }: { userEmail: string; us
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5 scrollbar-thin">
-        {NAV_SECTIONS.map((section) => (
-          <div key={section.label}>
-            <p
-              className="text-[10px] font-bold uppercase tracking-widest px-2 mb-1.5"
-              style={{ color: "var(--color-sidebar-muted)" }}
-            >
-              {section.label}
-            </p>
+      <nav className="flex-1 overflow-y-auto py-3 px-2.5 scrollbar-thin">
+        {NAV_TREE.map((section, sIdx) => (
+          <div key={sIdx} className={sIdx > 0 ? "mt-4" : ""}>
+            {section.label && (
+              <p
+                className="text-[10px] font-bold uppercase tracking-widest px-2.5 mb-1"
+                style={{ color: "#334155" }}
+              >
+                {section.label}
+              </p>
+            )}
             <div className="space-y-0.5">
               {section.items.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                const isActive =
+                  pathname === item.href ||
+                  (item.href !== "/admin/dashboard" && pathname.startsWith(item.href));
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all group"
+                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[13px] font-medium transition-all"
                     style={{
                       color: isActive ? "#FF5C73" : "var(--color-sidebar-muted)",
                       background: isActive ? "rgba(255,92,115,0.10)" : "transparent",
                     }}
                   >
-                    <Icon size={15} className="flex-shrink-0" />
-                    <span>{item.label}</span>
+                    <Icon size={14} className="flex-shrink-0" />
+                    <span className="flex-1">{item.label}</span>
                     {isActive && (
-                      <span className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0"
-                        style={{ background: "#FF5C73" }} />
+                      <span
+                        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                        style={{ background: "#FF5C73", boxShadow: "0 0 6px #FF5C73" }}
+                      />
                     )}
                   </Link>
                 );
@@ -120,12 +154,15 @@ function AdminSidebar({ userEmail, userName, pathname }: { userEmail: string; us
         ))}
       </nav>
 
-      {/* User + Sign out */}
+      {/* User */}
       <div
-        className="p-3 space-y-1"
+        className="p-2.5 space-y-1 flex-shrink-0"
         style={{ borderTop: "1px solid var(--color-sidebar-border)" }}
       >
-        <div className="flex items-center gap-3 px-3 py-2 rounded-xl" style={{ background: "#1E293B" }}>
+        <div
+          className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl"
+          style={{ background: "#1E293B" }}
+        >
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-black flex-shrink-0"
             style={{ background: "var(--color-brand-primary)" }}
@@ -134,14 +171,14 @@ function AdminSidebar({ userEmail, userName, pathname }: { userEmail: string; us
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-white truncate">{userName || "Admin"}</p>
-            <p className="text-[10px] truncate" style={{ color: "var(--color-sidebar-muted)" }}>
+            <p className="text-[10px] truncate" style={{ color: "#475569" }}>
               {userEmail}
             </p>
           </div>
         </div>
         <Link
           href="/signout"
-          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all hover:bg-white/5 w-full"
+          className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[13px] font-medium transition-all hover:bg-white/5 w-full"
           style={{ color: "var(--color-sidebar-muted)" }}
         >
           <LogOut size={14} />
@@ -152,13 +189,15 @@ function AdminSidebar({ userEmail, userName, pathname }: { userEmail: string; us
   );
 }
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const gymContext = await getCurrentGym();
   const user = gymContext?.user;
 
-  if (!user) {
-    redirect("/signin");
-  }
+  if (!user) redirect("/signin");
 
   if (user.role !== "super_admin") {
     if (gymContext?.gym?.subdomain) {
@@ -171,28 +210,31 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   const headerStore = await headers();
-  const xPathname = headerStore.get("x-pathname") || "";
-  const referer = headerStore.get("referer") || "";
-  // Derive pathname from next-url header (available in Next.js app router)
   const nextUrl = headerStore.get("next-url") || "";
+  const xPathname = headerStore.get("x-pathname") || "";
   const currentPath = nextUrl || xPathname || "/admin/dashboard";
 
   return (
     <div className="min-h-screen flex" style={{ background: "var(--color-background)" }}>
-      {/* Sidebar */}
-      <AdminSidebar userEmail={user.email} userName={user.name || ""} pathname={currentPath} />
+      <AdminSidebar
+        userEmail={user.email}
+        userName={user.name || ""}
+        pathname={currentPath}
+      />
 
-      {/* Main */}
       <div className="flex-1 flex flex-col min-h-screen ml-60">
         {/* Topbar */}
         <header
-          className="sticky top-0 z-30 flex items-center h-14 px-6 gap-3"
+          className="sticky top-0 z-30 flex items-center h-12 px-6 gap-3"
           style={{
             background: "var(--color-surface)",
             borderBottom: "1px solid var(--color-border)",
           }}
         >
-          <div className="flex items-center gap-1.5 text-xs" style={{ color: "var(--color-muted-foreground)" }}>
+          <div
+            className="flex items-center gap-1.5 text-xs"
+            style={{ color: "var(--color-muted-foreground)" }}
+          >
             <Zap size={11} style={{ color: "var(--color-brand-primary)" }} />
             <span className="font-semibold" style={{ color: "var(--color-brand-primary)" }}>
               GMMX Platform
@@ -201,7 +243,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <span>Admin</span>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <div
+            <span
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
               style={{ background: "#22c55e15", color: "#22c55e" }}
             >
@@ -210,7 +252,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 style={{ background: "#22c55e", boxShadow: "0 0 6px #22c55e" }}
               />
               Live
-            </div>
+            </span>
           </div>
         </header>
 
