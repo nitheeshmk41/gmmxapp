@@ -122,31 +122,36 @@ export async function getMemberById(id: string) {
     const paymentsRes = await databases.listDocuments(
       APPWRITE_DB_ID,
       COLLECTIONS.PAYMENTS,
-      [Query.equal("memberId", id), Query.orderDesc("paidAt")]
+      [Query.equal("memberId", id), Query.limit(100)]
     );
 
-    const mappedPayments = paymentsRes.documents.map((p: any) => ({
-      id: p.$id,
-      amount: p.amount,
-      paid_at: p.paidAt,
-      status: p.status,
-      plan: p.membershipPlanId ? { name: plan?.name || "Plan" } : null,
-      renewalNotes: p.renewalNotes || null,
-    }));
+    const mappedPayments = paymentsRes.documents
+      .map((p: any) => ({
+        id: p.$id,
+        amount: p.amount,
+        paid_at: p.paidAt,
+        status: p.status,
+        plan: p.membershipPlanId ? { name: plan?.name || "Plan" } : null,
+        renewalNotes: p.renewalNotes || null,
+      }))
+      .sort((a, b) => new Date(b.paid_at).getTime() - new Date(a.paid_at).getTime());
 
     // Fetch attendance
     const attendanceRes = await databases.listDocuments(
       APPWRITE_DB_ID,
       COLLECTIONS.ATTENDANCE,
-      [Query.equal("memberId", id), Query.orderDesc("date"), Query.limit(30)]
+      [Query.equal("memberId", id), Query.limit(100)]
     );
 
-    const mappedAttendance = attendanceRes.documents.map((a: any) => ({
-      id: a.$id,
-      date: a.date,
-      time: a.time,
-      status: a.status,
-    }));
+    const mappedAttendance = attendanceRes.documents
+      .map((a: any) => ({
+        id: a.$id,
+        date: a.date,
+        time: a.time,
+        status: a.status,
+      }))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 30);
 
     return {
       id: member.$id,

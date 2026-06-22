@@ -93,10 +93,10 @@ function AdminSidebar({
         style={{ borderBottom: "1px solid var(--color-sidebar-border)" }}
       >
         <div
-          className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-lg flex-shrink-0"
+          className="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-lg flex-shrink-0"
           style={{ background: "var(--color-brand-primary)" }}
         >
-          G
+          <Dumbbell size={16} strokeWidth={2.5} />
         </div>
         <div className="min-w-0">
           <p className="text-sm font-black text-white tracking-tight">GMMX</p>

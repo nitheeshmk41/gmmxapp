@@ -1,8 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell, ExternalLink } from "lucide-react";
+import { Bell, ExternalLink, Dumbbell } from "lucide-react";
 import { GlobalSearch } from "./global-search";
+import { MobileNav } from "./mobile-nav";
 
 const PAGE_TITLES: Record<string, string> = {
   "/owner/dashboard": "Dashboard",
@@ -41,8 +42,12 @@ export function Topbar({ gymSubdomain }: TopbarProps) {
         borderBottom: "1px solid var(--color-border)",
       }}
     >
-      {/* Page title */}
-      <div>
+      {/* Left side: Mobile Menu + Page title */}
+      <div className="flex items-center gap-3">
+        <MobileNav />
+        <div className="hidden md:flex w-8 h-8 rounded-lg bg-[#FF5C73] items-center justify-center text-white mr-2">
+          <Dumbbell size={16} strokeWidth={2.5} />
+        </div>
         <h1 className="text-lg font-bold" style={{ color: "var(--color-foreground)" }}>
           {title}
         </h1>
