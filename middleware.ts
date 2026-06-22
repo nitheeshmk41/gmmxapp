@@ -74,7 +74,7 @@ export async function middleware(request: NextRequest) {
       return res;
     }
     const url = request.nextUrl.clone();
-    url.pathname = "/owner/dashboard";
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 
