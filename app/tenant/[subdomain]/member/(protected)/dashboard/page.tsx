@@ -1,6 +1,6 @@
 import { getCurrentUser, getCurrentGym } from "@/features/auth/actions";
 import { getMemberById } from "@/features/members/actions";
-import { CheckCircle2, Clock, Calendar, Activity, User, CreditCard, Phone, MessageCircle, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Dumbbell, Activity, Calendar, Phone, MessageCircle, AlertTriangle, CreditCard, Flame, ArrowRight, User } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 
@@ -89,186 +89,156 @@ export default async function MemberDashboardPage() {
     else lastVisitText = formatDate(lastVisit.toISOString());
   }
 
+  // Generate last 7 days for visual timeline
+  const today = new Date();
+  const last7Days = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (6 - i));
+    return d;
+  });
+
   return (
-    <div className="space-y-6 animate-in">
-      {/* Hero */}
-      <div className="flex flex-col mb-2">
-        <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
-          Welcome Back, {user?.name?.split(' ')[0] || "Member"} 👋
-        </h1>
-        <p className="text-slate-500 font-medium text-sm mt-1">
-          Member ID: {memberDetails?.memberCode || "—"} • {gym?.name || "Gym"}
-        </p>
-      </div>
-
-      {/* Renewal Warning */}
-      {daysRemaining <= 7 && daysRemaining >= 0 && (
-        <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
-            <p className="text-sm font-bold text-red-900">
-              Membership expires in {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'}
-            </p>
-          </div>
-          <Link href="/member/payments" className="bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors text-center w-full sm:w-auto">
-            Renew Membership
-          </Link>
-        </div>
-      )}
+    <div className="space-y-5 animate-in max-w-md mx-auto">
       
-      {daysRemaining < 0 && (
-        <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
-            <p className="text-sm font-bold text-red-900">
-              Membership expired {Math.abs(daysRemaining)} {Math.abs(daysRemaining) === 1 ? 'day' : 'days'} ago
-            </p>
-          </div>
-          <Link href="/member/payments" className="bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors text-center w-full sm:w-auto">
-            Renew Membership
-          </Link>
+      {/* 1. Compact Top Bar */}
+      <div className="flex items-center justify-between bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+        <div>
+          <h1 className="text-xl font-black text-slate-900 leading-tight">
+            Hi, {user?.name?.split(' ')[0] || "Member"} 👋
+          </h1>
+          <p className="text-slate-500 font-medium text-sm mt-0.5">
+            {memberDetails?.plan?.name || "No Active Plan"} • <span className={daysRemaining <= 7 ? "text-red-500 font-bold" : "text-emerald-600 font-bold"}>{daysRemaining > 0 ? `${daysRemaining} Days Left` : 'Expired'}</span>
+          </p>
         </div>
-      )}
-
-      {/* Membership Card */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className={`w-2.5 h-2.5 rounded-full ${memberDetails?.status === 'active' ? 'bg-green-500' : 'bg-red-500'}`}></div>
-            <span className="text-sm font-bold text-slate-900 capitalize">{memberDetails?.status || "Active"}</span>
-          </div>
-          {daysRemaining > 0 && (
-             <span className="badge-brand font-bold">{daysRemaining} Days Left</span>
-          )}
-        </div>
-        <div className="p-5 grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs text-slate-400 font-medium">Current Plan</p>
-            <p className="text-base font-bold text-slate-900 mt-0.5 truncate">{memberDetails?.plan?.name || "No Plan"}</p>
-          </div>
-          <div>
-            <p className="text-xs text-slate-400 font-medium">Valid Until</p>
-            <p className="text-base font-bold text-slate-900 mt-0.5">
-              {membershipEnd ? formatDate(membershipEnd) : "—"}
-            </p>
-          </div>
-        </div>
+        <Link href="/member/payments" className="bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors shadow-sm shrink-0">
+          Renew
+        </Link>
       </div>
 
-      {/* Attendance Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-          <p className="text-xs text-slate-400 font-medium mb-1">Visits This Month</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-slate-900">{attendanceThisMonth}</span>
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-          <p className="text-xs text-slate-400 font-medium mb-1">Current Streak</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-slate-900">{currentStreak}</span>
-            <span className="text-xs font-bold text-[#FF5C73]">Days</span>
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
-          <p className="text-xs text-slate-400 font-medium mb-1">Last Visit</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold text-slate-900">{lastVisitText}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Two columns for Trainer and Recent Attendance on Desktop, Stacked on Mobile */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Recent Attendance */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-slate-100">
-            <h3 className="text-sm font-bold text-slate-900">Recent Check-ins</h3>
-          </div>
-          <div className="p-0 flex-1">
-            {attendance.length > 0 ? (
-              <ul className="divide-y divide-slate-50">
-                {attendance.slice(0, 3).map((a: any) => (
-                  <li key={a.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                    <span className="text-sm font-bold text-slate-700">{formatDate(a.date)}</span>
-                    <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{a.time || "—"}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="p-6 text-center">
-                <p className="text-sm text-slate-400">No recent check-ins.</p>
-              </div>
-            )}
-          </div>
-          <div className="p-3 border-t border-slate-100 bg-slate-50 text-center">
-             <Link href="/member/attendance" className="text-xs font-bold text-slate-500 hover:text-[#FF5C73] transition-colors">View All History →</Link>
-          </div>
-        </div>
-
-        {/* Assigned Trainer & Payment Summary */}
-        <div className="space-y-6">
-          {/* Trainer */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-             <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <User className="w-4 h-4 text-[#FF5C73]" />
-                Assigned Trainer
-             </h3>
-             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                  <span className="text-lg font-black text-slate-400">AK</span>
-                </div>
-                <div>
-                   <p className="text-base font-bold text-slate-900">Arun Kumar</p>
-                   <p className="text-xs font-medium text-slate-500">Strength Coach • 8 Yrs Exp</p>
-                </div>
+      {/* 2. Action Center */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-bold text-slate-900 px-1">Today's Actions</h2>
+        <div className="grid grid-cols-2 gap-3">
+          <Link href="/member/attendance" className="bg-[#FF5C73] hover:bg-red-500 text-white rounded-2xl p-4 flex flex-col justify-between h-28 shadow-sm transition-all group relative overflow-hidden">
+             <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 bg-white opacity-10 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
+             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+               <CheckCircle2 size={18} className="text-white" />
              </div>
-             <button className="mt-4 w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 text-sm font-bold rounded-lg transition-colors border border-slate-200">
-                Contact Trainer
-             </button>
-          </div>
+             <span className="font-bold text-sm">Mark<br/>Attendance</span>
+          </Link>
+          
+          <a href={`https://wa.me/${gym?.phone || ""}`} target="_blank" rel="noreferrer" className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl p-4 flex flex-col justify-between h-28 shadow-sm transition-all group relative overflow-hidden">
+             <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 bg-white opacity-10 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
+             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+               <MessageCircle size={18} className="text-white" />
+             </div>
+             <span className="font-bold text-sm">Contact<br/>Trainer</span>
+          </a>
 
-          {/* Payment Summary */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-             <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-emerald-500" />
-                Recent Payment
-             </h3>
-             {latestPayment ? (
-               <div>
-                 <div className="flex justify-between items-baseline mb-1">
-                   <p className="text-2xl font-black text-slate-900">₹{latestPayment.amount}</p>
-                   <p className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md capitalize">{latestPayment.status || "Paid"}</p>
-                 </div>
-                 <p className="text-xs text-slate-500 font-medium mb-3">
-                   Paid on {formatDate(latestPayment.paid_at)}
-                 </p>
-                 <div className="pt-3 border-t border-slate-100 flex justify-between items-center">
-                    <span className="text-xs text-slate-400 font-medium">Next Renewal</span>
-                    <span className="text-sm font-bold text-slate-900">{membershipEnd ? formatDate(membershipEnd) : "—"}</span>
-                 </div>
-               </div>
-             ) : (
-               <p className="text-sm text-slate-500">No payment history.</p>
+          <Link href="/member/payments" className="bg-white border border-slate-100 hover:border-slate-300 text-slate-900 rounded-2xl p-4 flex flex-col justify-between h-28 shadow-sm transition-all group relative overflow-hidden">
+             {daysRemaining <= 7 && daysRemaining >= 0 && (
+                <div className="absolute top-2 right-2 flex items-center justify-center w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
              )}
-          </div>
+             <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">
+               <CreditCard size={18} className="text-slate-600" />
+             </div>
+             <span className="font-bold text-sm">Renew<br/>Membership</span>
+          </Link>
+
+          <button className="bg-white border border-slate-100 hover:border-slate-300 text-slate-900 rounded-2xl p-4 flex flex-col justify-between h-28 shadow-sm transition-all group text-left opacity-60 cursor-not-allowed">
+             <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">
+               <Dumbbell size={18} className="text-slate-600" />
+             </div>
+             <span className="font-bold text-sm leading-tight">View<br/>Workout <span className="text-[10px] font-normal text-slate-400 block mt-0.5">Coming Soon</span></span>
+          </button>
         </div>
       </div>
 
-      {/* Quick Help */}
-      <div className="grid grid-cols-2 gap-4">
-         <a href={`tel:${gym?.phone || ""}`} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col items-center justify-center gap-2 hover:border-[#FF5C73] transition-colors group">
-            <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-red-50 transition-colors">
-               <Phone className="w-4 h-4 text-slate-600 group-hover:text-[#FF5C73]" />
+      {/* 3. Gamified Progress */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 space-y-5">
+         <div className="flex items-center justify-between">
+           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-[#FF5C73]" />
+              Monthly Progress
+           </h2>
+           <span className="text-xs font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-md">{attendanceThisMonth} / 20 Days</span>
+         </div>
+         
+         <div className="space-y-2">
+            <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+               <div className="bg-[#FF5C73] h-2.5 rounded-full" style={{ width: `${Math.min((attendanceThisMonth / 20) * 100, 100)}%` }}></div>
             </div>
-            <span className="text-xs font-bold text-slate-700">Call Gym</span>
-         </a>
-         <a href={`https://wa.me/${gym?.phone || ""}`} target="_blank" rel="noreferrer" className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col items-center justify-center gap-2 hover:border-[#FF5C73] transition-colors group">
-            <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-red-50 transition-colors">
-               <MessageCircle className="w-4 h-4 text-slate-600 group-hover:text-[#FF5C73]" />
-            </div>
-            <span className="text-xs font-bold text-slate-700">WhatsApp</span>
-         </a>
+            <p className="text-[11px] font-medium text-slate-400 text-right">Target: 20 visits</p>
+         </div>
+
+         <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-50">
+           <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center shrink-0">
+                 <Flame className="w-5 h-5 text-orange-500" />
+              </div>
+              <div>
+                 <p className="text-xs font-medium text-slate-400">Current Streak</p>
+                 <p className="text-lg font-black text-slate-900 leading-tight">{currentStreak} <span className="text-xs font-bold text-slate-500">Days</span></p>
+              </div>
+           </div>
+           <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
+                 <Calendar className="w-4 h-4 text-slate-500" />
+              </div>
+              <div>
+                 <p className="text-xs font-medium text-slate-400">Last Visit</p>
+                 <p className="text-base font-bold text-slate-900 leading-tight truncate">{lastVisitText}</p>
+              </div>
+           </div>
+         </div>
+      </div>
+
+      {/* 4. Visual Attendance Timeline */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 space-y-4">
+         <div className="flex items-center justify-between">
+           <h2 className="text-sm font-bold text-slate-900">Recent Attendance</h2>
+           <Link href="/member/attendance" className="text-xs font-bold text-slate-400 hover:text-[#FF5C73] transition-colors flex items-center gap-1">
+             History <ArrowRight size={12} />
+           </Link>
+         </div>
+         
+         <div className="flex items-center justify-between px-1">
+           {last7Days.map((d, i) => {
+              const dateStr = d.toISOString().split('T')[0];
+              const isAttended = attendanceDates.has(dateStr);
+              const dayName = d.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0);
+              
+              return (
+                <div key={i} className="flex flex-col items-center gap-2">
+                  <span className="text-[10px] font-bold text-slate-400">{dayName}</span>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isAttended ? 'bg-emerald-500 shadow-sm shadow-emerald-500/20' : 'bg-slate-50 border border-slate-100'}`}>
+                    {isAttended ? <CheckCircle2 size={14} className="text-white" /> : <span className="w-1.5 h-1.5 rounded-full bg-slate-200"></span>}
+                  </div>
+                </div>
+              );
+           })}
+         </div>
+      </div>
+
+      {/* 5. Trainer Section */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex items-center justify-between gap-4">
+         <div className="flex items-center gap-3">
+           <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+             <User size={18} className="text-slate-400" />
+           </div>
+           <div>
+             <p className="text-sm font-bold text-slate-900">Arun Kumar</p>
+             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Assigned Trainer</p>
+           </div>
+         </div>
+         <div className="flex items-center gap-2">
+           <a href={`tel:${gym?.phone || ""}`} className="w-9 h-9 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center hover:bg-slate-100 transition-colors">
+             <Phone size={14} className="text-slate-600" />
+           </a>
+           <a href={`https://wa.me/${gym?.phone || ""}`} target="_blank" rel="noreferrer" className="w-9 h-9 rounded-full bg-[#25D366]/10 text-[#25D366] flex items-center justify-center hover:bg-[#25D366]/20 transition-colors">
+             <MessageCircle size={14} />
+           </a>
+         </div>
       </div>
 
     </div>
