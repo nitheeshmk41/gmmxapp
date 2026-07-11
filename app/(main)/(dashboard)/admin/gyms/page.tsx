@@ -95,6 +95,8 @@ function StatusPill({ status }: { status: string }) {
   );
 }
 
+import GymActions from "./GymActions";
+
 export default async function AdminGymsPage() {
   const { gyms, activeCount, trialCount, suspendedCount } = await getAllGyms();
 
@@ -115,6 +117,7 @@ export default async function AdminGymsPage() {
             {gyms.length} gyms registered on the platform
           </p>
         </div>
+        <GymActions />
       </div>
 
       {/* Summary cards */}

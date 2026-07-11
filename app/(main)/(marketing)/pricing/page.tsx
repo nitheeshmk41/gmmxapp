@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Check, HelpCircle, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import RazorpayCheckout from "@/components/payments/RazorpayCheckout";
 
 export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
@@ -191,17 +192,26 @@ export default function PricingPage() {
                   </div>
 
                   <div className="pt-4 mt-auto">
-                    <Link
-                      href={isCustom ? "/contact-us" : "/signup"}
-                      className="block text-center py-3 rounded-lg text-sm font-bold transition-colors w-full"
-                      style={{
-                        background: plan.highlighted ? "#FF5C73" : "white",
-                        color: plan.highlighted ? "white" : "#0F172A",
-                        border: plan.highlighted ? "1px solid #FF5C73" : "1px solid #CBD5E1",
-                      }}
-                    >
-                      {plan.cta}
-                    </Link>
+                    {isCustom ? (
+                      <Link
+                        href="/contact-us"
+                        className="block text-center py-3 rounded-lg text-sm font-bold transition-colors w-full"
+                        style={{
+                          background: plan.highlighted ? "#FF5C73" : "white",
+                          color: plan.highlighted ? "white" : "#0F172A",
+                          border: plan.highlighted ? "1px solid #FF5C73" : "1px solid #CBD5E1",
+                        }}
+                      >
+                        {plan.cta}
+                      </Link>
+                    ) : (
+                      <RazorpayCheckout
+                        planName={plan.name}
+                        price={parseInt(price.replace(/\D/g, ""))}
+                        period={plan.period}
+                        highlighted={plan.highlighted}
+                      />
+                    )}
                   </div>
                 </div>
               </div>

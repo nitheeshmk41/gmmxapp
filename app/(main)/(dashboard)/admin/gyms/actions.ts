@@ -1,0 +1,91 @@
+"use server";
+
+import { createAdminClient } from "@/lib/appwrite/server";
+import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
+import { ID } from "node-appwrite";
+import { revalidatePath } from "next/cache";
+
+export async function createGymManually(formData: FormData) {
+  try {
+    const name = formData.get("name") as string;
+    const subdomain = formData.get("subdomain") as string;
+    const ownerEmail = formData.get("ownerEmail") as string;
+
+    if (!name || !subdomain || !ownerEmail) {
+      return { success: false, error: "Missing required fields" };
+    }
+
+    const { databases, users } = await createAdminClient();
+
+    // Generate a temporary owner user if we don't look up by email, but Appwrite users need to be unique.
+    // Let's create a placeholder user, or see if it exists.
+    let ownerId = "";
+    try {
+      const userList = await users.list();
+      const existing = userList.users.find(u => u.email === ownerEmail);
+      if (existing) {
+        ownerId = existing.$id;
+      } else {
+        const newUser = await users.create(ID.unique(), ownerEmail, undefined, ID.unique(), name);
+        ownerId = newUser.$id;
+      }
+    } catch (e) {
+      const newUser = await users.create(ID.unique(), ownerEmail, undefined, ID.unique(), name);
+      ownerId = newUser.$id;
+    }
+
+    const gymId = ID.unique();
+    await databases.createDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gymId, {
+      name,
+      subdomain,
+      ownerId,
+      status: "active",
+      isDeleted: false,
+    });
+
+    // Create default settings
+    await databases.createDocument(APPWRITE_DB_ID, COLLECTIONS.GYM_SETTINGS, ID.unique(), {
+      gymId,
+      websiteStatus: "draft",
+      theme: "modern",
+    });
+
+    // Create subscription
+    const trialEnd = new Date();
+    trialEnd.setDate(trialEnd.getDate() + 14);
+
+    await databases.createDocument(APPWRITE_DB_ID, COLLECTIONS.SUBSCRIPTIONS, ID.unique(), {
+      gymId,
+      planId: "professional",
+      status: "trial",
+      startsAt: new Date().toISOString(),
+      endsAt: trialEnd.toISOString(),
+      paymentProvider: "manual",
+    });
+
+    revalidatePath("/admin/gyms");
+    return { success: true };
+  } catch (error: any) {
+    console.error("[CreateGymManually Error]", error);
+    return { success: false, error: error.message || "Failed to create gym" };
+  }
+}
+
+export async function removeGym(gymId: string) {
+  try {
+    if (!gymId) return { success: false, error: "Gym ID missing" };
+    const { databases } = await createAdminClient();
+
+    await databases.updateDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gymId, {
+      isDeleted: true,
+      status: "cancelled",
+    });
+
+    revalidatePath("/admin/gyms");
+    revalidatePath(`/admin/gyms/${gymId}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error("[RemoveGym Error]", error);
+    return { success: false, error: error.message || "Failed to remove gym" };
+  }
+}

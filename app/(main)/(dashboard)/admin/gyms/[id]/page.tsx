@@ -9,6 +9,8 @@ import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
 import { Query } from "node-appwrite";
 import { formatCurrency, formatDate, formatRelativeDate } from "@/lib/utils";
 import { notFound } from "next/navigation";
+import RemoveGymButton from "./RemoveGymButton";
+import AddEntityForms from "./AddEntityForms";
 
 async function getGymDetail(gymId: string) {
   try {
@@ -114,6 +116,7 @@ export default async function GymDetailPage({ params }: { params: Promise<{ id: 
           </div>
           {/* Action buttons */}
           <div className="flex items-center gap-2">
+            <RemoveGymButton gymId={gym.$id} />
             <a href={`https://${gym.subdomain}.gmmx.app/dashboard`} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
               style={{ background: "var(--color-border-muted)", color: "var(--color-foreground)" }}>
@@ -146,6 +149,8 @@ export default async function GymDetailPage({ params }: { params: Promise<{ id: 
           );
         })}
       </div>
+
+      <AddEntityForms gymId={gym.$id} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Gym Info */}

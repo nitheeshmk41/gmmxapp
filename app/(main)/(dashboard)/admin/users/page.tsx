@@ -73,16 +73,21 @@ function RolePill({ role }: { role: string }) {
   );
 }
 
+import AddAdminForm from "./AddAdminForm";
+
 export default async function AdminUsersPage() {
   const data = await getPlatformUsers();
 
   return (
     <div className="space-y-6 max-w-[1400px]">
-      <div>
-        <h1 className="text-xl font-black" style={{ color: "var(--color-foreground)" }}>Platform Users</h1>
-        <p className="text-sm mt-0.5" style={{ color: "var(--color-muted-foreground)" }}>
-          {data.total} registered users across all gyms
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-black" style={{ color: "var(--color-foreground)" }}>Platform Users</h1>
+          <p className="text-sm mt-0.5" style={{ color: "var(--color-muted-foreground)" }}>
+            {data.total} registered users across all gyms
+          </p>
+        </div>
+        <AddAdminForm />
       </div>
 
       {/* Summary */}
