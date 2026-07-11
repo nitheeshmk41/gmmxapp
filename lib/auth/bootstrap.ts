@@ -139,10 +139,7 @@ export async function createGymTenant({
         ownerId: userId,
         status: "trial",
         isDeleted: false,
-        template: theme || "modern_fitness",
-        country: country || "India",
-        timezone: timezone || "IST",
-        currency: currency || "INR",
+        template: theme || "modern_fitness"
       }
     );
     createdGymId = gym.$id;

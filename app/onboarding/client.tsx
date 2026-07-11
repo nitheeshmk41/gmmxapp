@@ -150,15 +150,30 @@ export function OnboardingWizard({ userName }: { userName: string }) {
             <div className="grid grid-cols-3 gap-4 pt-4 border-t border-zinc-800/50">
               <div className="space-y-2">
                 <Label className="text-zinc-400 text-xs uppercase tracking-wider">Country</Label>
-                <Input value={formData.country} onChange={e => updateForm("country", e.target.value)} className="border-zinc-800 bg-zinc-950/30 text-zinc-300" />
+                <select value={formData.country} onChange={e => updateForm("country", e.target.value)} className="w-full border border-zinc-800 bg-zinc-950/30 text-zinc-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 appearance-none cursor-pointer">
+                  <option value="India">India</option>
+                  <option value="United States">United States</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="Australia">Australia</option>
+                </select>
               </div>
               <div className="space-y-2">
                 <Label className="text-zinc-400 text-xs uppercase tracking-wider">Timezone</Label>
-                <Input value={formData.timezone} onChange={e => updateForm("timezone", e.target.value)} className="border-zinc-800 bg-zinc-950/30 text-zinc-300" />
+                <select value={formData.timezone} onChange={e => updateForm("timezone", e.target.value)} className="w-full border border-zinc-800 bg-zinc-950/30 text-zinc-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 appearance-none cursor-pointer">
+                  <option value="IST">IST</option>
+                  <option value="EST">EST</option>
+                  <option value="PST">PST</option>
+                  <option value="GMT">GMT</option>
+                </select>
               </div>
               <div className="space-y-2">
                 <Label className="text-zinc-400 text-xs uppercase tracking-wider">Currency</Label>
-                <Input value={formData.currency} onChange={e => updateForm("currency", e.target.value)} className="border-zinc-800 bg-zinc-950/30 text-zinc-300" />
+                <select value={formData.currency} onChange={e => updateForm("currency", e.target.value)} className="w-full border border-zinc-800 bg-zinc-950/30 text-zinc-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 appearance-none cursor-pointer">
+                  <option value="INR">INR (₹)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="GBP">GBP (£)</option>
+                  <option value="AUD">AUD ($)</option>
+                </select>
               </div>
             </div>
           </div>
