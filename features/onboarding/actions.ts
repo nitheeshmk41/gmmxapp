@@ -10,6 +10,9 @@ export async function completeOnboardingWizard(formData: {
   gymName: string;
   subdomain: string;
   theme: string;
+  country?: string;
+  timezone?: string;
+  currency?: string;
 }) {
   const context = await getCurrentContext();
   if (!context) {
@@ -23,6 +26,9 @@ export async function completeOnboardingWizard(formData: {
       gymName: formData.gymName,
       subdomain: formData.subdomain,
       theme: formData.theme,
+      country: formData.country,
+      timezone: formData.timezone,
+      currency: formData.currency,
     });
 
     const { users } = await createAdminClient();

@@ -31,11 +31,20 @@ export default async function DashboardPage() {
   }
 
   const { databases } = await createAdminClient();
-  const [settingsRes] = await Promise.all([
-    databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_SETTINGS, [Query.equal("gymId", gym.$id)])
+  const [settingsRes, subRes] = await Promise.all([
+    databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_SETTINGS, [Query.equal("gymId", gym.$id)]),
+    databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.SUBSCRIPTIONS, [
+      Query.equal("gymId", gym.$id),
+      Query.orderDesc("$createdAt"),
+      Query.limit(1)
+    ])
   ]);
   const settingsDoc = settingsRes.documents[0] || null;
   const isDraft = !settingsDoc || settingsDoc.websiteStatus === "draft";
+  
+  const subscription = subRes.documents[0];
+  const isTrial = subscription?.status === "trial";
+  const daysLeft = subscription ? Math.max(0, Math.ceil((new Date(subscription.endsAt).getTime() - new Date().getTime()) / (1000 * 3600 * 24))) : 0;
 
   const [stats, monthlyRevenue, newMembers, attendanceTrend, recentActivity, isSample] = await Promise.all([
     getDashboardStats(), getMonthlyRevenue(), getNewMembersMonthly(), getAttendanceTrend(), getRecentActivity(), isSampleDataEnabled()
@@ -109,11 +118,14 @@ export default async function DashboardPage() {
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-slate-900">Good {getGreeting()}, {gym.name} 👋</h2>
+            <h2 className="text-2xl font-bold text-slate-900">Welcome to GMMX 👋</h2>
             {isSample && (
               <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-widest">Demo</span>
             )}
           </div>
+          {isTrial && (
+            <p className="text-slate-600 mt-1 font-medium">Your trial ends in: <span className="font-bold text-red-500">{daysLeft} Days</span></p>
+          )}
           
           {/* GMMX Assistant Block */}
           <SpotlightCard className="mt-4 bg-[#FF5C73]/5 border border-[#FF5C73]/20 rounded-2xl p-4 md:p-5 max-w-2xl" spotlightColor="rgba(255, 92, 115, 0.15)">
@@ -138,9 +150,9 @@ export default async function DashboardPage() {
           <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm w-full md:w-80 flex-shrink-0 animate-in slide-in-from-right-4">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                🚀 Setup Progress
+                🎯 Today's Goal
               </h3>
-              <span className="text-xs font-bold text-[#FF5C73] bg-[#FF5C73]/10 px-2 py-0.5 rounded-full">{progressPct}%</span>
+              <span className="text-xs font-bold text-[#FF5C73] bg-[#FF5C73]/10 px-2 py-0.5 rounded-full">{progressPct}% Complete</span>
             </div>
             <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden mb-4">
               <div className="h-full bg-[#FF5C73] transition-all duration-500" style={{ width: `${progressPct}%` }} />

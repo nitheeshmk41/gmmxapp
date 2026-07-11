@@ -5,6 +5,10 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 import { BottomNav } from "@/components/dashboard/bottom-nav";
 import { getCurrentUser, getCurrentGym } from "@/features/auth/actions";
+import { TrialBanners } from "@/components/dashboard/TrialBanners";
+import { createAdminClient } from "@/lib/appwrite/server";
+import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
+import { Query } from "node-appwrite";
 
 export const metadata: Metadata = {
   title: "Dashboard – GMMX",
@@ -48,6 +52,25 @@ export default async function DashboardLayout({
     redirect(`${proto}://${host}/dashboard`);
   }
 
+  let daysLeft = 0;
+  let isExpired = false;
+
+  if (gym) {
+    const { databases } = await createAdminClient();
+    const subRes = await databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.SUBSCRIPTIONS, [
+      Query.equal("gymId", gym.$id),
+      Query.orderDesc("$createdAt"),
+      Query.limit(1)
+    ]);
+    const subscription = subRes.documents[0];
+    if (subscription && subscription.status === "trial") {
+      daysLeft = Math.max(0, Math.ceil((new Date(subscription.endsAt).getTime() - new Date().getTime()) / (1000 * 3600 * 24)));
+      if (daysLeft <= 0) {
+        isExpired = true;
+      }
+    }
+  }
+
   return (
     <div className="flex min-h-screen" style={{ background: "var(--color-background)" }}>
       {/* Sidebar - hidden on mobile */}
@@ -60,7 +83,8 @@ export default async function DashboardLayout({
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-h-screen md:ml-64 pb-16 md:pb-0">
+      <div className="flex-1 flex flex-col min-h-screen md:ml-64 pb-16 md:pb-0 relative">
+        {gym && <TrialBanners daysLeft={daysLeft} isExpired={isExpired} gymName={gym.name} />}
         <Topbar gymSubdomain={gym.subdomain} />
         <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>

@@ -91,11 +91,17 @@ export async function createGymTenant({
   gymName,
   subdomain,
   theme,
+  country,
+  timezone,
+  currency,
 }: {
   userId: string;
   gymName: string;
   subdomain: string;
   theme: string;
+  country?: string;
+  timezone?: string;
+  currency?: string;
 }) {
   const formatCheck = validateSubdomainFormat(subdomain);
   if (!formatCheck.valid) {
@@ -133,7 +139,10 @@ export async function createGymTenant({
         ownerId: userId,
         status: "trial",
         isDeleted: false,
-        template: theme || "modern_fitness"
+        template: theme || "modern_fitness",
+        country: country || "India",
+        timezone: timezone || "IST",
+        currency: currency || "INR",
       }
     );
     createdGymId = gym.$id;

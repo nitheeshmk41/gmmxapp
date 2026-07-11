@@ -29,6 +29,10 @@ export interface GymDocument extends Models.Document {
   isDeleted: boolean;
   deletedAt?: string; // ISO Datetime
   ownerId: string; // Convenience lookup
+  country?: string;
+  timezone?: string;
+  currency?: string;
+  template?: string;
 }
 
 export interface GymUserDocument extends Models.Document {
