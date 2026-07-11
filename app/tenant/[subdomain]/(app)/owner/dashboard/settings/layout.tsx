@@ -31,3 +31,5 @@ export default async function SettingsLayout({
     </div>
   );
 }
+
+// force TS server to re-parse

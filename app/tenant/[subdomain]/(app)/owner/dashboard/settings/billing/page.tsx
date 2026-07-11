@@ -34,7 +34,7 @@ export default async function BillingSettingsPage() {
   const plan = gym.plan || "starter";
   
   const membersRes = await databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.MEMBERS, [
-    Query.equal("gym_id", gym.$id),
+    Query.equal("gymId", gym.$id),
     Query.limit(0) // Just to get total count
   ]);
   const membersCount = membersRes.total;
