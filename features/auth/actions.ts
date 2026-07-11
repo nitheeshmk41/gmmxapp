@@ -42,7 +42,10 @@ function getAuthClient() {
 
 async function setSessionCookie(secret: string) {
   const cookieStore = await cookies();
-  const domain = env.NEXT_PUBLIC_APP_DOMAIN === "localhost" ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
+  const headerStore = await headers();
+  const host = headerStore.get("host") || "";
+  const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
+  const domain = isLocalhost ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
   
   cookieStore.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, secret, {
     path: "/",
@@ -56,7 +59,10 @@ async function setSessionCookie(secret: string) {
 
 async function setTenantCookie(subdomain: string, role: string) {
   const cookieStore = await cookies();
-  const domain = env.NEXT_PUBLIC_APP_DOMAIN === "localhost" ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
+  const headerStore = await headers();
+  const host = headerStore.get("host") || "";
+  const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
+  const domain = isLocalhost ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
   
   cookieStore.set("gmmx_tenant", `${subdomain}:${role}`, {
     path: "/",
@@ -473,4 +479,75 @@ export async function changeInitialPassword(formData: FormData) {
   // We need to clear the cookie and redirect to login.
   await deleteSessionCookie();
   redirect("/owner/login");
+}
+
+export async function checkAuthMethod(email: string) {
+  try {
+    const { users } = await createAdminClient();
+    const res = await users.list([Query.equal("email", email)]);
+    if (res.total === 0) {
+      return { error: "User not found" };
+    }
+    const user = res.users[0];
+    
+    const hasPassword = !!user.passwordUpdate;
+    if (!hasPassword) {
+      return { method: "google" };
+    }
+    return { method: "password" };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function sendPasswordCreationEmail(email: string, currentUrl?: string) {
+  try {
+    const client = new Client()
+      .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
+      .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
+    const account = new Account(client);
+    
+    // We try to use the current URL to retain tenant context if provided, otherwise fallback to base
+    let redirectUrl = currentUrl ? `${currentUrl}/owner/set-password` : `${getBaseUrl()}/owner/set-password`;
+    
+    // Ensure the redirect URL is valid (this might need to be added to Appwrite OAuth/Platform settings)
+    await account.createRecovery(email, redirectUrl);
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function completePasswordSetup(formData: FormData) {
+  const userId = formData.get("userId") as string;
+  const secret = formData.get("secret") as string;
+  const password = formData.get("password") as string;
+  const passwordAgain = formData.get("passwordAgain") as string;
+  
+  if (!userId || !secret || !password || !passwordAgain) {
+    return { error: "Missing required fields" };
+  }
+  if (password !== passwordAgain) {
+    return { error: "Passwords do not match" };
+  }
+  
+  try {
+    const client = new Client()
+      .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
+      .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
+    const account = new Account(client);
+    
+    await account.updateRecovery(userId, secret, password);
+    
+    // Check if we need to remove the requiresPasswordChange flag
+    const { users } = await createAdminClient();
+    const prefs = await users.getPrefs(userId);
+    if (prefs.requiresPasswordChange) {
+      await users.updatePrefs(userId, { ...prefs, requiresPasswordChange: false });
+    }
+    
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "Failed to set password" };
+  }
 }
