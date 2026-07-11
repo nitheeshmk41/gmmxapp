@@ -9,12 +9,14 @@ export default function RazorpayCheckout({
   planName,
   price,
   period,
+  gymId,
   highlighted,
   className
 }: {
   planName: string;
   price: number;
   period: string;
+  gymId: string;
   highlighted: boolean;
   className?: string;
 }) {
@@ -45,7 +47,7 @@ export default function RazorpayCheckout({
       const orderRes = await fetch("/api/payments/razorpay/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: planName, amount: price, period }),
+        body: JSON.stringify({ plan: planName, amount: price, period, gymId }),
       });
 
       const orderData = await orderRes.json();

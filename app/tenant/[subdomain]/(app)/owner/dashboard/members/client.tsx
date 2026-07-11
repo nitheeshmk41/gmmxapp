@@ -20,6 +20,7 @@ import { formatDate, getExpiryStatus, downloadCSV, getInitials, formatCurrency }
 import { PageHeader } from "@/components/dashboard/page-header";
 import { FadeInStagger, FadeInItem } from "@/components/animations/FadeIn";
 import { SkeletonRow } from "@/components/animations/Skeleton";
+import { useSubscription } from "@/components/providers/subscription-provider";
 
 type Member = {
   id: string;
@@ -51,6 +52,7 @@ const STATUS_OPTIONS = [
 export function MembersClientPage({ members, total, page, search, status }: Props) {
   const router = useRouter();
   const pathname = usePathname();
+  const { isFrozen } = useSubscription();
   const [isPending, startTransition] = useTransition();
   const [localSearch, setLocalSearch] = useState(search);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -115,14 +117,26 @@ export function MembersClientPage({ members, total, page, search, status }: Prop
               <Download size={14} />
               Export CSV
             </button>
-            <Link
-              href="/owner/dashboard/members/new"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
-              style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
-            >
-              <Plus size={14} />
-              Add Member
-            </Link>
+            {isFrozen ? (
+              <button
+                disabled
+                title="Workspace is frozen. Please upgrade."
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white opacity-50 cursor-not-allowed"
+                style={{ background: "var(--color-brand-primary)" }}
+              >
+                <Plus size={14} />
+                Add Member
+              </button>
+            ) : (
+              <Link
+                href="/owner/dashboard/members/new"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
+                style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
+              >
+                <Plus size={14} />
+                Add Member
+              </Link>
+            )}
           </div>
         }
       />

@@ -7,6 +7,7 @@ import { markAttendance, bulkMarkAttendance } from "@/features/attendance/action
 import { getInitials } from "@/lib/utils";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { useSubscription } from "@/components/providers/subscription-provider";
 
 type Member = { id: string; name: string; phone: string; photo_url: string | null };
 type AttendanceRecord = { id: string; member_id: string; member: { name: string } };
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function AttendanceClientPage({ members, attendance, date }: Props) {
+  const { isFrozen } = useSubscription();
   const router = useRouter();
   const pathname = usePathname();
   const [, startTransition] = useTransition();
@@ -105,7 +107,8 @@ export function AttendanceClientPage({ members, attendance, date }: Props) {
         </div>
         <button
           onClick={selectAll}
-          className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+          disabled={isFrozen}
+          className="px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", color: "var(--color-foreground)" }}
         >
           Select All Unmarked
@@ -131,15 +134,16 @@ export function AttendanceClientPage({ members, attendance, date }: Props) {
           return (
             <button
               key={member.id}
-              onClick={() => isMarked ? null : (isSelected ? toggleSelect(member.id) : handleMark(member.id))}
-              disabled={isMarked}
+              onClick={() => isMarked || isFrozen ? null : (isSelected ? toggleSelect(member.id) : handleMark(member.id))}
+              disabled={isMarked || isFrozen}
               className="p-4 rounded-xl text-left transition-all hover-lift"
               style={{
                 background: isMarked ? "var(--color-success-light)"
                   : isSelected ? "var(--color-brand-light)"
                   : "var(--color-surface)",
                 border: `2px solid ${isMarked ? "var(--color-success)" : isSelected ? "var(--color-brand-primary)" : "var(--color-border)"}`,
-                cursor: isMarked ? "not-allowed" : "pointer",
+                cursor: (isMarked || isFrozen) ? "not-allowed" : "pointer",
+                opacity: isFrozen ? 0.6 : 1,
               }}
             >
               <div className="flex items-center gap-3 mb-2">

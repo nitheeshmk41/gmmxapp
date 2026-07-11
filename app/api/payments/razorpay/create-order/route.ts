@@ -3,7 +3,7 @@ import { createRazorpayOrder, generateReceiptNumber } from "@/lib/razorpay";
 
 export async function POST(req: Request) {
   try {
-    const { plan, amount, period } = await req.json();
+    const { plan, amount, period, gymId } = await req.json();
 
     if (!amount) {
       return NextResponse.json({ success: false, error: "Amount is required" }, { status: 400 });
@@ -19,6 +19,7 @@ export async function POST(req: Request) {
       notes: {
         plan,
         period,
+        gymId,
       },
     });
 

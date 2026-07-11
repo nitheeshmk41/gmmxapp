@@ -5,6 +5,7 @@ import { Plus, X, Loader2, Dumbbell, Phone, Mail, Trash2, Edit2 } from "lucide-r
 import { createTrainer, deleteTrainer } from "@/features/trainers/actions";
 import { getInitials } from "@/lib/utils";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { useSubscription } from "@/components/providers/subscription-provider";
 
 type Trainer = {
   id: string;
@@ -19,6 +20,7 @@ type Trainer = {
 };
 
 export function TrainersClientPage({ trainers }: { trainers: Trainer[] }) {
+  const { isFrozen } = useSubscription();
   const [, startTransition] = useTransition();
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState("");
@@ -56,14 +58,26 @@ export function TrainersClientPage({ trainers }: { trainers: Trainer[] }) {
         description="Manage your staff, assign members, and track attendance."
         breadcrumbs={[{ label: "Dashboard", href: "/owner/dashboard" }, { label: "Trainers" }]}
         action={
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
-            style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
-          >
-            <Plus size={14} />
-            Add Trainer
-          </button>
+          isFrozen ? (
+            <button
+              disabled
+              title="Workspace is frozen. Please upgrade."
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white opacity-50 cursor-not-allowed"
+              style={{ background: "var(--color-brand-primary)" }}
+            >
+              <Plus size={14} />
+              Add Trainer
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
+              style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
+            >
+              <Plus size={14} />
+              Add Trainer
+            </button>
+          )
         }
       />
 

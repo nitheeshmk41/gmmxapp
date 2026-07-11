@@ -5,6 +5,7 @@ import { Plus, X, Loader2, Receipt, CreditCard } from "lucide-react";
 import { createPayment } from "@/features/payments/actions";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { useSubscription } from "@/components/providers/subscription-provider";
 
 type Payment = {
   id: string;
@@ -47,6 +48,7 @@ const METHOD_LABELS: Record<string, string> = {
 };
 
 export function PaymentsClientPage({ payments, total, page, members, plans }: Props) {
+  const { isFrozen } = useSubscription();
   const [, startTransition] = useTransition();
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState("");
@@ -84,14 +86,26 @@ export function PaymentsClientPage({ payments, total, page, members, plans }: Pr
         description="Record transactions, track revenue, and monitor pending dues."
         breadcrumbs={[{ label: "Dashboard", href: "/owner/dashboard" }, { label: "Payments" }]}
         action={
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
-            style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
-          >
-            <Plus size={14} />
-            Record Payment
-          </button>
+          isFrozen ? (
+            <button
+              disabled
+              title="Workspace is frozen. Please upgrade."
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white opacity-50 cursor-not-allowed"
+              style={{ background: "var(--color-brand-primary)" }}
+            >
+              <Plus size={14} />
+              Record Payment
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
+              style={{ background: "var(--color-brand-primary)", boxShadow: "var(--shadow-brand)" }}
+            >
+              <Plus size={14} />
+              Record Payment
+            </button>
+          )
         }
       />
 

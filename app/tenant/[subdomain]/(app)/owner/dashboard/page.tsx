@@ -19,6 +19,7 @@ import { buildExpiryReminderUrl, buildPaymentConfirmationUrl, buildLeadWelcomeUr
 import SpotlightCard from "@/components/SpotlightCard";
 import { CountUp } from "@/components/animations/CountUp";
 import { MiniSparkline } from "@/components/animations/MiniSparkline";
+import { TrialBanners } from "@/components/dashboard/TrialBanners";
 
 export default async function DashboardPage() {
   const gym = await getCurrentGym();
@@ -114,6 +115,33 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {/* Prominent Trial Card */}
+      {isTrial && daysLeft > 0 && (
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-slate-900/20 mb-8 relative overflow-hidden animate-in fade-in slide-in-from-top-4">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF5C73] rounded-full blur-3xl opacity-20 -mr-20 -mt-20"></div>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-sm font-medium mb-4 backdrop-blur-sm">
+                <span>🎉</span> You're on a 14-day Pro Trial
+              </div>
+              <h3 className="text-3xl font-black mb-2">{daysLeft} Days Remaining</h3>
+              <p className="text-slate-300 font-medium">Unlock unlimited members, AI features, and your custom domain.</p>
+            </div>
+            
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-5 md:w-72 flex-shrink-0">
+              <p className="text-sm font-medium text-slate-300 mb-1">After trial:</p>
+              <div className="flex items-end gap-2 mb-4">
+                <span className="text-2xl font-bold">Professional</span>
+                <span className="text-sm text-slate-400 mb-1">₹999/mo</span>
+              </div>
+              <Link href="/owner/dashboard/settings/billing/upgrade" className="block w-full py-3 bg-[#FF5C73] hover:bg-red-500 text-white text-center font-bold rounded-xl transition-all shadow-lg shadow-red-500/30">
+                Upgrade Now
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Greeting & Assistant */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div>
@@ -123,9 +151,6 @@ export default async function DashboardPage() {
               <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-widest">Demo</span>
             )}
           </div>
-          {isTrial && (
-            <p className="text-slate-600 mt-1 font-medium">Your trial ends in: <span className="font-bold text-red-500">{daysLeft} Days</span></p>
-          )}
           
           {/* GMMX Assistant Block */}
           <SpotlightCard className="mt-4 bg-[#FF5C73]/5 border border-[#FF5C73]/20 rounded-2xl p-4 md:p-5 max-w-2xl" spotlightColor="rgba(255, 92, 115, 0.15)">
@@ -200,6 +225,19 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {QUICK_ACTIONS.map((action) => {
             const Icon = action.icon;
+            
+            if (isTrial && daysLeft <= 0) {
+              return (
+                <div key={action.label} title="Workspace is frozen"
+                  className={`flex flex-col items-center justify-center gap-3 p-5 rounded-2xl border border-slate-100 bg-slate-50 opacity-60 cursor-not-allowed`}>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center bg-white shadow-sm grayscale`}>
+                    <Icon size={22} className="text-slate-400" />
+                  </div>
+                  <span className="font-bold text-sm text-slate-500">{action.label}</span>
+                </div>
+              );
+            }
+
             return (
               <Link key={action.label} href={action.href}
                 className={`flex flex-col items-center justify-center gap-3 p-5 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-lg shadow-sm border border-slate-100 ${action.bg}`}>
