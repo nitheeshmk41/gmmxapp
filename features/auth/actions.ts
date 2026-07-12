@@ -76,7 +76,16 @@ async function setTenantCookie(subdomain: string, role: string) {
 
 async function deleteSessionCookie() {
   const cookieStore = await cookies();
-  cookieStore.delete(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`);
+  const headerStore = await headers();
+  const host = headerStore.get("host") || "";
+  const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
+  const domain = isLocalhost ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
+  
+  cookieStore.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, "", {
+    path: "/",
+    domain: domain,
+    expires: new Date(0),
+  });
 }
 
 export async function signInWithGoogle() {
@@ -431,6 +440,21 @@ export async function verifyOtp(formData: FormData) {
 }
 
 export async function signOut() {
+  let redirectUrl = "/login";
+  try {
+    const cookieStore = await cookies();
+    const tenantCookie = cookieStore.get("gmmx_tenant")?.value;
+    if (tenantCookie) {
+      const parts = tenantCookie.split(":");
+      if (parts.length === 2) {
+        const role = parts[1];
+        if (role === "owner" || role === "super_admin") redirectUrl = "/owner/login";
+        else if (role === "trainer") redirectUrl = "/trainer/login";
+        else redirectUrl = "/member/login";
+      }
+    }
+  } catch {}
+
   try {
     const { account } = await createSessionClient();
     await account.deleteSession("current");
@@ -440,13 +464,27 @@ export async function signOut() {
   } catch {}
   try {
     const cookieStore = await cookies();
-    cookieStore.delete("gmmx_tenant");
+    const headerStore = await headers();
+    const host = headerStore.get("host") || "";
+    const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
+    const domain = isLocalhost ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
+    
+    cookieStore.set("gmmx_tenant", "", {
+      path: "/",
+      domain: domain,
+      expires: new Date(0),
+    });
   } catch {}
+  
   const headerStore = await headers();
   const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
   const isRoot = host.includes("gmmx.app") && !host.match(/^[a-zA-Z0-9-]+\.gmmx\.app/);
   
-  redirect(isRoot || host.includes("localhost") ? "/signin" : "/login");
+  if (isRoot || (host.includes("localhost") && host.split(":").length > 0 && host.split(":")[0] === "localhost")) {
+    redirectUrl = "/signin";
+  }
+  
+  redirect(redirectUrl);
 }
 
 export async function getCurrentUser() {
