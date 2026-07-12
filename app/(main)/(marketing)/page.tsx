@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import SpotlightCard from "@/components/SpotlightCard";
 import {
@@ -172,8 +172,15 @@ const ROTATING_WORDS = [
 export default function MarketingHomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [wordIndex, setWordIndex] = useState(0);
+  const [showDemo, setShowDemo] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [activePreviewTab, setActivePreviewTab] = useState("Dashboard");
+  const [alertSent, setAlertSent] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 0.7; // Slow down the video slightly
+    }
     const interval = setInterval(() => {
       setWordIndex((prev) => (prev + 1) % ROTATING_WORDS.length);
     }, 2500);
@@ -217,18 +224,20 @@ export default function MarketingHomePage() {
         {/* Background Video & Tech Overlays */}
         <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
           <video
+            ref={videoRef}
             autoPlay
             loop
             muted
             playsInline
+            preload="metadata"
             className="w-full h-full object-cover scale-[1.01]"
           >
             <source src="/hero_bg1.mp4" type="video/mp4" />
           </video>
-          {/* Darker Video Overlays (90% focus on content, 10% atmosphere) */}
+          {/* Darker Video Overlays (Video more visible) */}
           <div
-            className="absolute inset-0 bg-slate-950/90 backdrop-blur-[2px] transition-all"
-            style={{ backgroundColor: "rgba(4, 6, 15, 0.90)" }}
+            className="absolute inset-0 transition-all"
+            style={{ backgroundColor: "rgba(4, 6, 15, 0.60)" }}
           />
           {/* Tech Grid Pattern */}
           <div
@@ -291,12 +300,12 @@ export default function MarketingHomePage() {
               <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full group-hover:animate-shine" style={{ animationDuration: "1.5s" }} />
               Start Free Trial <ArrowRight size={18} />
             </Link>
-            <a
-              href="#watch-demo"
+            <button
+              onClick={() => setShowDemo(true)}
               className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-bold text-white transition-all bg-white/10 hover:bg-white/20 hover:border-white/30 border border-white/15 backdrop-blur-sm"
             >
               <Play size={16} fill="currentColor" /> Watch Demo
-            </a>
+            </button>
           </div>
 
           {/* Benefits Capsule Stats Row */}
@@ -347,17 +356,18 @@ export default function MarketingHomePage() {
               <div className="w-1/5 bg-slate-50/50 border-r border-slate-200/50 p-4 flex flex-col gap-1 hidden md:flex">
                 <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-2">menu</div>
                 {[
-                  { label: "Dashboard", active: true },
-                  { label: "Members", active: false },
-                  { label: "Payments", active: false },
-                  { label: "Expiry Management", active: false },
-                  { label: "Leads", active: false },
-                  { label: "Trainers", active: false },
-                  { label: "Gym Website", active: false },
+                  { label: "Dashboard" },
+                  { label: "Members" },
+                  { label: "Payments" },
+                  { label: "Expiry Management" },
+                  { label: "Leads" },
+                  { label: "Trainers" },
+                  { label: "Gym Website" },
                 ].map((item) => (
                   <div
                     key={item.label}
-                    className={`px-3 py-2 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${item.active
+                    onClick={() => setActivePreviewTab(item.label)}
+                    className={`px-3 py-2 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${activePreviewTab === item.label
                       ? "bg-rose-50 text-rose-600 border border-rose-100"
                       : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                       }`}
@@ -375,8 +385,14 @@ export default function MarketingHomePage() {
                 {/* Header / Branch Selector */}
                 <div className="flex items-center justify-between gap-4 border-b border-slate-200/50 pb-4">
                   <div>
-                    <h3 className="text-sm sm:text-base font-black text-slate-900">General Overview</h3>
-                    <p className="text-[10px] sm:text-xs text-slate-500">Here is your gym performance metrics today.</p>
+                    <h3 className="text-sm sm:text-base font-black text-slate-900">
+                      {activePreviewTab === "Dashboard" ? "General Overview" : activePreviewTab}
+                    </h3>
+                    <p className="text-[10px] sm:text-xs text-slate-500">
+                      {activePreviewTab === "Dashboard" 
+                        ? "Here is your gym performance metrics today." 
+                        : `Manage your ${activePreviewTab.toLowerCase()} effectively.`}
+                    </p>
                   </div>
                   <div className="flex gap-2">
                     <span className="text-[10px] bg-slate-100 border border-slate-200 text-slate-700 font-bold px-2.5 py-1.5 rounded-xl">Main Branch</span>
@@ -384,8 +400,10 @@ export default function MarketingHomePage() {
                   </div>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {activePreviewTab === "Dashboard" ? (
+                  <div className="space-y-6 animate-fade-in">
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   {[
                     { label: "Active Members", value: "248", change: "+12% this month", theme: "text-rose-500", bg: "bg-rose-50" },
                     { label: "Monthly Revenue", value: "₹1,84,500", change: "+8% growth", theme: "text-emerald-600", bg: "bg-emerald-50" },
@@ -446,20 +464,189 @@ export default function MarketingHomePage() {
                             <p className="font-bold text-slate-700">{e.member}</p>
                             <p className="text-[9px] text-amber-600 font-bold">{e.days}</p>
                           </div>
-                          <a
-                            href={`https://wa.me/${e.phone}?text=Hi%20${e.member}!%20Your%20gym%20membership%20is%20expiring%20soon.%20Kindly%20renew%20to%20continue%20your%20sessions.%20Thanks!`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200 text-[9px] font-bold hover:bg-emerald-500 hover:text-white transition-all cursor-pointer"
+                          <button
+                            onClick={() => setAlertSent((prev) => ({ ...prev, [i]: true }))}
+                            className={`px-2 py-1 rounded border text-[9px] font-bold transition-colors ${
+                              alertSent[i]
+                                ? "bg-slate-100 border-slate-200 text-slate-500 cursor-default"
+                                : "bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100 cursor-pointer"
+                            }`}
                           >
-                            WhatsApp Alert
-                          </a>
+                            {alertSent[i] ? "Sent!" : "WhatsApp Alert"}
+                          </button>
                         </div>
                       ))}
                     </div>
                   </div>
-
                 </div>
+              </div>
+            ) : activePreviewTab === "Expiry Management" ? (
+              <div className="space-y-6 animate-fade-in">
+                {/* Expiry Alerts Mock Card with WhatsApp Button (Full Width for Expiry Tab) */}
+                <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <span className="text-[10px] font-black text-slate-800 uppercase tracking-wider">Critical Expiries</span>
+                    <span className="text-[9px] text-slate-400 hover:text-slate-600 cursor-pointer">Filter</span>
+                  </div>
+                  <div className="space-y-2">
+                    {[
+                      { member: "Amit Singh", days: "Expires in 2 days", phone: "919999999999" },
+                      { member: "Suresh Nair", days: "Expires Today", phone: "919999999999" },
+                      { member: "Nisha Rao", days: "Expired 1 day ago", phone: "919999999999" },
+                      { member: "Rahul Verma", days: "Expires in 4 days", phone: "919999999999" },
+                      { member: "Priya Sharma", days: "Expires in 5 days", phone: "919999999999" },
+                    ].map((e, i) => (
+                      <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100 text-[10px] sm:text-xs">
+                        <div>
+                          <p className="font-bold text-slate-700">{e.member}</p>
+                          <p className="text-[9px] text-amber-600 font-bold">{e.days}</p>
+                        </div>
+                        <button
+                          onClick={() => setAlertSent((prev) => ({ ...prev, [i + 10]: true }))}
+                          className={`px-3 py-1.5 rounded-lg border text-[9px] font-bold transition-colors ${
+                            alertSent[i + 10]
+                              ? "bg-slate-100 border-slate-200 text-slate-500 cursor-default"
+                              : "bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100 cursor-pointer"
+                          }`}
+                        >
+                          {alertSent[i + 10] ? "Sent!" : "WhatsApp Alert"}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : activePreviewTab === "Members" ? (
+              <div className="space-y-4 animate-fade-in">
+                <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm">
+                  <div className="flex justify-between items-center p-3 border-b border-slate-100">
+                    <span className="text-[10px] font-black text-slate-800 uppercase tracking-wider">Recent Members</span>
+                    <span className="px-2 py-1 bg-rose-50 text-rose-600 border border-rose-100 rounded-lg text-[9px] font-bold cursor-pointer hover:bg-rose-100">+ Add Member</span>
+                  </div>
+                  {[
+                    { name: "Rahul Sharma", phone: "+91 98765 43210", plan: "12 Months Elite", status: "Active" },
+                    { name: "Sneha Reddy", phone: "+91 98765 43211", plan: "3 Months Basic", status: "Active" },
+                    { name: "Arjun Kumar", phone: "+91 98765 43212", plan: "1 Month Pro", status: "Expiring Soon" },
+                    { name: "Priya Desai", phone: "+91 98765 43214", plan: "6 Months Basic", status: "Expired" },
+                  ].map((m, i) => (
+                    <div key={i} className="flex justify-between items-center p-3 border-b border-slate-100 text-[10px] sm:text-xs last:border-0 hover:bg-slate-50">
+                      <div>
+                        <p className="font-bold text-slate-800">{m.name}</p>
+                        <p className="text-[9px] text-slate-500 font-medium mt-0.5">{m.phone}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-slate-700">{m.plan}</p>
+                        <p className={`text-[9px] font-bold mt-0.5 ${m.status === "Active" ? "text-emerald-500" : m.status === "Expired" ? "text-rose-500" : "text-amber-500"}`}>{m.status}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : activePreviewTab === "Payments" ? (
+              <div className="space-y-4 animate-fade-in">
+                <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm">
+                  <div className="flex justify-between items-center p-3 border-b border-slate-100">
+                    <span className="text-[10px] font-black text-slate-800 uppercase tracking-wider">Payment History</span>
+                  </div>
+                  {[
+                    { member: "Rajesh Kumar", amount: "₹999", plan: "Monthly", method: "UPI", date: "Today, 10:42 AM" },
+                    { member: "Pooja Hegde", amount: "₹2,999", plan: "Quarterly", method: "Card", date: "Today, 09:15 AM" },
+                    { member: "Amit Patel", amount: "₹9,999", plan: "Annual", method: "Cash", date: "Yesterday" },
+                    { member: "Karan Singh", amount: "₹1,499", plan: "Monthly Elite", method: "UPI", date: "Yesterday" },
+                  ].map((p, i) => (
+                    <div key={i} className="flex justify-between items-center p-3 border-b border-slate-100 text-[10px] sm:text-xs last:border-0 hover:bg-slate-50">
+                      <div>
+                        <p className="font-bold text-slate-800">{p.member}</p>
+                        <p className="text-[9px] text-slate-500 font-medium mt-0.5">{p.plan} · {p.method}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-black text-slate-900">{p.amount}</p>
+                        <p className="text-[9px] text-emerald-600 font-bold mt-0.5">{p.date}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : activePreviewTab === "Leads" ? (
+              <div className="space-y-4 animate-fade-in">
+                <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+                  {["New (3)", "Contacted (12)", "Trial (4)", "Converted (45)"].map(stage => (
+                    <div key={stage} className="px-3 py-1.5 bg-white border border-slate-200/80 shadow-sm rounded-lg text-[9px] font-bold text-slate-600 whitespace-nowrap cursor-pointer hover:border-rose-300">{stage}</div>
+                  ))}
+                </div>
+                <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm">
+                  {[
+                    { name: "Siddharth Jain", source: "Website", date: "2 hrs ago", status: "New" },
+                    { name: "Ananya Rao", source: "Instagram", date: "5 hrs ago", status: "Contacted" },
+                    { name: "Manoj Tiwari", source: "Referral", date: "1 day ago", status: "Trial" },
+                  ].map((l, i) => (
+                    <div key={i} className="flex justify-between items-center p-3 border-b border-slate-100 text-[10px] sm:text-xs last:border-0 hover:bg-slate-50">
+                      <div>
+                        <p className="font-bold text-slate-800">{l.name}</p>
+                        <p className="text-[9px] text-blue-500 font-bold mt-0.5">{l.source}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[9px] text-slate-400 font-medium">{l.date}</span>
+                        <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[8px] font-bold">{l.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : activePreviewTab === "Trainers" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
+                {[
+                  { name: "Vikram Rathore", role: "Head Coach", members: 45 },
+                  { name: "Neha Sharma", role: "Yoga Instructor", members: 30 },
+                  { name: "Kabir Singh", role: "CrossFit Expert", members: 28 },
+                ].map((t, i) => (
+                  <div key={i} className="p-4 bg-white border border-slate-200/80 rounded-xl shadow-sm flex items-center gap-3 hover:border-rose-200 cursor-pointer transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-lg font-bold text-slate-400">{t.name[0]}</div>
+                    <div>
+                      <p className="font-bold text-slate-800 text-xs">{t.name}</p>
+                      <p className="text-[9px] text-rose-500 font-bold mb-1">{t.role}</p>
+                      <p className="text-[9px] text-slate-500 font-medium">{t.members} assigned members</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : activePreviewTab === "Gym Website" ? (
+              <div className="space-y-4 animate-fade-in">
+                <div className="p-4 bg-gradient-to-r from-rose-500 to-rose-600 text-white rounded-xl shadow-md flex justify-between items-center">
+                  <div>
+                    <h4 className="text-xs font-black mb-1">ironfit.gmmx.app</h4>
+                    <p className="text-[9px] text-white/80">Your website is live and collecting leads.</p>
+                  </div>
+                  <button className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-[9px] font-bold backdrop-blur-sm border border-white/20 transition-colors">
+                    Edit Site
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: "Page Views Today", value: "142", trend: "+18%" },
+                    { label: "Leads Captured", value: "3", trend: "+1" },
+                  ].map((stat, i) => (
+                    <div key={i} className="bg-white border border-slate-200/80 rounded-xl p-3 shadow-sm">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{stat.label}</p>
+                      <div className="flex items-end gap-2 mt-1">
+                        <p className="text-lg font-black text-slate-800">{stat.value}</p>
+                        <p className="text-[9px] font-bold text-emerald-500 mb-1">{stat.trend}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="flex-grow p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col items-center justify-center text-center animate-fade-in mt-4 py-16">
+                <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center mb-3 shadow-sm">
+                  <span className="text-slate-400 text-xl">✨</span>
+                </div>
+                <h4 className="text-sm font-black text-slate-800 mb-1">{activePreviewTab}</h4>
+                <p className="text-[10px] sm:text-xs text-slate-500 max-w-[280px]">
+                  This is a preview environment. Sign up for a free 14-day trial to experience the full {activePreviewTab.toLowerCase()} module.
+                </p>
+              </div>
+            )}
               </div>
             </div>
           </div>
@@ -1038,6 +1225,26 @@ export default function MarketingHomePage() {
           </div>
         </div>
       </section>
+      {/* Watch Demo Modal */}
+      {showDemo && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+            <button
+              onClick={() => setShowDemo(false)}
+              className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-white/20 rounded-full text-white transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <iframe
+              src="https://www.youtube.com/embed/BhIPNAYEsb0?autoplay=1&rel=0"
+              title="YouTube video player"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              className="w-full h-full border-0"
+            ></iframe>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

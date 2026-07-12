@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="bg-slate-950 text-slate-400 border-t border-white/5" style={{ fontFamily: "'Inter', sans-serif" }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-10">
           {/* Brand Col */}
           <div className="space-y-4 md:col-span-2">
             <Link href="/" className="flex items-center gap-2 group">
@@ -67,13 +67,25 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="hover:text-white transition-colors">
+                <Link href="/blogs" className="hover:text-white transition-colors">
                   Blog
                 </Link>
               </li>
+            </ul>
+          </div>
+
+          {/* Tools Col */}
+          <div>
+            <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Free Tools</h4>
+            <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/testimonials" className="hover:text-white transition-colors">
-                  Testimonials
+                <Link href="/tools/bmi-calculator" className="hover:text-white transition-colors">
+                  BMI Calculator
+                </Link>
+              </li>
+              <li>
+                <Link href="/tools/gym-roi-calculator" className="hover:text-white transition-colors">
+                  Gym ROI Calculator
                 </Link>
               </li>
             </ul>
@@ -92,10 +104,14 @@ export default function Footer() {
             <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Contact</h4>
             <ul className="space-y-2.5 text-sm">
               <li className="text-slate-400">
-                hello@gmmx.app
+                <a href="mailto:gmmxapp@gmail.com" className="hover:text-white transition-colors">gmmxapp@gmail.com</a>
               </li>
               <li className="text-slate-400">
-                Coimbatore, India
+                <a href="https://share.google/rIzmolqvL89QesguI" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                  1403, Gandhima Nagar Road, Kongu Nagar,<br />
+                  Gandhimaa Nagar, Peelamedu,<br />
+                  Coimbatore, Tamil Nadu 641004
+                </a>
               </li>
             </ul>
             <div className="flex gap-3 mt-4 text-xs font-bold text-slate-500">

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Bell, ExternalLink, Dumbbell } from "lucide-react";
 import { GlobalSearch } from "./global-search";
 import { MobileNav } from "./mobile-nav";
+import { NotificationsPopover } from "./NotificationsPopover";
 
 const PAGE_TITLES: Record<string, string> = {
   "/owner/dashboard": "Dashboard",
@@ -16,6 +17,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/owner/dashboard/expiry": "Expiry Management",
   "/owner/dashboard/website": "Website Builder",
   "/owner/dashboard/domain": "Domain Management",
+  "/owner/dashboard/analytics": "Website Analytics",
   "/owner/dashboard/settings": "Settings",
 };
 
@@ -77,29 +79,7 @@ export function Topbar({ gymSubdomain }: TopbarProps) {
         )}
 
         {/* Notification bell */}
-        <button
-          className="relative w-9 h-9 rounded-lg flex items-center justify-center transition-all"
-          style={{
-            background: "var(--color-surface)",
-            border: "1px solid var(--color-border)",
-            color: "var(--color-muted-foreground)",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.borderColor = "var(--color-brand-primary)";
-            (e.currentTarget as HTMLElement).style.color = "var(--color-brand-primary)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border)";
-            (e.currentTarget as HTMLElement).style.color = "var(--color-muted-foreground)";
-          }}
-        >
-          <Bell size={16} />
-          {/* Notification dot */}
-          <span
-            className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-            style={{ background: "var(--color-brand-primary)" }}
-          />
-        </button>
+        <NotificationsPopover />
       </div>
     </header>
   );

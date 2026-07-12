@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Building2,
   TrendingUp,
+  BarChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "@/features/auth/actions";
@@ -98,6 +99,7 @@ const NAV_ITEMS = [
       { href: "/owner/dashboard/reports/members", label: "Members" }
     ]
   },
+  { href: "/owner/dashboard/analytics", label: "Analytics", icon: BarChart },
   { 
     href: "/owner/dashboard/settings", 
     label: "Settings", 

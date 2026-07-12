@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { ModernTemplate } from "@/components/gym-site/templates/modern/layout";
 import { TransformationTemplate } from "@/components/gym-site/templates/transformation/layout";
 import { CommunityTemplate } from "@/components/gym-site/templates/community/layout";
+import { MinimalTemplate } from "@/components/gym-site/templates/minimal/layout";
+import { PerformanceTemplate } from "@/components/gym-site/templates/performance/layout";
 import { getTenantBySubdomain, getTenantByHostname } from "@/lib/tenant";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { APPWRITE_DB_ID, COLLECTIONS, MembershipPlanDocument, TrainerDocument, TestimonialDocument } from "@/lib/appwrite/types";
@@ -180,6 +182,32 @@ export default async function GymPage({ params }: Props) {
     if (settingsData.template === "community") {
       return (
         <CommunityTemplate
+          gym={gymData}
+          settings={settingsData}
+          plans={plansData}
+          trainers={trainersData}
+          testimonials={testimonialsData}
+          services={tenant.services || []}
+        />
+      );
+    }
+
+    if (settingsData.template === "minimal") {
+      return (
+        <MinimalTemplate
+          gym={gymData}
+          settings={settingsData}
+          plans={plansData}
+          trainers={trainersData}
+          testimonials={testimonialsData}
+          services={tenant.services || []}
+        />
+      );
+    }
+
+    if (settingsData.template === "performance") {
+      return (
+        <PerformanceTemplate
           gym={gymData}
           settings={settingsData}
           plans={plansData}

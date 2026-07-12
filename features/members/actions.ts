@@ -193,6 +193,31 @@ export async function createMember(formData: FormData): Promise<{ success?: bool
   try {
     const { databases } = await createAdminClient();
     
+    // Limit check
+    const subRes = await databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.SUBSCRIPTIONS, [
+      Query.equal("gymId", context.gym.$id),
+      Query.orderDesc("$createdAt"),
+      Query.limit(1)
+    ]);
+    
+    if (subRes.total > 0) {
+      const sPlanId = subRes.documents[0].planId;
+      try {
+        const saasPlan = await databases.getDocument(APPWRITE_DB_ID, COLLECTIONS.SAAS_PLANS, sPlanId);
+        if (saasPlan && saasPlan.maxMembers > 0) {
+          const membersCountRes = await databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.MEMBERS, [
+            Query.equal("gymId", context.gym.$id),
+            Query.limit(1) // We just need total
+          ]);
+          if (membersCountRes.total >= saasPlan.maxMembers) {
+            return { error: `Member limit reached. Your plan allows up to ${saasPlan.maxMembers} members.` };
+          }
+        }
+      } catch (err) {
+        console.error("Could not fetch plan for limit check", err);
+      }
+    }
+
     // Generate sequential member code per gym
     const totalRes = await databases.listDocuments(
       APPWRITE_DB_ID,

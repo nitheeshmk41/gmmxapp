@@ -34,8 +34,7 @@ export async function POST(req: Request) {
         
         // 1. Update Gym Document
         await databases.updateDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gymId, {
-          plan,
-          subscription_status: "active"
+          status: "active"
         });
 
         // 2. Find and update the latest trial subscription, or create a new active subscription record
@@ -54,7 +53,6 @@ export async function POST(req: Request) {
             status: "active",
             planId: plan,
             endsAt: nextMonth.toISOString(),
-            current_period_end: nextMonth.toISOString(),
           });
         } else {
           // Create new subscription record
@@ -62,8 +60,9 @@ export async function POST(req: Request) {
             gymId,
             status: "active",
             planId: plan,
+            startsAt: new Date().toISOString(),
             endsAt: nextMonth.toISOString(),
-            current_period_end: nextMonth.toISOString(),
+            paymentProvider: "razorpay"
           });
         }
         

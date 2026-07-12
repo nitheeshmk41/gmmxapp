@@ -10,8 +10,18 @@ const NAV_ITEMS = [
   { label: "Features", href: "/features" },
   { label: "How it Works", href: "/how-it-works" },
   { label: "Pricing", href: "/pricing" },
-  { label: "Testimonials", href: "/testimonials" },
   { label: "Blogs", href: "/blogs" },
+  { 
+    label: "Free Tools", 
+    href: "/tools",
+    dropdown: [
+      { label: "All Tools Hub", href: "/tools" },
+      { label: "Digital Readiness Score", href: "/tools/gym-digital-readiness-score" },
+      { label: "Gym Profit Calculator", href: "/tools/gym-profit-calculator" },
+      { label: "Gym ROI Calculator", href: "/tools/gym-roi-calculator" },
+      { label: "BMI Calculator", href: "/tools/bmi-calculator" },
+    ]
+  },
   { label: "Contact", href: "/contact-us" },
 ];
 
@@ -92,9 +102,26 @@ export default function Header() {
         {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center gap-1">
           {NAV_ITEMS.map((item) => (
-            <Link key={item.href} href={item.href} className={getLinkStyles(item.href)}>
-              {item.label}
-            </Link>
+            item.dropdown ? (
+              <div key={item.href} className="relative group">
+                <Link href={item.href} className={getLinkStyles(item.href)}>
+                  {item.label}
+                </Link>
+                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                   <div className="bg-white rounded-xl shadow-xl border border-slate-100 py-2 w-56 flex flex-col overflow-hidden">
+                     {item.dropdown.map(sub => (
+                        <Link key={sub.href} href={sub.href} className="px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-[#FF5C73] font-medium transition-colors border-l-2 border-transparent hover:border-[#FF5C73]">
+                          {sub.label}
+                        </Link>
+                     ))}
+                   </div>
+                </div>
+              </div>
+            ) : (
+              <Link key={item.href} href={item.href} className={getLinkStyles(item.href)}>
+                {item.label}
+              </Link>
+            )
           ))}
         </div>
 

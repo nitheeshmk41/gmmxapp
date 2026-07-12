@@ -15,6 +15,7 @@ const BlogSchema = z.object({
   status: z.enum(["draft", "published"]),
   category: z.string().max(100).optional(),
   tags: z.string().max(500).optional(),
+  coverImageUrl: z.string().url().max(1000).optional().or(z.literal('')),
 });
 
 export async function createBlog(authorId: string, formData: FormData) {
@@ -27,6 +28,7 @@ export async function createBlog(authorId: string, formData: FormData) {
       status: formData.get("status") || "draft",
       category: formData.get("category") || undefined,
       tags: formData.get("tags") || undefined,
+      coverImageUrl: formData.get("coverImageUrl") || undefined,
     });
 
     const { databases } = await createAdminClient();
@@ -65,6 +67,7 @@ export async function updateBlog(blogId: string, formData: FormData) {
       status,
       category: formData.get("category") || undefined,
       tags: formData.get("tags") || undefined,
+      coverImageUrl: formData.get("coverImageUrl") || undefined,
     });
 
     const { databases } = await createAdminClient();

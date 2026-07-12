@@ -52,7 +52,8 @@ const NAV_TREE = [
   {
     label: "Sales",
     items: [
-      { href: "/admin/leads", label: "Leads", icon: MessageSquare },
+      { href: "/admin/leads", label: "Platform Leads", icon: MessageSquare },
+      { href: "/admin/marketing-leads", label: "Marketing Leads", icon: Headphones },
       { href: "/admin/support", label: "Support", icon: Headphones },
     ],
   },

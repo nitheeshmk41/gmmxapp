@@ -59,7 +59,9 @@ async function run() {
     { id: COLLECTIONS.GYM_SOCIALS, name: "Gym Socials" },
     { id: COLLECTIONS.GYM_SERVICES, name: "Gym Services" },
     { id: COLLECTIONS.GYM_GALLERY, name: "Gym Gallery" },
-    { id: COLLECTIONS.ACTIVITY_LOGS, name: "Activity Logs" }
+    { id: COLLECTIONS.ACTIVITY_LOGS, name: "Activity Logs" },
+    { id: COLLECTIONS.WEBSITE_EVENTS, name: "Website Events" },
+    { id: COLLECTIONS.WEBSITE_SESSIONS, name: "Website Sessions" }
   ];
 
   for (const col of collectionList) {
@@ -120,6 +122,10 @@ async function run() {
   await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.LEADS, "status", 50, true);
   await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.LEADS, "source", 100, true);
   await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.LEADS, "createdAt", 50, true);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.LEADS, "utmSource", 255, false);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.LEADS, "utmCampaign", 255, false);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.LEADS, "utmMedium", 255, false);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.LEADS, "referrer", 1000, false);
 
   // --- MEMBERS ---
   console.log("Creating MEMBERS attributes...");
@@ -247,6 +253,28 @@ async function run() {
   await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.ACTIVITY_LOGS, "entityId", 255, false);
   await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.ACTIVITY_LOGS, "metadataJson", 2000, false);
   await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.ACTIVITY_LOGS, "timestamp", 50, true);
+
+  // --- WEBSITE SESSIONS ---
+  console.log("Creating WEBSITE_SESSIONS attributes...");
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_SESSIONS, "gymId", 255, true);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_SESSIONS, "sessionId", 255, true);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_SESSIONS, "ip", 100, false);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_SESSIONS, "device", 100, false);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_SESSIONS, "browser", 100, false);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_SESSIONS, "country", 100, false);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_SESSIONS, "city", 100, false);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_SESSIONS, "utmSource", 255, false);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_SESSIONS, "utmCampaign", 255, false);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_SESSIONS, "referrer", 1000, false);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_SESSIONS, "timestamp", 50, true);
+
+  // --- WEBSITE EVENTS ---
+  console.log("Creating WEBSITE_EVENTS attributes...");
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_EVENTS, "gymId", 255, true);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_EVENTS, "sessionId", 255, true);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_EVENTS, "eventType", 100, true);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_EVENTS, "elementId", 255, true);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.WEBSITE_EVENTS, "timestamp", 50, true);
 
   console.log("\nWaiting for attributes to process in Appwrite...");
   await delay(8000);

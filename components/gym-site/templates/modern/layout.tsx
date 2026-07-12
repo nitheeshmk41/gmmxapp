@@ -4,8 +4,8 @@
 import { useState } from "react";
 import { MessageSquare, Phone, MapPin, Share2, Video, Hash, Menu, X } from "lucide-react";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
-
 import { createPublicLead } from "@/features/leads/actions";
+import { useTracker } from "@/hooks/useTracker";
 
 interface GymData {
   id: string;
@@ -71,6 +71,8 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
   const [joinSuccess, setJoinSuccess] = useState(false);
   const [joinLoading, setJoinLoading] = useState(false);
 
+  const { logEvent } = useTracker(gym.id);
+
   const whatsappUrl = settings.whatsapp_number
     ? buildWhatsAppUrl(settings.whatsapp_number, `Hi ${gym.name}, I'm interested in joining!`)
     : null;
@@ -78,12 +80,20 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
   async function handleJoinSubmit(e: React.FormEvent) {
     e.preventDefault();
     setJoinLoading(true);
+    let utmData = {};
+    try {
+      const stored = localStorage.getItem(`gmmx_utm_${gym.id}`);
+      if (stored) utmData = JSON.parse(stored);
+    } catch (e) {}
+
     await createPublicLead({
       gymId: gym.id,
       name: joinName,
       phone: joinPhone,
       source: "website",
+      ...utmData
     });
+    logEvent("join_form_submitted");
     setJoinSuccess(true);
     setJoinLoading(false);
   }
@@ -108,7 +118,7 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
         </div>
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-6">
-          {["About", "Plans", "Trainers", "Testimonials", "Gallery", "Contact"].map((item) => (
+          {["About", "Plans", "Trainers", "Gallery", "Contact"].map((item) => (
             <a key={item} href={`#${item.toLowerCase()}`} className="text-sm font-medium transition-colors" style={{ color: "#94A3B8" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "#94A3B8")}>
@@ -138,7 +148,7 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
             <button onClick={() => setMenuOpen(false)} className="text-white"><X size={22} /></button>
           </div>
           <div className="flex flex-col items-center justify-center flex-1 gap-8">
-            {["About", "Plans", "Trainers", "Testimonials", "Gallery", "Contact"].map((item) => (
+            {["About", "Plans", "Trainers", "Gallery", "Contact"].map((item) => (
               <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setMenuOpen(false)} className="text-2xl font-bold text-white">{item}</a>
             ))}
             <a href="/login" onClick={() => setMenuOpen(false)} className="text-2xl font-bold text-white">Login</a>
@@ -174,10 +184,10 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
             {settings.tagline || `Premium Strength & Fitness Training in your city.`}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="#join" className="px-8 py-4 rounded-xl text-lg font-bold text-white shadow-xl shadow-[#FF5C73]/20 hover:scale-105 transition-transform w-full sm:w-auto" style={{ background: "#FF5C73" }}>
+            <a href="#join" onClick={() => logEvent("hero_join")} className="px-8 py-4 rounded-xl text-lg font-bold text-white shadow-xl shadow-[#FF5C73]/20 hover:scale-105 transition-transform w-full sm:w-auto" style={{ background: "#FF5C73" }}>
               Book Free Trial
             </a>
-            <a href="#plans" className="px-8 py-4 rounded-xl text-lg font-bold text-white shadow-xl flex items-center justify-center gap-2 hover:scale-105 transition-transform w-full sm:w-auto" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)" }}>
+            <a href="#plans" onClick={() => logEvent("hero_plans")} className="px-8 py-4 rounded-xl text-lg font-bold text-white shadow-xl flex items-center justify-center gap-2 hover:scale-105 transition-transform w-full sm:w-auto" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)" }}>
               View Plans
             </a>
           </div>
@@ -406,10 +416,19 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
               </a>
             )}
             {settings.address && (
-              <div className="flex items-center justify-center gap-3 p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#94A3B8" }}>
-                <MapPin size={18} style={{ color: "#FF5C73" }} />
-                <span>{settings.address}</span>
-              </div>
+              <a href="https://share.google/rIzmolqvL89QesguI" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center p-4 rounded-xl transition-all hover:bg-white/5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#94A3B8" }}>
+                <div className="flex items-center gap-3 mb-2">
+                  <MapPin size={18} style={{ color: "#FF5C73" }} />
+                  <span>{settings.address}</span>
+                </div>
+                <div className="w-full h-32 rounded-lg overflow-hidden relative mt-2 group">
+                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all flex items-center justify-center z-10">
+                    <span className="px-4 py-2 bg-[#FF5C73] text-white text-xs font-bold rounded-full shadow-lg">View on Google Maps</span>
+                  </div>
+                  {/* Decorative map background since we can't iframe share.google links securely */}
+                  <div className="w-full h-full bg-slate-800 opacity-50" style={{ backgroundImage: "radial-gradient(#475569 1px, transparent 1px)", backgroundSize: "12px 12px" }}></div>
+                </div>
+              </a>
             )}
           </div>
           {/* Social links */}
@@ -531,7 +550,7 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
 
       {/* Floating WhatsApp CTA */}
       {whatsappUrl && (
-        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 z-50 flex items-center justify-center gap-2 px-5 py-3 rounded-full shadow-2xl hover:scale-105 transition-transform" style={{ background: "#25D366", color: "white" }}>
+        <a href={whatsappUrl} onClick={() => logEvent("whatsapp_floating")} target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 z-50 flex items-center justify-center gap-2 px-5 py-3 rounded-full shadow-2xl hover:scale-105 transition-transform" style={{ background: "#25D366", color: "white" }}>
           <MessageSquare size={24} />
           <span className="font-bold hidden sm:block text-sm">Chat on WhatsApp</span>
         </a>
@@ -539,7 +558,7 @@ export function ModernTemplate({ gym, settings, plans, trainers, testimonials, s
 
       {/* Sticky Mobile CTA */}
       <div className="md:hidden fixed bottom-6 left-6 z-50 flex gap-2" style={{ right: whatsappUrl ? '90px' : '24px' }}>
-        <a href="#join" className="flex-1 flex items-center justify-center font-bold px-4 py-3 rounded-full shadow-2xl shadow-[#FF5C73]/20 text-white text-sm" style={{ background: "#FF5C73" }}>
+        <a href="#join" onClick={() => logEvent("join_sticky")} className="flex-1 flex items-center justify-center font-bold px-4 py-3 rounded-full shadow-2xl shadow-[#FF5C73]/20 text-white text-sm" style={{ background: "#FF5C73" }}>
           Book Free Trial
         </a>
       </div>

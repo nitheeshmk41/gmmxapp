@@ -4,17 +4,21 @@ import { useState } from "react";
 import { Phone, MapPin, MessageSquare } from "lucide-react";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { createPublicLead } from "@/features/leads/actions";
+import { useTracker } from "@/hooks/useTracker";
 
 interface GymData { id: string; name: string; phone: string; email: string; logo_url: string | null; }
 interface Settings { hero_image_url: string | null; description: string | null; tagline: string | null; gallery_urls: string[]; social_instagram: string | null; social_facebook: string | null; social_youtube: string | null; whatsapp_number: string | null; contact_email: string | null; address: string | null; }
 interface Plan { id: string; name: string; price: number; duration_days: number; description: string | null; }
 interface Trainer { id: string; name: string; specialization: string | null; experience_years: number | null; photo_url: string | null; bio: string | null; }
-interface Props { gym: GymData; settings: Settings; plans: Plan[]; trainers: Trainer[]; }
+interface Testimonial { id: string; name: string; review: string; rating: number; }
+interface Props { gym: GymData; settings: Settings; plans: Plan[]; trainers: Trainer[]; testimonials: Testimonial[]; services: string[]; }
 
-export function MinimalTemplate({ gym, settings, plans, trainers }: Props) {
+export function MinimalTemplate({ gym, settings, plans, trainers, testimonials, services }: Props) {
   const [joinName, setJoinName] = useState("");
   const [joinPhone, setJoinPhone] = useState("");
   const [joinSuccess, setJoinSuccess] = useState(false);
+
+  const { logEvent } = useTracker(gym.id);
 
   const whatsappUrl = settings.whatsapp_number
     ? buildWhatsAppUrl(settings.whatsapp_number, `Hi, I'm interested in joining ${gym.name}!`)
@@ -22,7 +26,14 @@ export function MinimalTemplate({ gym, settings, plans, trainers }: Props) {
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
-    await createPublicLead({ gymId: gym.id, name: joinName, phone: joinPhone, source: "website" });
+    let utmData = {};
+    try {
+      const stored = localStorage.getItem(`gmmx_utm_${gym.id}`);
+      if (stored) utmData = JSON.parse(stored);
+    } catch (e) {}
+
+    await createPublicLead({ gymId: gym.id, name: joinName, phone: joinPhone, source: "website", ...utmData });
+    logEvent("join_form_submitted");
     setJoinSuccess(true);
   }
 
@@ -54,9 +65,9 @@ export function MinimalTemplate({ gym, settings, plans, trainers }: Props) {
           <h1 className="text-6xl font-black mb-4 leading-tight">{gym.name}</h1>
           {settings.description && <p className="text-xl text-gray-500 mb-8 leading-relaxed">{settings.description}</p>}
           <div className="flex gap-4">
-            <a href="#join" className="px-8 py-4 rounded-xl text-base font-bold text-white" style={{ background: "#111827" }}>Join Today →</a>
+            <a href="#join" onClick={() => logEvent("hero_join")} className="px-8 py-4 rounded-xl text-base font-bold text-white" style={{ background: "#111827" }}>Join Today →</a>
             {whatsappUrl && (
-              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-8 py-4 rounded-xl text-base font-bold" style={{ background: "#F3F4F6", color: "#111827" }}>
+              <a href={whatsappUrl} onClick={() => logEvent("whatsapp_hero")} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-8 py-4 rounded-xl text-base font-bold" style={{ background: "#F3F4F6", color: "#111827" }}>
                 <MessageSquare size={18} style={{ color: "#25D366" }} /> WhatsApp
               </a>
             )}

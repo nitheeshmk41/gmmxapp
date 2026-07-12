@@ -50,7 +50,33 @@ export interface LeadDocument extends Models.Document {
   email?: string;
   message?: string;
   status: "new" | "contacted" | "converted" | "lost";
-  source: "website" | "whatsapp" | "manual" | "facebook" | "instagram";
+  source: string;
+  utmSource?: string;
+  utmCampaign?: string;
+  utmMedium?: string;
+  referrer?: string;
+}
+
+export interface WebsiteSessionDocument extends Models.Document {
+  gymId: string;
+  sessionId: string;
+  ip?: string;
+  device?: string;
+  browser?: string;
+  country?: string;
+  city?: string;
+  utmSource?: string;
+  utmCampaign?: string;
+  referrer?: string;
+  timestamp: string; // ISO Datetime
+}
+
+export interface WebsiteEventDocument extends Models.Document {
+  gymId: string;
+  sessionId: string;
+  eventType: string; // "click", "pageview", "lead_submit"
+  elementId: string; // e.g., "whatsapp_button"
+  timestamp: string; // ISO Datetime
 }
 
 export interface MemberDocument extends Models.Document {
@@ -209,6 +235,21 @@ export interface BlogDocument extends Models.Document {
   createdAt: string; // ISO Datetime
 }
 
+export interface MarketingLeadDocument extends Models.Document {
+  name: string;
+  email: string;
+  phone?: string;
+  gymName?: string;
+  inquiryType: string;
+  memberCount?: string;
+  currentSoftware?: string;
+  budget?: string;
+  startDate?: string;
+  message: string;
+  source: string;
+  status: "new" | "contacted";
+}
+
 // Appwrite Collection IDs (assumed to be matching the collection names or defined in env)
 export const COLLECTIONS = {
   SAAS_PLANS: "saas_plans",
@@ -216,6 +257,7 @@ export const COLLECTIONS = {
   GYMS: "gyms",
   GYM_USERS: "gym_users",
   LEADS: "leads",
+  MARKETING_LEADS: "marketing_leads",
   MEMBERS: "members",
   MEMBERSHIP_PLANS: "membership_plans",
   TRAINERS: "trainers",
@@ -231,6 +273,8 @@ export const COLLECTIONS = {
   TESTIMONIALS: "testimonials",
   COUPONS: "coupons",
   BLOGS: "blogs",
+  WEBSITE_EVENTS: "website_events",
+  WEBSITE_SESSIONS: "website_sessions",
 };
 
 // Ensure this matches your Appwrite configuration

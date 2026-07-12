@@ -63,7 +63,7 @@ export default function HowItWorksPage() {
 
         <div className="relative z-10 max-w-3xl mx-auto space-y-4">
           <p className="text-rose-500 font-bold text-xs uppercase tracking-widest">simple & streamlined</p>
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight">
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white">
             How <span className="text-white">gmmx</span><span className="text-[#FF5C73]">.app</span> works
           </h1>
           <p className="text-slate-300 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">

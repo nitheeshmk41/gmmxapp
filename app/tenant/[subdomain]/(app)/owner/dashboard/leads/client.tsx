@@ -33,6 +33,8 @@ type Lead = {
   status: string;
   notes?: string | null;
   last_contacted_at?: Date | null;
+  utmSource?: string | null;
+  utmCampaign?: string | null;
   created_at: Date;
 };
 
@@ -211,7 +213,14 @@ export function LeadsClientPage({ leads, total, page, search, status }: Props) {
                     </a>
                   </td>
                   <td className="px-4 py-3.5">
-                    <span className="badge-muted">{SOURCE_LABELS[lead.source] || lead.source}</span>
+                    <div className="flex flex-col">
+                      <span className="badge-muted self-start mb-1">{SOURCE_LABELS[lead.source] || lead.source}</span>
+                      {lead.utmSource && (
+                        <span className="text-[10px] uppercase font-bold tracking-wider" style={{ color: "var(--color-brand-primary)" }}>
+                          {lead.utmSource} {lead.utmCampaign && `(${lead.utmCampaign})`}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3.5">
                     <select

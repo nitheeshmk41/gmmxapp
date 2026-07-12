@@ -182,7 +182,7 @@ export async function convertLeadToMember(leadId: string): Promise<{ success?: b
   }
 }
 
-export async function createPublicLead(data: { gymId: string; name: string; phone: string; source?: string }): Promise<{ success?: boolean; error?: string }> {
+export async function createPublicLead(data: { gymId: string; name: string; phone: string; source?: string; utmSource?: string; utmCampaign?: string; utmMedium?: string; referrer?: string }): Promise<{ success?: boolean; error?: string }> {
   try {
     const { databases } = await createAdminClient();
     await databases.createDocument(APPWRITE_DB_ID, COLLECTIONS.LEADS, ID.unique(), {
@@ -191,10 +191,15 @@ export async function createPublicLead(data: { gymId: string; name: string; phon
       phone: data.phone,
       status: "New",
       source: data.source || "Website",
+      utmSource: data.utmSource,
+      utmCampaign: data.utmCampaign,
+      utmMedium: data.utmMedium,
+      referrer: data.referrer,
       createdAt: new Date().toISOString()
     });
     return { success: true };
   } catch (error) {
+    console.error("[createPublicLead]", error);
     return { error: "Failed to create lead." };
   }
 }

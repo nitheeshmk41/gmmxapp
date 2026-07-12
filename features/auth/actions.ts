@@ -438,6 +438,10 @@ export async function signOut() {
   try {
     await deleteSessionCookie();
   } catch {}
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete("gmmx_tenant");
+  } catch {}
   const headerStore = await headers();
   const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
   const isRoot = host.includes("gmmx.app") && !host.match(/^[a-zA-Z0-9-]+\.gmmx\.app/);

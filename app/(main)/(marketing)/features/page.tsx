@@ -226,7 +226,7 @@ export default function FeaturesPage() {
         <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-[2px]" />
         <div className="relative z-10 max-w-3xl mx-auto space-y-4">
           <p className="text-rose-500 font-bold text-xs uppercase tracking-widest">EVERYTHING YOU NEED TO RUN A MODERN GYM</p>
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight">
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white">
             <span className="text-[#E2E8F0]">Features built for</span> <span className="text-[#FF5C73]">gym growth</span>
           </h1>
           <p className="text-slate-400 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">

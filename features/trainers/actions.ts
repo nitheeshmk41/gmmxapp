@@ -65,6 +65,31 @@ export async function createTrainer(formData: FormData) {
   const { databases, users } = await createAdminClient();
 
   try {
+    // Limit check
+    const subRes = await databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.SUBSCRIPTIONS, [
+      Query.equal("gymId", gym.$id),
+      Query.orderDesc("$createdAt"),
+      Query.limit(1)
+    ]);
+    
+    if (subRes.total > 0) {
+      const planId = subRes.documents[0].planId;
+      try {
+        const plan = await databases.getDocument(APPWRITE_DB_ID, COLLECTIONS.SAAS_PLANS, planId);
+        if (plan && plan.maxTrainers > 0) {
+          const trainersCountRes = await databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.TRAINERS, [
+            Query.equal("gymId", gym.$id),
+            Query.limit(1) // We just need total
+          ]);
+          if (trainersCountRes.total >= plan.maxTrainers) {
+            return { error: `Trainer limit reached. Your plan allows up to ${plan.maxTrainers} trainers.` };
+          }
+        }
+      } catch (err) {
+        console.error("Could not fetch plan for limit check", err);
+      }
+    }
+
     let userId = ID.unique();
     if (parsed.data.phone) {
       // Create Appwrite Auth User for the Trainer to allow OTP login

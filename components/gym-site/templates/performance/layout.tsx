@@ -4,17 +4,21 @@ import { useState } from "react";
 import { Zap } from "lucide-react";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { createPublicLead } from "@/features/leads/actions";
+import { useTracker } from "@/hooks/useTracker";
 
 interface GymData { id: string; name: string; phone: string; email: string; logo_url: string | null; }
 interface Settings { hero_image_url: string | null; description: string | null; tagline: string | null; gallery_urls: string[]; social_instagram: string | null; social_facebook: string | null; social_youtube: string | null; whatsapp_number: string | null; contact_email: string | null; address: string | null; }
 interface Plan { id: string; name: string; price: number; duration_days: number; description: string | null; }
 interface Trainer { id: string; name: string; specialization: string | null; experience_years: number | null; photo_url: string | null; bio: string | null; }
-interface Props { gym: GymData; settings: Settings; plans: Plan[]; trainers: Trainer[]; }
+interface Testimonial { id: string; name: string; review: string; rating: number; }
+interface Props { gym: GymData; settings: Settings; plans: Plan[]; trainers: Trainer[]; testimonials: Testimonial[]; services: string[]; }
 
-export function PerformanceTemplate({ gym, settings, plans }: Props) {
+export function PerformanceTemplate({ gym, settings, plans, trainers, testimonials, services }: Props) {
   const [joinName, setJoinName] = useState("");
   const [joinPhone, setJoinPhone] = useState("");
   const [joinSuccess, setJoinSuccess] = useState(false);
+
+  const { logEvent } = useTracker(gym.id);
 
   const whatsappUrl = settings.whatsapp_number
     ? buildWhatsAppUrl(settings.whatsapp_number, `Hi, I want to join ${gym.name}!`)
@@ -22,7 +26,14 @@ export function PerformanceTemplate({ gym, settings, plans }: Props) {
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
-    await createPublicLead({ gymId: gym.id, name: joinName, phone: joinPhone, source: "website" });
+    let utmData = {};
+    try {
+      const stored = localStorage.getItem(`gmmx_utm_${gym.id}`);
+      if (stored) utmData = JSON.parse(stored);
+    } catch (e) {}
+
+    await createPublicLead({ gymId: gym.id, name: joinName, phone: joinPhone, source: "website", ...utmData });
+    logEvent("join_form_submitted");
     setJoinSuccess(true);
   }
 
@@ -62,9 +73,9 @@ export function PerformanceTemplate({ gym, settings, plans }: Props) {
           </h1>
           {settings.description && <p className="text-lg text-gray-400 mb-8 max-w-lg">{settings.description}</p>}
           <div className="flex gap-4">
-            <a href="#join" className="px-8 py-4 text-base font-black uppercase tracking-wider text-black" style={{ background: "#FF5C73" }}>START NOW →</a>
+            <a href="#join" onClick={() => logEvent("hero_join")} className="px-8 py-4 text-base font-black uppercase tracking-wider text-black" style={{ background: "#FF5C73" }}>START NOW →</a>
             {whatsappUrl && (
-              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="px-8 py-4 text-base font-black uppercase tracking-wider text-white" style={{ border: "2px solid #FF5C73" }}>
+              <a href={whatsappUrl} onClick={() => logEvent("whatsapp_hero")} target="_blank" rel="noopener noreferrer" className="px-8 py-4 text-base font-black uppercase tracking-wider text-white" style={{ border: "2px solid #FF5C73" }}>
                 WHATSAPP
               </a>
             )}
@@ -114,7 +125,12 @@ export function PerformanceTemplate({ gym, settings, plans }: Props) {
             </div>
             <div className="space-y-4">
               {gym.phone && <p className="text-lg font-bold">{gym.phone}</p>}
-              {settings.address && <p className="text-gray-400">{settings.address}</p>}
+              {settings.address && (
+                <a href="https://share.google/rIzmolqvL89QesguI" target="_blank" rel="noopener noreferrer" className="group block">
+                  <p className="text-gray-400 group-hover:text-white transition-colors">{settings.address}</p>
+                  <p className="text-xs font-bold mt-2" style={{ color: "#FF5C73" }}>VIEW ON GOOGLE MAPS →</p>
+                </a>
+              )}
             </div>
           </div>
           <div id="join">

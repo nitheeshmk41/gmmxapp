@@ -73,6 +73,20 @@ export default async function NewBlogPage() {
               }} />
           </div>
 
+          {/* Cover Image URL */}
+          <div>
+            <label className="text-xs font-semibold mb-1.5 block" style={{ color: "var(--color-foreground)" }}>
+              Cover Image URL <span className="font-normal" style={{ color: "var(--color-muted-foreground)" }}>(Optional)</span>
+            </label>
+            <input name="coverImageUrl" type="url" placeholder="https://images.unsplash.com/photo-..."
+              className="w-full px-4 py-3 rounded-xl text-sm border outline-none"
+              style={{
+                background: "var(--color-background)",
+                borderColor: "var(--color-border)",
+                color: "var(--color-foreground)",
+              }} />
+          </div>
+
           {/* Category + Tags */}
           <div className="grid grid-cols-2 gap-4">
             <div>

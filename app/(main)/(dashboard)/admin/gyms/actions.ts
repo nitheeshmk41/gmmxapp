@@ -2,7 +2,7 @@
 
 import { createAdminClient } from "@/lib/appwrite/server";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
-import { ID } from "node-appwrite";
+import { ID, Query } from "node-appwrite";
 import { revalidatePath } from "next/cache";
 
 export async function createGymManually(formData: FormData) {
@@ -76,13 +76,51 @@ export async function removeGym(gymId: string) {
     if (!gymId) return { success: false, error: "Gym ID missing" };
     const { databases } = await createAdminClient();
 
-    await databases.updateDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gymId, {
-      isDeleted: true,
-      status: "cancelled",
-    });
+    // Cascading delete for related collections
+    const collectionsToClear = [
+      COLLECTIONS.MEMBERS,
+      COLLECTIONS.LEADS,
+      COLLECTIONS.TRAINERS,
+      COLLECTIONS.ATTENDANCE,
+      COLLECTIONS.PAYMENTS,
+      COLLECTIONS.SUBSCRIPTIONS,
+      COLLECTIONS.GYM_SETTINGS,
+      COLLECTIONS.GYM_PROFILE,
+      COLLECTIONS.GYM_SOCIALS,
+      COLLECTIONS.GYM_SERVICES,
+      COLLECTIONS.GYM_GALLERY,
+      COLLECTIONS.TESTIMONIALS,
+      COLLECTIONS.WEBSITE_SECTIONS,
+      COLLECTIONS.ACTIVITY_LOGS,
+      COLLECTIONS.GYM_USERS,
+      COLLECTIONS.MEMBERSHIP_PLANS
+    ];
+
+    for (const collection of collectionsToClear) {
+      try {
+        let hasMore = true;
+        while (hasMore) {
+          const res = await databases.listDocuments(APPWRITE_DB_ID, collection, [
+            Query.equal("gymId", gymId),
+            Query.limit(100)
+          ]);
+          if (res.documents.length === 0) {
+            hasMore = false;
+            break;
+          }
+          for (const doc of res.documents) {
+            await databases.deleteDocument(APPWRITE_DB_ID, collection, doc.$id);
+          }
+        }
+      } catch (err) {
+        console.error(`Failed to clear collection ${collection} for gym ${gymId}`, err);
+      }
+    }
+
+    // Finally, physically delete the gym
+    await databases.deleteDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gymId);
 
     revalidatePath("/admin/gyms");
-    revalidatePath(`/admin/gyms/${gymId}`);
     return { success: true };
   } catch (error: any) {
     console.error("[RemoveGym Error]", error);

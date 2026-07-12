@@ -115,7 +115,7 @@ export default function PricingPage() {
         <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-[2px]" />
 
         <div className="relative z-10 max-w-3xl mx-auto space-y-6 mt-10">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-white">
             Simple pricing for every gym.
           </h1>
           <p className="text-slate-300 text-lg sm:text-xl max-w-2xl mx-auto font-medium">

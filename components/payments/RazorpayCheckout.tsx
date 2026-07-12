@@ -63,9 +63,33 @@ export default function RazorpayCheckout({
         description: `${planName} Subscription`,
         order_id: orderData.id,
         handler: async function (response: any) {
-          // You could also call a webhook endpoint here if you want immediate client-side feedback
-          toast.success("Payment successful!");
-          // router.push("/onboarding"); // Redirect to onboarding
+          toast.loading("Verifying payment...", { id: "verify-toast" });
+          
+          try {
+            const verifyRes = await fetch("/api/payments/razorpay/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                gymId,
+                plan: planName,
+                period
+              }),
+            });
+
+            const verifyData = await verifyRes.json();
+            
+            if (verifyData.success) {
+              toast.success("Payment successful! Your plan is now active.", { id: "verify-toast" });
+              router.refresh();
+            } else {
+              toast.error(verifyData.error || "Payment verification failed", { id: "verify-toast" });
+            }
+          } catch (error) {
+            toast.error("Network error during verification. Please contact support.", { id: "verify-toast" });
+          }
         },
         prefill: {
           name: "Test User",

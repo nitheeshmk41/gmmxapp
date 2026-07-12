@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { href: "/owner/dashboard/plans", label: "Plans", icon: Building2 },
   { href: "/owner/dashboard/website", label: "Website", icon: Globe },
   { href: "/owner/dashboard/reports", label: "Reports", icon: TrendingUp },
+  { href: "/owner/dashboard/analytics", label: "Analytics", icon: TrendingUp }, // Temporary fallback icon until we import BarChart in mobile-nav
   { href: "/owner/dashboard/settings", label: "Settings", icon: Settings },
 ];
 

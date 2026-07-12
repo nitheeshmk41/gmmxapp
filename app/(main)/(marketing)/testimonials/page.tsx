@@ -71,7 +71,7 @@ export default function TestimonialsPage() {
 
         <div className="relative z-10 max-w-3xl mx-auto space-y-4">
           <p className="text-rose-500 font-bold text-xs uppercase tracking-widest">real business impact</p>
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight">
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white">
             Trusted by <span className="text-white">gym owners on gmmx</span><span className="text-[#FF5C73]">.app</span>
           </h1>
           <p className="text-slate-300 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">

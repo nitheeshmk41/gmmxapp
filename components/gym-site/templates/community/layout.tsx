@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MessageSquare, Phone, MapPin, Share2, Video, Hash, Menu, X, ArrowRight, Clock, CheckCircle2 } from "lucide-react";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { createPublicLead } from "@/features/leads/actions";
+import { useTracker } from "@/hooks/useTracker";
 
 interface GymData {
   id: string;
@@ -69,6 +70,8 @@ export function CommunityTemplate({ gym, settings, plans, trainers, testimonials
   const [joinSuccess, setJoinSuccess] = useState(false);
   const [joinLoading, setJoinLoading] = useState(false);
 
+  const { logEvent } = useTracker(gym.id);
+
   const whatsappUrl = settings.whatsapp_number
     ? buildWhatsAppUrl(settings.whatsapp_number, `Hi ${gym.name}, I want to know more about your memberships!`)
     : null;
@@ -76,12 +79,20 @@ export function CommunityTemplate({ gym, settings, plans, trainers, testimonials
   async function handleJoinSubmit(e: React.FormEvent) {
     e.preventDefault();
     setJoinLoading(true);
+    let utmData = {};
+    try {
+      const stored = localStorage.getItem(`gmmx_utm_${gym.id}`);
+      if (stored) utmData = JSON.parse(stored);
+    } catch (e) {}
+
     await createPublicLead({
       gymId: gym.id,
       name: joinName,
       phone: joinPhone,
       source: `Website - Contact Form`,
+      ...utmData
     });
+    logEvent("join_form_submitted");
     setJoinSuccess(true);
     setJoinLoading(false);
   }
@@ -153,10 +164,10 @@ export function CommunityTemplate({ gym, settings, plans, trainers, testimonials
               {settings.description || "Affordable memberships, great equipment, and a friendly community right in your neighborhood."}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <a href="#pricing" className="px-8 py-4 rounded-xl text-lg font-bold text-white shadow-lg shadow-blue-500/20 hover:shadow-xl transition-all w-full sm:w-auto text-center" style={{ background: primaryColor }}>
+              <a href="#pricing" onClick={() => logEvent("hero_pricing")} className="px-8 py-4 rounded-xl text-lg font-bold text-white shadow-lg shadow-blue-500/20 hover:shadow-xl transition-all w-full sm:w-auto text-center" style={{ background: primaryColor }}>
                 View Memberships
               </a>
-              <a href="#contact" className="px-8 py-4 rounded-xl text-lg font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 shadow-sm transition-all w-full sm:w-auto text-center">
+              <a href="#contact" onClick={() => logEvent("hero_contact")} className="px-8 py-4 rounded-xl text-lg font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 shadow-sm transition-all w-full sm:w-auto text-center">
                 Contact Us
               </a>
             </div>
@@ -318,11 +329,11 @@ export function CommunityTemplate({ gym, settings, plans, trainers, testimonials
       {/* Sticky Mobile CTA */}
       <div className="md:hidden fixed bottom-4 left-4 right-4 z-50 flex gap-2">
         {whatsappUrl && (
-          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-4 rounded-xl shadow-lg" style={{ background: "#25D366", color: "white" }}>
+          <a href={whatsappUrl} onClick={() => logEvent("whatsapp_mobile")} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-4 rounded-xl shadow-lg" style={{ background: "#25D366", color: "white" }}>
             <MessageSquare size={20} />
           </a>
         )}
-        <a href="#contact" className="flex-1 flex items-center justify-center font-bold px-4 py-4 rounded-xl shadow-lg text-white" style={{ background: primaryColor }}>
+        <a href="#contact" onClick={() => logEvent("contact_mobile")} className="flex-1 flex items-center justify-center font-bold px-4 py-4 rounded-xl shadow-lg text-white" style={{ background: primaryColor }}>
           Contact Us
         </a>
       </div>

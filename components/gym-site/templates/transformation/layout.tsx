@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MessageSquare, Phone, MapPin, Share2, Video, Hash, Menu, X, ArrowRight, Quote, CheckCircle2 } from "lucide-react";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { createPublicLead } from "@/features/leads/actions";
+import { useTracker } from "@/hooks/useTracker";
 
 interface GymData {
   id: string;
@@ -68,6 +69,8 @@ export function TransformationTemplate({ gym, settings, plans, trainers, testimo
   const [joinSuccess, setJoinSuccess] = useState(false);
   const [joinLoading, setJoinLoading] = useState(false);
 
+  const { logEvent } = useTracker(gym.id);
+
   const whatsappUrl = settings.whatsapp_number
     ? buildWhatsAppUrl(settings.whatsapp_number, `Hi ${gym.name}, I'm interested in starting my transformation!`)
     : null;
@@ -75,12 +78,20 @@ export function TransformationTemplate({ gym, settings, plans, trainers, testimo
   async function handleJoinSubmit(e: React.FormEvent) {
     e.preventDefault();
     setJoinLoading(true);
+    let utmData = {};
+    try {
+      const stored = localStorage.getItem(`gmmx_utm_${gym.id}`);
+      if (stored) utmData = JSON.parse(stored);
+    } catch (e) {}
+
     await createPublicLead({
       gymId: gym.id,
       name: joinName,
       phone: joinPhone,
       source: `Website - Goal: ${joinGoal}`,
+      ...utmData
     });
+    logEvent("join_form_submitted");
     setJoinSuccess(true);
     setJoinLoading(false);
   }
@@ -100,7 +111,7 @@ export function TransformationTemplate({ gym, settings, plans, trainers, testimo
           <span className="font-black tracking-tight text-white text-xl uppercase">{gym.name}</span>
         </div>
         <div className="hidden md:flex items-center gap-8">
-          {["Testimonials", "Transformations", "Plans"].map((item) => (
+          {["Transformations", "Plans"].map((item) => (
             <a key={item} href={`#${item.toLowerCase()}`} className="text-sm font-bold text-white/90 hover:text-white transition-colors uppercase tracking-wider">
               {item}
             </a>
@@ -120,7 +131,7 @@ export function TransformationTemplate({ gym, settings, plans, trainers, testimo
             <button onClick={() => setMenuOpen(false)} className="text-gray-900"><X size={28} /></button>
           </div>
           <div className="flex flex-col items-center justify-center flex-1 gap-8">
-            {["Testimonials", "Transformations", "Plans"].map((item) => (
+            {["Transformations", "Plans"].map((item) => (
               <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setMenuOpen(false)} className="text-3xl font-black text-gray-900 uppercase">{item}</a>
             ))}
             <a href="/login" onClick={() => setMenuOpen(false)} className="text-3xl font-black text-gray-900 uppercase">Login</a>
@@ -147,7 +158,7 @@ export function TransformationTemplate({ gym, settings, plans, trainers, testimo
             {settings.description || "Stop guessing and start transforming. Get the exact blueprint, accountability, and coaching you need."}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
-            <a href="#join" className="w-full sm:w-auto px-10 py-5 rounded-full text-lg font-black text-white hover:scale-105 transition-transform uppercase tracking-wider flex items-center justify-center gap-2" style={{ background: primaryColor, boxShadow: `0 20px 40px -10px ${primaryColor}` }}>
+            <a href="#join" onClick={() => logEvent("hero_start")} className="w-full sm:w-auto px-10 py-5 rounded-full text-lg font-black text-white hover:scale-105 transition-transform uppercase tracking-wider flex items-center justify-center gap-2" style={{ background: primaryColor, boxShadow: `0 20px 40px -10px ${primaryColor}` }}>
               Start My Journey <ArrowRight size={20} />
             </a>
           </div>
@@ -301,11 +312,11 @@ export function TransformationTemplate({ gym, settings, plans, trainers, testimo
       {/* Sticky Mobile CTA */}
       <div className="md:hidden fixed bottom-4 left-4 right-4 z-50 flex gap-2">
         {whatsappUrl && (
-          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-4 rounded-2xl shadow-xl" style={{ background: "#25D366", color: "white" }}>
+          <a href={whatsappUrl} onClick={() => logEvent("whatsapp_mobile")} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-4 rounded-2xl shadow-xl" style={{ background: "#25D366", color: "white" }}>
             <MessageSquare size={24} />
           </a>
         )}
-        <a href="#join" className="flex-1 flex items-center justify-center text-lg font-black uppercase tracking-wider px-4 py-4 rounded-2xl shadow-xl text-white" style={{ background: primaryColor }}>
+        <a href="#join" onClick={() => logEvent("join_mobile")} className="flex-1 flex items-center justify-center text-lg font-black uppercase tracking-wider px-4 py-4 rounded-2xl shadow-xl text-white" style={{ background: primaryColor }}>
           Start Now
         </a>
       </div>
