@@ -6,7 +6,7 @@ import { ActivityFeed } from "./components/ActivityFeed";
 
 export default async function AnalyticsDashboardPage() {
   const gym = await getCurrentGym();
-  if (!gym) redirect("/login");
+  if (!gym) redirect("/owner/login");
 
   // In a real implementation, we would fetch aggregate metrics from Appwrite here
   // For the MVP, we are setting up the structure.

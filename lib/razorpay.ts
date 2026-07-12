@@ -2,10 +2,20 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 
 // ── Razorpay instance ─────────────────────────────────────────
-export const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+let razorpayInstance: Razorpay | null = null;
+
+export function getRazorpay() {
+  if (!razorpayInstance) {
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      throw new Error("RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET must be set in environment variables.");
+    }
+    razorpayInstance = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+  }
+  return razorpayInstance;
+}
 
 // ── Create Order ──────────────────────────────────────────────
 export async function createRazorpayOrder({
@@ -17,7 +27,8 @@ export async function createRazorpayOrder({
   receipt: string;
   notes?: Record<string, string>;
 }) {
-  const order = await razorpay.orders.create({
+  const rzp = getRazorpay();
+  const order = await rzp.orders.create({
     amount: Math.round(amount * 100), // Razorpay expects paise
     currency: "INR",
     receipt,

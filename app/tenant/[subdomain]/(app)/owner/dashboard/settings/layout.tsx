@@ -11,7 +11,7 @@ export default async function SettingsLayout({
   children: React.ReactNode;
 }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/owner/login");
 
   return (
     <div className="max-w-4xl mx-auto pb-12 animate-in fade-in slide-in-from-bottom-4">

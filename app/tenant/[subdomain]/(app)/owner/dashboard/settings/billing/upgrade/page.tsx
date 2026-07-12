@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 export default async function UpgradePage() {
   const gym = await getCurrentGym();
-  if (!gym) redirect("/login");
+  if (!gym) redirect("/owner/login");
 
   return (
     <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300 max-w-5xl mx-auto">

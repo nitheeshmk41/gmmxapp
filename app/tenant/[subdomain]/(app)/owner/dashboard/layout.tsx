@@ -9,7 +9,7 @@ export default async function OwnerDashboardGuardLayout({
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/owner/login");
   }
 
   const roleUpper = (user.role || "").toUpperCase();
