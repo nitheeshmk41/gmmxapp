@@ -3,8 +3,9 @@
 import { getCurrentGym } from "@/features/auth/actions";
 import { getCurrentGym as getGymContext } from "@/lib/auth/context";
 import { createAdminClient } from "@/lib/appwrite/server";
-import { ID, Query, Client, Account } from "node-appwrite";
+import { ID, Query } from "node-appwrite";
 import { env, getBaseUrl } from "@/lib/env";
+import { Resend } from "resend";
 import { APPWRITE_DB_ID, COLLECTIONS, MemberDocument, MembershipPlanDocument } from "@/lib/appwrite/types";
 import { revalidatePath } from "next/cache";
 
@@ -290,14 +291,31 @@ export async function createMember(formData: FormData): Promise<{ success?: bool
           const newUser = await users.create(ID.unique(), email, undefined, randomPassword, name);
           targetUserId = newUser.$id;
           
-          const client = new Client()
-            .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
-            .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
-          const account = new Account(client);
-          
-          // Send password recovery/setup email
-          const resetUrl = `${getBaseUrl()}/member/set-password`;
-          await account.createRecovery(email, resetUrl);
+          // Use Resend to reliably deliver the password email (bypassing Appwrite Cloud's SMTP limitations)
+          if (process.env.RESEND_API_KEY) {
+            const resend = new Resend(process.env.RESEND_API_KEY);
+            await resend.emails.send({
+              from: "GMMX Alerts <onboarding@resend.dev>",
+              to: email,
+              subject: `Welcome to ${context.gym.name} - Set your password`,
+              html: `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+                  <h2 style="color: #0f172a;">Welcome to ${context.gym.name}!</h2>
+                  <p style="color: #475569; font-size: 16px;">Your gym membership account has been created successfully.</p>
+                  <p style="color: #475569; font-size: 16px;">To access your account, please log in to the GMMX Member App using your email address and the temporary password below:</p>
+                  
+                  <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;">
+                    <span style="font-family: monospace; font-size: 20px; font-weight: bold; letter-spacing: 2px; color: #FF5C73;">${randomPassword}</span>
+                  </div>
+                  
+                  <p style="color: #475569; font-size: 14px;"><strong>Note:</strong> Please log in and go to your profile to change this temporary password to a secure one of your choice.</p>
+                  <p style="color: #475569; font-size: 14px; margin-top: 30px;">Best regards,<br>The GMMX Team</p>
+                </div>
+              `
+            });
+          } else {
+             console.warn("RESEND_API_KEY is missing! Temporary password email was skipped.");
+          }
         }
         
         // Ensure GymUser role is set so they can access the mobile app
