@@ -487,8 +487,7 @@ export async function updateMember(id: string, formData: FormData): Promise<{ su
       }
     );
 
-    revalidatePath("/dashboard/members");
-    revalidatePath(`/dashboard/members/${id}`);
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error: unknown) {
     console.error("[updateMember] Failed:", error);
@@ -530,7 +529,34 @@ export async function deleteMember(id: string): Promise<{ success?: boolean; err
       }
     } catch {}
 
-    revalidatePath("/dashboard/members");
+    // Clean up Auth and GYM_USERS mapping
+    if (member.email) {
+      try {
+        const { users } = await createAdminClient();
+        const existingUsers = await users.list([Query.equal("email", member.email)]);
+        if (existingUsers.total > 0) {
+          const authUserId = existingUsers.users[0].$id;
+          const gymUsers = await databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_USERS, [
+            Query.equal("userId", authUserId),
+            Query.equal("gymId", gym.$id)
+          ]);
+          for (const gu of gymUsers.documents) {
+            await databases.deleteDocument(APPWRITE_DB_ID, COLLECTIONS.GYM_USERS, gu.$id);
+          }
+          
+          const otherGyms = await databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_USERS, [
+            Query.equal("userId", authUserId)
+          ]);
+          if (otherGyms.total === 0) {
+            await users.delete(authUserId);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to clean up Auth mapping during deletion:", err);
+      }
+    }
+
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error: unknown) {
     console.error("[deleteMember] Failed:", error);
@@ -562,3 +588,55 @@ export async function getMembersForExport() {
     return [];
   }
 }
+
+export async function resendPasswordEmail(id: string): Promise<{ success?: boolean; error?: string }> {
+  const gym = await getCurrentGym();
+  if (!gym) return { error: "Unauthorized" };
+
+  try {
+    const { databases, users } = await createAdminClient();
+    const member = await databases.getDocument<MemberDocument>(
+      APPWRITE_DB_ID,
+      COLLECTIONS.MEMBERS,
+      id
+    );
+
+    if (member.gymId !== gym.$id) return { error: "Unauthorized" };
+    if (!member.email) return { error: "Member does not have an email address" };
+
+    const existingUsers = await users.list([Query.equal("email", member.email)]);
+    if (existingUsers.total === 0) return { error: "Auth account not found for this member" };
+
+    const targetUserId = existingUsers.users[0].$id;
+    const randomPassword = ID.unique() + "Aa1!";
+    
+    await users.updatePassword(targetUserId, randomPassword);
+
+    if (process.env.RESEND_API_KEY) {
+      const { Resend } = await import("resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      await resend.emails.send({
+        from: "GMMX Alerts <onboarding@resend.dev>",
+        to: member.email,
+        subject: `Password Reset for ${gym.name}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+            <h2 style="color: #0f172a;">Password Reset</h2>
+            <p style="color: #475569; font-size: 16px;">Your password for ${gym.name} has been reset by the gym owner.</p>
+            <p style="color: #475569; font-size: 16px;">Your new temporary password is:</p>
+            <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;">
+              <span style="font-family: monospace; font-size: 20px; font-weight: bold; letter-spacing: 2px; color: #FF5C73;">${randomPassword}</span>
+            </div>
+            <p style="color: #475569; font-size: 14px;">Please log in to the GMMX App and change this password.</p>
+          </div>
+        `
+      });
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("[resendPasswordEmail] Failed:", error);
+    return { error: error.message || "Failed to reset password" };
+  }
+}
+

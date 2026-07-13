@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getMemberById } from "@/features/members/actions";
 import { formatDate, formatCurrency, getExpiryStatus, getInitials } from "@/lib/utils";
+import { ResetPasswordButton } from "./ResetPasswordButton";
 import {
   ChevronLeft,
   Edit2,
@@ -65,6 +66,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
             <Phone size={14} />
             WhatsApp
           </Link>
+          <ResetPasswordButton memberId={member.id} memberEmail={member.email || null} />
           <Link
             href={`/owner/dashboard/members/${member.id}/edit`}
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all"
