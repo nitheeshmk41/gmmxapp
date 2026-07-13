@@ -3,7 +3,8 @@
 import { getCurrentGym } from "@/features/auth/actions";
 import { getCurrentGym as getGymContext } from "@/lib/auth/context";
 import { createAdminClient } from "@/lib/appwrite/server";
-import { ID, Query } from "node-appwrite";
+import { ID, Query, Client, Account } from "node-appwrite";
+import { env, getBaseUrl } from "@/lib/env";
 import { APPWRITE_DB_ID, COLLECTIONS, MemberDocument, MembershipPlanDocument } from "@/lib/appwrite/types";
 import { revalidatePath } from "next/cache";
 
@@ -273,6 +274,57 @@ export async function createMember(formData: FormData): Promise<{ success?: bool
     const status = membershipEndDate && new Date(membershipEndDate) >= today ? "active" : "expired";
 
     const memberId = ID.unique();
+    let authError = "";
+
+    if (email) {
+      try {
+        const { users } = await createAdminClient();
+        const randomPassword = ID.unique() + "Aa1!"; // Ensure password complexity
+        
+        // Check if user already exists in Appwrite Auth
+        const existingUsers = await users.list([Query.equal("email", email)]);
+        let targetUserId = existingUsers.total > 0 ? existingUsers.users[0].$id : null;
+        
+        if (!targetUserId) {
+          // Phone must be exactly E.164 format, or we can just leave it undefined to avoid formatting errors
+          const newUser = await users.create(ID.unique(), email, undefined, randomPassword, name);
+          targetUserId = newUser.$id;
+          
+          const client = new Client()
+            .setEndpoint(env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
+            .setProject(env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
+          const account = new Account(client);
+          
+          // Send password recovery/setup email
+          const resetUrl = `${getBaseUrl()}/member/set-password`;
+          await account.createRecovery(email, resetUrl);
+        }
+        
+        // Ensure GymUser role is set so they can access the mobile app
+        const gymUserCheck = await databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_USERS, [
+          Query.equal("userId", targetUserId),
+          Query.equal("gymId", context.gym.$id)
+        ]);
+        
+        if (gymUserCheck.total === 0) {
+          await databases.createDocument(
+            APPWRITE_DB_ID,
+            COLLECTIONS.GYM_USERS,
+            ID.unique(),
+            {
+              userId: targetUserId,
+              gymId: context.gym.$id,
+              role: "member"
+            }
+          );
+        }
+      } catch (err: any) {
+        console.error("Auth creation failed:", err);
+        authError = err.message;
+      }
+    }
+
+    if (authError) return { error: `Auth creation failed: ${authError}` };
 
     // Create the Member document
     await databases.createDocument(
