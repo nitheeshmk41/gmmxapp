@@ -112,8 +112,9 @@ export function generateStaticParams() {
   }));
 }
 
-export function generateMetadata({ params }: { params: { solution: string } }): Metadata {
-  const data = SOLUTIONS[params.solution];
+export async function generateMetadata({ params }: { params: Promise<{ solution: string }> }): Promise<Metadata> {
+  const { solution } = await params;
+  const data = SOLUTIONS[solution];
   if (!data) return {};
 
   return {
@@ -122,8 +123,9 @@ export function generateMetadata({ params }: { params: { solution: string } }): 
   };
 }
 
-export default function SolutionPage({ params }: { params: { solution: string } }) {
-  const data = SOLUTIONS[params.solution];
+export default async function SolutionPage({ params }: { params: Promise<{ solution: string }> }) {
+  const { solution } = await params;
+  const data = SOLUTIONS[solution];
   
   if (!data) {
     notFound();
