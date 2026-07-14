@@ -21,7 +21,7 @@ const FAQS = [
   },
   {
     question: "How long is the setup process?",
-    answer: "Setup takes less than 5 minutes. Your gym website goes live instantly, and you can start adding members right away."
+    answer: "Setup takes less than 5 minutes. Your business website goes live instantly, and you can start adding members right away."
   },
   {
     question: "Do you support QR attendance?",
@@ -32,8 +32,8 @@ const FAQS = [
     answer: "Absolutely. We don't believe in lock-in contracts. You can cancel your subscription at any time."
   },
   {
-    question: "Can trainers login?",
-    answer: "Yes, you can create dedicated trainer accounts with restricted permissions."
+    question: "Can coaches login?",
+    answer: "Yes, you can create dedicated coach accounts with restricted permissions."
   },
   {
     question: "Can members use a mobile app?",

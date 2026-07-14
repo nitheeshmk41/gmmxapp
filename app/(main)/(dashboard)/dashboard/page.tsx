@@ -8,7 +8,7 @@ import { routeForUser } from "@/lib/auth/bootstrap";
 export default async function DashboardRedirectPage() {
   const context = await getCurrentContext();
   if (!context) {
-    redirect("/signin");
+    redirect("/signin?redirectTo=/dashboard");
   }
 
   const user = context.user;

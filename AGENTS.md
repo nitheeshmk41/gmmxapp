@@ -2,27 +2,28 @@
 
 # GMMX - AI Agent Guidelines
 
-## Project Overview
+## Project Overview & Vision
 
-GMMX is a web-first multi-tenant Gym Management SaaS.
+**Long-term Vision:** GMMX is a web-first multi-tenant **Fitness Business Management Platform**. While initially built for gyms, the platform is designed to eventually support Yoga Studios, Dance Academies, Swimming Academies, Martial Arts, and Personal Trainers.
 
-The product helps gyms:
+**MVP Focus:** For the initial MVP, development is **strictly focused on Gyms** to ensure a strong product-market fit, fast development, and clear workflows.
 
-* Manage members
-* Track payments
+The product helps fitness businesses:
+
+* Manage clients/members
+* Track payments and renewals
 * Track membership expiry
 * Manage leads
-* Generate professional gym websites
-* Use custom domains
+* Generate professional websites
 * Accept online payments
 
-GMMX is NOT a fitness tracking application.
-
-GMMX is a business management platform for gym owners.
+Internal Terminology Mindset (for future scalability):
+- Gym -> Organization / Business
+- Trainer -> Staff / Coach
+- Member -> Client / Member
 
 Primary value proposition:
-
-"Manage your gym and get a professional website in minutes."
+"Manage your fitness business and get a professional website in minutes."
 
 ---
 

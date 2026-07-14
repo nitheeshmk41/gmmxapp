@@ -43,15 +43,15 @@ const FEATURES = [
   },
   {
     icon: Globe,
-    title: "🌐 Gym Website",
-    desc: "An auto-generated, high-converting gym landing page at yourgym.gmmx.app to display schedules, plans, and capture leads.",
+    title: "🌐 Business Website",
+    desc: "An auto-generated, high-converting business landing page at yourname.gmmx.app to display schedules, plans, and capture leads.",
     color: "#8B5CF6",
     gridClass: "md:col-span-2",
   },
   {
     icon: Building2,
-    title: "👥 Trainer Management",
-    desc: "Monitor trainer rosters, assign member groups, and delegate coordinator access seamlessly.",
+    title: "👥 Coach Management",
+    desc: "Monitor coach rosters, assign member groups, and delegate coordinator access seamlessly.",
     color: "#0EA5E9",
     gridClass: "md:col-span-1",
   },
@@ -115,7 +115,7 @@ const PRICING_PREVIEW = [
       "Unlimited members",
       "Automatic Razorpay integration",
       "Custom domain support",
-      "Trainer assignments",
+      "Coach assignments",
       "Attendance tracking",
       "WhatsApp reminders",
     ],
@@ -145,12 +145,12 @@ const FAQS = [
     answer: "No, you do not need a credit card to sign up. You get complete premium access to all platform features for 14 days. After the trial, you can choose a subscription plan and pay via UPI, cards, or bank transfer.",
   },
   {
-    question: "How does the automated gym website work?",
-    answer: "The moment your onboarding is completed, our system sets up a public landing page for your gym at 'yourgym.gmmx.app'. You can customize the photos, membership packages, and trainer profiles from your dashboard. It works out-of-the-box.",
+    question: "How does the automated business website work?",
+    answer: "The moment your onboarding is completed, our system sets up a public landing page for your business at 'yourname.gmmx.app'. You can customize the photos, membership packages, and coach profiles from your dashboard. It works out-of-the-box.",
   },
   {
     question: "Can I use my own custom domain?",
-    answer: "Yes! If you are on the Professional or Enterprise plans, you can link your own custom domain (e.g., www.mygym.com) in your settings panel. We generate the SSL security certificate and handle the routing automatically.",
+    answer: "Yes! If you are on the Professional or Enterprise plans, you can link your own custom domain (e.g., www.mybusiness.com) in your settings panel. We generate the SSL security certificate and handle the routing automatically.",
   },
   {
     question: "How do members pay me online?",
@@ -266,7 +266,7 @@ export default function MarketingHomePage() {
             <div className="whitespace-nowrap mb-2 sm:mb-4">
               Run your{" "}
               <span className="text-[#FF5C73] relative inline-block">
-                Gym,
+                studio,
               </span>
             </div>
             <div className="whitespace-nowrap flex items-center justify-center text-slate-300">
@@ -282,7 +282,7 @@ export default function MarketingHomePage() {
             className="text-sm sm:text-base lg:text-lg text-slate-200 mb-6 max-w-3xl mx-auto leading-relaxed font-semibold animate-fade-in"
             style={{ textShadow: "0 2px 12px rgba(0,0,0,0.9)" }}
           >
-            Manage members, collect payments, track attendance, handle trainers, and launch your gym website—all from one{" "}
+            Manage members, collect payments, track attendance, handle coaches, and launch your business website—all from one{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-[#FF5C73] font-bold">dashboard.</span>
           </p>
 
@@ -361,8 +361,8 @@ export default function MarketingHomePage() {
                   { label: "Payments" },
                   { label: "Expiry Management" },
                   { label: "Leads" },
-                  { label: "Trainers" },
-                  { label: "Gym Website" },
+                  { label: "Coaches" },
+                  { label: "Business Website" },
                 ].map((item) => (
                   <div
                     key={item.label}
@@ -376,7 +376,7 @@ export default function MarketingHomePage() {
                   </div>
                 ))}
                 <div className="mt-auto p-3 rounded-xl bg-white border border-slate-200/50 text-[9px] text-slate-500">
-                  Logged in as <br /><span className="font-bold text-slate-800">Iron Fit Owner</span>
+                  Logged in as <br /><span className="font-bold text-slate-800">Business Owner</span>
                 </div>
               </div>
 
@@ -593,7 +593,7 @@ export default function MarketingHomePage() {
                   ))}
                 </div>
               </div>
-            ) : activePreviewTab === "Trainers" ? (
+            ) : activePreviewTab === "Coaches" ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
                 {[
                   { name: "Vikram Rathore", role: "Head Coach", members: 45 },
@@ -746,10 +746,10 @@ export default function MarketingHomePage() {
           <div className="text-center mb-16 space-y-4">
             <p className="text-[#FF5C73] font-bold text-xs uppercase tracking-widest font-mono">Core Features</p>
             <h2 className="text-3xl lg:text-5xl font-black text-white leading-tight max-w-3xl mx-auto">
-              Stop managing your gym across spreadsheets, notebooks, and WhatsApp.
+              Stop managing your fitness business across spreadsheets, notebooks, and WhatsApp.
             </h2>
             <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-              GMMX brings members, payments, attendance, trainers, and your website into one platform.
+              GMMX brings members, payments, attendance, coaches, and your website into one platform.
             </p>
           </div>
 
@@ -875,7 +875,7 @@ export default function MarketingHomePage() {
                 <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-4 border border-indigo-500/20">
                   <Building2 size={24} className="text-indigo-400" />
                 </div>
-                <h3 className="font-extrabold text-2xl text-white mb-2 tracking-tight">Trainer Staff</h3>
+                <h3 className="font-extrabold text-2xl text-white mb-2 tracking-tight">Coach Staff</h3>
                 <p className="text-slate-400 text-sm leading-relaxed">Delegate access and coordinate shift rosters seamlessly.</p>
               </div>
               <div className="mt-auto relative z-10 w-full pt-4">
@@ -1008,7 +1008,7 @@ export default function MarketingHomePage() {
                     </div>
                   </div>
                   <div className="flex justify-between items-end mb-3">
-                    <h5 className="text-xs font-bold text-slate-800">Trainers</h5>
+                    <h5 className="text-xs font-bold text-slate-800">Coaches</h5>
                   </div>
                   <div className="flex items-center gap-3 p-2 rounded border border-slate-100 bg-slate-50">
                     <div className="w-8 h-8 rounded-full bg-slate-200" />

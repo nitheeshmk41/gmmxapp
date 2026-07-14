@@ -5,7 +5,7 @@ import { routeForUser } from "@/lib/auth/bootstrap";
 
 export default async function OnboardingPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/signin");
+  if (!user) redirect("/signin?redirectTo=/onboarding");
   if (user.onboarding_status === "completed") redirect(routeForUser(user));
 
   return (

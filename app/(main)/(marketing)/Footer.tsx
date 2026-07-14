@@ -18,10 +18,10 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-slate-500 leading-relaxed max-w-sm">
-              The all-in-one gym management platform for modern fitness businesses.
+              The all-in-one management platform for fitness businesses.
             </p>
             <p className="text-sm text-slate-500 leading-relaxed max-w-sm mt-2">
-              Built for modern gym owners across India. Manage members, attendance, payments, trainers, and your gym website from one platform.
+              Built for modern fitness business owners across India. Manage members, attendance, payments, coaches, and your business website from one platform.
             </p>
           </div>
 
@@ -45,8 +45,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="#gym-websites" className="hover:text-white transition-colors">
-                  Gym Websites
+                <Link href="/testimonials" className="hover:text-white transition-colors">
+                  Testimonials
                 </Link>
               </li>
             </ul>
@@ -84,8 +84,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/tools/gym-roi-calculator" className="hover:text-white transition-colors">
-                  Gym ROI Calculator
+                <Link href="/tools" className="hover:text-white transition-colors">
+                  All Tools
                 </Link>
               </li>
             </ul>
@@ -96,7 +96,7 @@ export default function Footer() {
             <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Support</h4>
             <ul className="space-y-2.5 text-sm mb-6">
               <li>
-                <Link href="/help" className="hover:text-white transition-colors">
+                <Link href="/contact-us" className="hover:text-white transition-colors">
                   Help Center
                 </Link>
               </li>
@@ -114,12 +114,6 @@ export default function Footer() {
                 </a>
               </li>
             </ul>
-            <div className="flex gap-3 mt-4 text-xs font-bold text-slate-500">
-               <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
-               <a href="#" className="hover:text-white transition-colors">Instagram</a>
-               <a href="#" className="hover:text-white transition-colors">YouTube</a>
-               <a href="#" className="hover:text-white transition-colors">GitHub</a>
-            </div>
           </div>
         </div>
 
@@ -127,10 +121,10 @@ export default function Footer() {
         <div className="mt-12 p-6 rounded-2xl bg-[#111933] border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">
           <div>
             <h4 className="text-white font-bold text-lg mb-1">Start your free trial today</h4>
-            <p className="text-sm text-slate-400">Setup takes less than 5 minutes.</p>
+            <p className="text-sm text-slate-400">Setup takes less than 5 minutes. No credit card required.</p>
           </div>
           <Link href="/signup" className="px-8 py-3.5 bg-white text-slate-900 font-extrabold rounded-xl hover:bg-slate-100 transition-colors shrink-0 shadow-sm">
-            Register Your Gym
+            Start Free Trial
           </Link>
         </div>
 
@@ -139,8 +133,9 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <p>© {new Date().getFullYear()} GMMX. All rights reserved. Made in India 🇮🇳</p>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-slate-400">Privacy Policy</a>
-            <a href="#" className="hover:text-slate-400">Terms of Service</a>
+            <Link href="/privacy" className="hover:text-slate-400">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-slate-400">Terms of Service</Link>
+            <Link href="/refund" className="hover:text-slate-400">Refund Policy</Link>
           </div>
         </div>
       </div>

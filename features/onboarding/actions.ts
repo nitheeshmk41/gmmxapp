@@ -8,6 +8,7 @@ import { env } from "@/lib/env";
 
 export async function completeOnboardingWizard(formData: {
   gymName: string;
+  businessType?: string;
   subdomain: string;
   theme: string;
   country?: string;
@@ -24,6 +25,7 @@ export async function completeOnboardingWizard(formData: {
     const gym = await createGymTenant({
       userId: context.user.id,
       gymName: formData.gymName,
+      businessType: formData.businessType || "Gym",
       subdomain: formData.subdomain,
       theme: formData.theme,
       country: formData.country,

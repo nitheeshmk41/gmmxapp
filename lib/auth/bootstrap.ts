@@ -89,6 +89,7 @@ export async function ensureUserRecord({
 export async function createGymTenant({
   userId,
   gymName,
+  businessType = "Gym",
   subdomain,
   theme,
   country,
@@ -97,6 +98,7 @@ export async function createGymTenant({
 }: {
   userId: string;
   gymName: string;
+  businessType?: string;
   subdomain: string;
   theme: string;
   country?: string;
@@ -136,6 +138,7 @@ export async function createGymTenant({
       {
         name: gymName,
         subdomain,
+        businessType,
         ownerId: userId,
         status: "trial",
         isDeleted: false,

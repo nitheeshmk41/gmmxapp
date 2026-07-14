@@ -46,10 +46,10 @@ export default function FeaturesPage() {
         {
           id: "attendance-tracking",
           cardBg: "bg-blue-50/60 border-blue-100",
-          title: "Attendance & Trainers",
+          title: "Attendance & Coaches",
           tagline: "Track Attendance In Real Time",
           description: "Lightning-fast QR attendance tracking for everyone. Delegate access and coordinate shift rosters seamlessly for your trainers without losing security.",
-          badges: ["✓ QR Check-ins", "✓ Trainer Profiles", "✓ Shifts", "✓ Access Control"],
+          badges: ["✓ QR Check-ins", "✓ Coach Profiles", "✓ Shifts", "✓ Access Control"],
           screenshot: (
             <div className="w-full h-full bg-white p-4 flex flex-col justify-center">
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Today&apos;s Check-ins</div>
@@ -59,7 +59,7 @@ export default function FeaturesPage() {
               </div>
               <div className="flex items-end gap-3">
                 <span className="text-xl font-bold text-slate-800 leading-none">12</span>
-                <span className="text-[11px] font-bold text-slate-500 mb-0.5">Trainers</span>
+                <span className="text-[11px] font-bold text-slate-500 mb-0.5">Coaches</span>
               </div>
             </div>
           ),
@@ -140,7 +140,7 @@ export default function FeaturesPage() {
           id: "analytics",
           cardBg: "bg-indigo-50/60 border-indigo-100",
           title: "Analytics & Reports",
-          tagline: "Understand Your Gym's Health",
+          tagline: "Understand Your Business Health",
           description: "Visualize monthly recurring revenue, member acquisition trends, and plan popularity. Stop guessing and start making data-driven decisions for your business.",
           badges: ["✓ Revenue Graphs", "✓ Member Growth", "✓ Plan Popularity", "✓ Exportable"],
           screenshot: (
@@ -192,7 +192,7 @@ export default function FeaturesPage() {
           id: "custom-domains",
           cardBg: "bg-sky-50/60 border-sky-100",
           title: "Custom Domains",
-          tagline: "Own Your Gym's Brand",
+          tagline: "Own Your Business Brand",
           description: "Connect your own premium domain name (like www.yourgym.com) instead of our subdomain. We automatically provision and renew your SSL certificates.",
           badges: ["✓ Custom URL", "✓ Free SSL", "✓ Better SEO", "✓ Instant Setup"],
           screenshot: (

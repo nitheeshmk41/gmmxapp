@@ -4,8 +4,8 @@ import Footer from "./Footer";
 import { GmmxAssistant } from "@/components/marketing/GmmxAssistant";
 
 export const metadata: Metadata = {
-  title: "gmmx – Gym Management Platform",
-  description: "The all-in-one gym management platform. Track members, collect payments, and get a professional website in minutes.",
+  title: "gmmx – Fitness Business Management Platform",
+  description: "The all-in-one management platform for Gyms, Yoga Studios, and Dance Academies. Track members, collect payments, and launch your business website in minutes.",
 };
 
 export default function MarketingLayout({

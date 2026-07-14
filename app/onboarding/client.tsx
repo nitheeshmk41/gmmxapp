@@ -16,6 +16,7 @@ export function OnboardingWizard({ userName }: { userName: string }) {
 
   const [formData, setFormData] = useState({
     gymName: "",
+    businessType: "Gym",
     subdomain: "",
     country: "India",
     timezone: "IST",
@@ -30,8 +31,8 @@ export function OnboardingWizard({ userName }: { userName: string }) {
   const handleNext = async () => {
     setError("");
     if (step === 1) {
-      if (!formData.gymName || !formData.subdomain || !formData.country) {
-        setError("Gym name, subdomain, and country are required");
+      if (!formData.gymName || !formData.subdomain || !formData.country || !formData.businessType) {
+        setError("Business name, type, subdomain, and country are required");
         return;
       }
       setLoading(true);
@@ -100,7 +101,7 @@ export function OnboardingWizard({ userName }: { userName: string }) {
             {step === 1 ? `Welcome to GMMX, ${userName.split(' ')[0]}` : step === 2 ? "Choose a Website Theme" : "Ready to Launch"}
           </CardTitle>
           <CardDescription className="text-zinc-400">
-            {step === 1 ? "Let's set up your gym's digital workspace." : step === 2 ? "Select a starting theme for your professional website." : "Review what you're about to create."}
+            {step === 1 ? "Let's set up your digital workspace." : step === 2 ? "Select a starting theme for your professional website." : "Review what you're about to create."}
           </CardDescription>
         </CardHeader>
       )}
@@ -111,7 +112,7 @@ export function OnboardingWizard({ userName }: { userName: string }) {
         {step === 1 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
             <div className="space-y-2">
-              <Label className="text-zinc-300 font-bold">Gym Name</Label>
+              <Label className="text-zinc-300 font-bold">Business Name</Label>
               <Input 
                 placeholder="e.g. Titan Fitness" 
                 value={formData.gymName}
@@ -127,6 +128,34 @@ export function OnboardingWizard({ userName }: { userName: string }) {
                   }));
                 }}
               />
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-zinc-300 font-bold">Business Type</Label>
+              <select 
+                value={formData.businessType} 
+                onChange={(e) => {
+                   const type = e.target.value;
+                   let newTheme = formData.theme;
+                   if (type === "Yoga Studio") newTheme = "minimal";
+                   else if (type === "CrossFit") newTheme = "crossfit";
+                   else if (type === "Dance Academy") newTheme = "luxury";
+                   else newTheme = "modern_fitness";
+                   
+                   setFormData(prev => ({ ...prev, businessType: type, theme: newTheme }));
+                }}
+                className="w-full border border-zinc-800 bg-zinc-950/50 text-zinc-100 h-12 rounded-md px-3 text-lg focus:outline-none focus:ring-1 focus:ring-red-500 appearance-none cursor-pointer"
+              >
+                <option value="Gym">Gym</option>
+                <option value="Yoga Studio">Yoga Studio</option>
+                <option value="Dance Academy">Dance Academy</option>
+                <option value="Swimming Academy">Swimming Academy</option>
+                <option value="Martial Arts">Martial Arts</option>
+                <option value="CrossFit">CrossFit</option>
+                <option value="Sports Academy">Sports Academy</option>
+                <option value="Personal Trainer">Personal Trainer</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
             <div className="space-y-2">
               <Label className="text-zinc-300 font-bold">Subdomain</Label>
@@ -279,7 +308,7 @@ export function OnboardingWizard({ userName }: { userName: string }) {
             </Button>
           ) : (
             <Button onClick={handleCreate} disabled={loading} className="bg-red-500 hover:bg-red-600 text-white font-bold px-8 shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all hover:shadow-[0_0_30px_rgba(239,68,68,0.5)]">
-              Create Gym
+              Create Workspace
             </Button>
           )}
         </CardFooter>

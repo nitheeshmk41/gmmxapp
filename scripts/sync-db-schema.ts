@@ -80,6 +80,8 @@ async function run() {
   await databases.createFloatAttribute(APPWRITE_DB_ID, COLLECTIONS.SAAS_PLANS, "price", true);
   await databases.createIntegerAttribute(APPWRITE_DB_ID, COLLECTIONS.SAAS_PLANS, "maxMembers", true);
   await databases.createIntegerAttribute(APPWRITE_DB_ID, COLLECTIONS.SAAS_PLANS, "maxTrainers", true);
+  await databases.createIntegerAttribute(APPWRITE_DB_ID, COLLECTIONS.SAAS_PLANS, "maxBranches", true);
+  await databases.createIntegerAttribute(APPWRITE_DB_ID, COLLECTIONS.SAAS_PLANS, "maxAdmins", true);
   await databases.createBooleanAttribute(APPWRITE_DB_ID, COLLECTIONS.SAAS_PLANS, "customDomain", true);
   await databases.createBooleanAttribute(APPWRITE_DB_ID, COLLECTIONS.SAAS_PLANS, "websiteBuilder", true);
   await databases.createBooleanAttribute(APPWRITE_DB_ID, COLLECTIONS.SAAS_PLANS, "mobileApp", true);
@@ -104,6 +106,7 @@ async function run() {
   await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.GYMS, "deletedAt", 50, false);
   await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.GYMS, "ownerId", 255, true);
   await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.GYMS, "template", 255, true);
+  await databases.createStringAttribute(APPWRITE_DB_ID, COLLECTIONS.GYMS, "businessType", 50, false, "Gym");
 
   // --- GYM USERS ---
   console.log("Creating GYM_USERS attributes...");
@@ -302,21 +305,62 @@ async function run() {
     console.error("Index creation failed for WEBSITE_SECTIONS:", e.message);
   }
 
-  // 4. Seed SaaS Starter Plan
-  console.log("\nSeeding default Starter SaaS Plan...");
+  // 4. Seed SaaS Plans
+  console.log("\nSeeding SaaS Plans...");
   try {
     await databases.createDocument(APPWRITE_DB_ID, COLLECTIONS.SAAS_PLANS, ID.unique(), {
       name: "Starter",
-      price: 0.0,
+      price: 499,
       maxMembers: 100,
-      maxTrainers: 3,
+      maxTrainers: 2,
+      maxBranches: 1,
+      maxAdmins: 1,
       customDomain: false,
       websiteBuilder: true,
-      mobileApp: false
+      mobileApp: true
     });
     console.log("✓ Successfully seeded 'Starter' SaaS Plan");
+
+    await databases.createDocument(APPWRITE_DB_ID, COLLECTIONS.SAAS_PLANS, ID.unique(), {
+      name: "Growth",
+      price: 999,
+      maxMembers: 500,
+      maxTrainers: 10,
+      maxBranches: 1,
+      maxAdmins: 3,
+      customDomain: false,
+      websiteBuilder: true,
+      mobileApp: true
+    });
+    console.log("✓ Successfully seeded 'Growth' SaaS Plan");
+
+    await databases.createDocument(APPWRITE_DB_ID, COLLECTIONS.SAAS_PLANS, ID.unique(), {
+      name: "Pro",
+      price: 1999,
+      maxMembers: 999999,
+      maxTrainers: 999999,
+      maxBranches: 5,
+      maxAdmins: 999999,
+      customDomain: true,
+      websiteBuilder: true,
+      mobileApp: true
+    });
+    console.log("✓ Successfully seeded 'Pro' SaaS Plan");
+
+    await databases.createDocument(APPWRITE_DB_ID, COLLECTIONS.SAAS_PLANS, ID.unique(), {
+      name: "Enterprise",
+      price: 0,
+      maxMembers: 999999,
+      maxTrainers: 999999,
+      maxBranches: 999999,
+      maxAdmins: 999999,
+      customDomain: true,
+      websiteBuilder: true,
+      mobileApp: true
+    });
+    console.log("✓ Successfully seeded 'Enterprise' SaaS Plan");
   } catch (e: any) {
-    console.error("Failed to seed SaaS Plan:", e.message);
+    console.error("Failed to seed SaaS Plans:", e.message);
   }
 
   console.log("\n=== Database Schema Sync Complete ===");

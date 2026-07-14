@@ -46,7 +46,7 @@ export default function SignupPage() {
           Start your free trial 🚀
         </h2>
         <p className="text-[15px] leading-relaxed text-slate-500 font-medium">
-          Create your gym and get a professional website in minutes.
+          Create your fitness business and get a professional website in minutes.
         </p>
       </div>
 
@@ -58,7 +58,7 @@ export default function SignupPage() {
 
       <form action={onSubmit} className="space-y-4 mb-6">
         <div>
-          <label className="block text-sm font-bold text-slate-700 mb-1.5">Gym Owner Name</label>
+          <label className="block text-sm font-bold text-slate-700 mb-1.5">Your Name</label>
           <input
             type="text"
             name="name"

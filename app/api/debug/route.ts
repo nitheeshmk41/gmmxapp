@@ -1,25 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
-  const host = request.headers.get("host") || "";
-  const hostname = host.split(":")[0];
-  const parts = hostname.split(".");
-  let subdomain: string | null = null;
-  if (
-    hostname !== "localhost" &&
-    hostname !== "gmmx.app" &&
-    hostname !== "www.gmmx.app" &&
-    hostname !== "127.0.0.1"
-  ) {
-    subdomain = parts[0];
+/**
+ * Debug route — disabled in production.
+ * Only available in development for verifying wildcard routing.
+ */
+export async function GET() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  const { pathname, search } = new URL(request.url);
 
   return NextResponse.json({
-    host,
-    subdomain,
-    pathname,
-    search,
-    message: "This is a debug route to verify wildcard routing.",
+    message: "Debug route is only available in development.",
+    env: process.env.NODE_ENV,
   });
 }

@@ -16,13 +16,13 @@ export default async function PreviewPage(props: Props) {
   const hostname = host.split(":")[0];
 
   const tenant = await getTenantByHostname(hostname) || await getTenantBySubdomain(subdomain);
-  if (!tenant) redirect("/signin");
+  if (!tenant) redirect("/owner/login");
 
   const context = await getCurrentContext();
   const isOwner = context?.user?.id === tenant.ownerId;
 
   if (!isOwner) {
-    redirect("/signin");
+    redirect("/owner/login");
   }
 
   return <GymPage params={props.params} />;

@@ -8,8 +8,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "gmmx.app – Gym Management Platform",
-  description: "The all-in-one gym management platform. Track members, collect payments, and get a professional gym website in minutes.",
+  title: "gmmx.app – Fitness Business Management Platform",
+  description: "The all-in-one management platform for Gyms, Yoga Studios, Dance Academies, and more. Track members, collect payments, and launch your business website in minutes.",
   icons: {
     icon: "/gmmx_logo.png",
   },

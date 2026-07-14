@@ -55,6 +55,8 @@ export default async function AdminPricingPage() {
           const features = [
             { label: "Max Members", value: plan.maxMembers },
             { label: "Max Trainers", value: plan.maxTrainers },
+            { label: "Max Branches", value: plan.maxBranches },
+            { label: "Max Admins", value: plan.maxAdmins },
             { label: "Custom Domain", value: plan.customDomain },
             { label: "Website Builder", value: plan.websiteBuilder },
             { label: "Mobile App", value: plan.mobileApp },
@@ -138,6 +140,8 @@ export default async function AdminPricingPage() {
             { name: "price", label: "Price (₹/month)", placeholder: "e.g. 999", type: "number" },
             { name: "maxMembers", label: "Max Members", placeholder: "e.g. 500", type: "number" },
             { name: "maxTrainers", label: "Max Trainers", placeholder: "e.g. 10", type: "number" },
+            { name: "maxBranches", label: "Max Branches", placeholder: "e.g. 1", type: "number" },
+            { name: "maxAdmins", label: "Max Admins", placeholder: "e.g. 3", type: "number" },
           ].map((f) => (
             <div key={f.name}>
               <label className="text-xs font-semibold mb-1.5 block"

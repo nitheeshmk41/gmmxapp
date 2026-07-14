@@ -198,7 +198,7 @@ export default async function AdminLayout({
   const gymContext = await getCurrentGym();
   const user = gymContext?.user;
 
-  if (!user) redirect("/signin");
+  if (!user) redirect("/signin?redirectTo=/admin/dashboard");
 
   if (user.role !== "super_admin") {
     if (gymContext?.gym?.subdomain) {
