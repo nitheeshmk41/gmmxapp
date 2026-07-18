@@ -22,7 +22,8 @@ import { MiniSparkline } from "@/components/animations/MiniSparkline";
 import { TrialBanners } from "@/components/dashboard/TrialBanners";
 
 export default async function DashboardPage() {
-  const gym = await getCurrentGym();
+  try {
+    const gym = await getCurrentGym();
   if (!gym) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -479,6 +480,16 @@ export default async function DashboardPage() {
       </div>
     </div>
   );
+  } catch (err: any) {
+    console.error("DashboardPage CRASH:", err);
+    return (
+      <div className="p-10 bg-red-100 text-red-900 font-mono text-xs whitespace-pre-wrap max-w-full overflow-auto">
+        <h2 className="font-bold text-lg mb-4">Production Crash Debug:</h2>
+        <p>Message: {err.message}</p>
+        <p className="mt-4">{err.stack}</p>
+      </div>
+    );
+  }
 }
 
 function getGreeting() {
