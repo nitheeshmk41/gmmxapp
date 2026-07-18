@@ -366,7 +366,8 @@ export async function createMember(formData: FormData): Promise<{ success?: bool
             {
               userId: targetUserId,
               gymId: context.gym.$id,
-              role: "member"
+              role: "member",
+              status: "active"
             }
           );
         }
