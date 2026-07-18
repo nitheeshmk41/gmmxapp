@@ -31,15 +31,25 @@ export default async function DashboardPage() {
     );
   }
 
-  const { databases } = await createAdminClient();
-  const [settingsRes, subRes] = await Promise.all([
-    databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_SETTINGS, [Query.equal("gymId", gym.gymId || "none")]),
-    databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.SUBSCRIPTIONS, [
-      Query.equal("gymId", gym.gymId || "none"),
-      Query.orderDesc("$createdAt"),
-      Query.limit(1)
-    ])
-  ]);
+  let settingsRes = { documents: [] as any[] };
+  let subRes = { documents: [] as any[] };
+  
+  try {
+    const { databases } = await createAdminClient();
+    const [sRes, sSubRes] = await Promise.all([
+      databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_SETTINGS, [Query.equal("gymId", gym.gymId || "none")]),
+      databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.SUBSCRIPTIONS, [
+        Query.equal("gymId", gym.gymId || "none"),
+        Query.orderDesc("$createdAt"),
+        Query.limit(1)
+      ])
+    ]);
+    settingsRes = sRes;
+    subRes = sSubRes;
+  } catch (error) {
+    console.error("[DashboardPage] Error fetching settings/subscriptions:", error);
+  }
+
   const settingsDoc = settingsRes.documents[0] || null;
   const isDraft = !settingsDoc || settingsDoc.websiteStatus === "draft";
   
@@ -257,10 +267,10 @@ export default async function DashboardPage() {
               {recentActivity.recentLeads.slice(0, 3).map((lead) => (
                 <div key={lead.id} className="flex items-center justify-between gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
                   <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 text-xs font-bold text-slate-600">
-                    {lead.name.charAt(0)}
+                    {(lead.name || 'U').charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 truncate">{lead.name}</p>
+                    <p className="text-sm font-semibold text-slate-900 truncate">{lead.name || 'Unknown'}</p>
                     <p className="text-xs text-slate-500 truncate">{lead.intent || 'Interested'}</p>
                   </div>
                   {lead.phone && (
