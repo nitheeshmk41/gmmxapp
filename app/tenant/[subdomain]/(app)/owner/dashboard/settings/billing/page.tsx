@@ -32,11 +32,11 @@ export default async function BillingSettingsPage() {
   
   const subscription = subRes.documents[0];
   const isTrial = subscription?.status === "trial";
-  const plan = gym.plan || "starter";
+  const plan = subscription?.planId || "starter";
   
   const membersRes = await databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.MEMBERS, [
     Query.equal("gymId", gym.$id),
-    Query.limit(0) // Just to get total count
+    Query.limit(1) // Just to get total count
   ]);
   const membersCount = membersRes.total;
   const maxMembers = plan === "starter" ? 200 : "Unlimited";
