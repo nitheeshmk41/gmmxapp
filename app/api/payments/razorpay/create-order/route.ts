@@ -49,13 +49,24 @@ export async function POST(req: Request) {
       currency: order.currency,
       receipt: order.receipt,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Razorpay Create Order Error: ", error);
+
+    let errorMessage = "Unknown Error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (error && error.error && error.error.description) {
+      errorMessage = error.error.description;
+    } else if (typeof error === "object") {
+      errorMessage = JSON.stringify(error);
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    }
 
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown Error",
+        error: errorMessage,
       },
       {
         status: 500,
