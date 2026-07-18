@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { deleteTenantData } from "@/lib/tenant-cleanup";
+import { deleteUserData } from "@/lib/tenant-cleanup";
 
 // The header key Appwrite uses to sign webhook requests
 const APPWRITE_WEBHOOK_SIGNATURE_HEADER = "x-appwrite-webhook-signature";
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       // In Serverless environments, this might get cut off if the function exits immediately,
       // so for Next.js API routes it's safer to await it if it's not too long, or use a queue.
       // We'll await it here.
-      await deleteTenantData(deletedUserId);
+      await deleteUserData(deletedUserId);
       
       return NextResponse.json({ success: true, message: "Tenant data cleaned up successfully" });
     }

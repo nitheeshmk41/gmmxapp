@@ -1,13 +1,13 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell, ExternalLink, Dumbbell } from "lucide-react";
+import { ExternalLink, Dumbbell, Plus, Moon, MessageSquare } from "lucide-react";
 import { GlobalSearch } from "./global-search";
 import { MobileNav } from "./mobile-nav";
 import { NotificationsPopover } from "./NotificationsPopover";
 
 const PAGE_TITLES: Record<string, string> = {
-  "/owner/dashboard": "Dashboard",
+  "/owner/dashboard": "Dashboard Overview",
   "/owner/dashboard/members": "Members",
   "/owner/dashboard/leads": "Leads",
   "/owner/dashboard/trainers": "Trainers",
@@ -37,28 +37,27 @@ export function Topbar({ gymSubdomain }: TopbarProps) {
 
   return (
     <header
-      className="sticky top-0 z-40 flex items-center justify-between h-16 px-6"
+      className="sticky top-0 z-40 flex items-center justify-between h-[72px] px-6"
       style={{
-        background: "rgba(248,250,252,0.85)",
+        background: "rgba(248,250,252,0.75)",
         backdropFilter: "blur(12px)",
         borderBottom: "1px solid var(--color-border)",
       }}
     >
       {/* Left side: Mobile Menu + Page title */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         <MobileNav />
-        <div className="hidden md:flex w-8 h-8 rounded-lg bg-[#FF5C73] items-center justify-center text-white mr-2">
-          <Dumbbell size={16} strokeWidth={2.5} />
-        </div>
-        <h1 className="text-lg font-bold" style={{ color: "var(--color-foreground)" }}>
+        <h1 className="text-xl font-bold tracking-tight text-slate-900 hidden md:block">
           {title}
         </h1>
       </div>
 
 
       {/* Right actions */}
-      <div className="flex items-center gap-3">
-        <GlobalSearch />
+      <div className="flex items-center gap-4">
+        <div className="w-64 hidden lg:block">
+          <GlobalSearch />
+        </div>
 
         {/* View website */}
         {gymSubdomain && (
@@ -66,10 +65,10 @@ export function Topbar({ gymSubdomain }: TopbarProps) {
             href={`https://${gymSubdomain}.gmmx.app`}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all hover:scale-105"
             style={{
-              background: "var(--color-brand-light)",
-              color: "var(--color-brand-primary)",
+              background: "#FFF0F2",
+              color: "#FF5C73",
               border: "1px solid rgba(255,92,115,0.2)",
             }}
           >
@@ -78,8 +77,23 @@ export function Topbar({ gymSubdomain }: TopbarProps) {
           </a>
         )}
 
-        {/* Notification bell */}
-        <NotificationsPopover />
+        <div className="flex items-center gap-1.5 border-l border-slate-200 pl-4">
+          <button className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors">
+            <Plus size={18} />
+          </button>
+          <button className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors hidden sm:flex">
+            <MessageSquare size={18} />
+          </button>
+          <NotificationsPopover />
+          <button className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors hidden sm:flex">
+            <Moon size={18} />
+          </button>
+        </div>
+        
+        {/* Profile Dropdown Placeholder */}
+        <div className="ml-2 w-9 h-9 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center cursor-pointer shrink-0">
+          <span className="text-xs font-bold text-slate-600">U</span>
+        </div>
       </div>
     </header>
   );

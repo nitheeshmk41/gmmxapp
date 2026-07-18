@@ -215,22 +215,21 @@ export default function PricingPage() {
               <div className="flex bg-slate-800 p-1 rounded-xl w-full sm:w-auto relative">
                  <button
                    onClick={() => setBilling("monthly")}
-                   className={`flex-1 sm:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all relative z-10 ${billing === "monthly" ? "text-white" : "text-slate-400 hover:text-white"}`}
+                   className={`flex-1 sm:flex-none sm:w-[110px] py-2 rounded-lg text-sm font-bold transition-all relative z-10 flex items-center justify-center ${billing === "monthly" ? "text-white" : "text-slate-400 hover:text-white"}`}
                  >
                    Monthly
                  </button>
                  <button
                    onClick={() => setBilling("yearly")}
-                   className={`flex-1 sm:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all relative z-10 flex items-center justify-center gap-2 ${billing === "yearly" ? "text-white" : "text-slate-400 hover:text-white"}`}
+                   className={`flex-1 sm:flex-none sm:w-[160px] py-2 rounded-lg text-sm font-bold transition-all relative z-10 flex items-center justify-center gap-2 ${billing === "yearly" ? "text-white" : "text-slate-400 hover:text-white"}`}
                  >
                    Yearly <span className="text-[10px] bg-rose-500 text-white px-1.5 py-0.5 rounded uppercase tracking-wider">Save 20%</span>
                  </button>
                  {/* Sliding Background */}
                  <div
-                   className={`absolute top-1 bottom-1 w-[calc(50%-4px)] sm:w-[130px] bg-slate-700 rounded-lg shadow-sm transition-all duration-300 ${
-                     billing === "monthly" ? "left-1" : "left-[calc(50%+2px)] sm:left-[110px]"
+                   className={`absolute top-1 bottom-1 bg-slate-700 rounded-lg shadow-sm transition-all duration-300 z-0 ${
+                     billing === "monthly" ? "left-1 w-[calc(50%-4px)] sm:w-[110px]" : "left-[calc(50%+2px)] sm:left-[114px] w-[calc(50%-4px)] sm:w-[160px]"
                    }`}
-                   style={billing === "yearly" ? { width: "160px" } : {}}
                  />
               </div>
 
