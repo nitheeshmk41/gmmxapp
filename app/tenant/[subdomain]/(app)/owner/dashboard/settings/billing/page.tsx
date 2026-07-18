@@ -19,10 +19,11 @@ const PLAN_PRICES: Record<string, string> = {
 };
 
 export default async function BillingSettingsPage() {
-  const gym = await getCurrentGym();
-  if (!gym) return null;
+  try {
+    const gym = await getCurrentGym();
+    if (!gym) return null;
 
-  const { databases } = await createAdminClient();
+    const { databases } = await createAdminClient();
   const subRes = await databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.SUBSCRIPTIONS, [
     Query.equal("gymId", gym.$id),
     Query.orderDesc("$createdAt"),
@@ -156,4 +157,14 @@ export default async function BillingSettingsPage() {
       </div>
     </div>
   );
+  } catch (error: any) {
+    console.error(error);
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-900 p-8 rounded-2xl m-8">
+        <h2 className="text-2xl font-bold mb-4">Server Error</h2>
+        <pre className="whitespace-pre-wrap text-sm">{error.message}</pre>
+        <pre className="whitespace-pre-wrap text-xs mt-4 text-red-700/80">{error.stack}</pre>
+      </div>
+    );
+  }
 }
