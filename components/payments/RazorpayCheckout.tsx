@@ -50,9 +50,15 @@ export default function RazorpayCheckout({
         body: JSON.stringify({ plan: planName, amount: price, period, gymId }),
       });
 
-      const orderData = await orderRes.json();
-      if (!orderData.success) {
-        throw new Error(orderData.error || "Failed to create order");
+      let orderData;
+      try {
+        orderData = await orderRes.json();
+      } catch (e) {
+        throw new Error("Unable to reach payment servers. Please try again.");
+      }
+      
+      if (!orderRes.ok || !orderData.success) {
+        throw new Error(orderData.error || "Unable to start payment. Please try again.");
       }
 
       const options = {
@@ -126,7 +132,7 @@ export default function RazorpayCheckout({
         border: highlighted ? "1px solid #FF5C73" : "1px solid #CBD5E1",
       }}
     >
-      {isPending ? <Loader2 size={16} className="animate-spin" /> : "Buy Now"}
+      {isPending ? <Loader2 size={16} className="animate-spin" /> : "Upgrade Now"}
     </button>
   );
 }
