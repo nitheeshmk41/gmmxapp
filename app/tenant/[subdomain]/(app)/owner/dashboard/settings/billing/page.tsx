@@ -43,6 +43,14 @@ export default async function BillingSettingsPage() {
   const membersPercentage = plan === "starter" ? Math.min((membersCount / 200) * 100, 100) : 5;
   const progressColor = membersPercentage > 90 ? "bg-red-500" : membersPercentage > 75 ? "bg-orange-500" : "bg-blue-500";
 
+  let daysLeft = 0;
+  let trialEndDate = null;
+  if (isTrial && subscription?.current_period_end) {
+    trialEndDate = new Date(subscription.current_period_end);
+    const today = new Date();
+    daysLeft = Math.max(0, Math.ceil((trialEndDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
       {/* Current Plan Card */}
@@ -57,9 +65,17 @@ export default async function BillingSettingsPage() {
               <p className="text-sm text-slate-500">Manage your subscription</p>
             </div>
           </div>
-          {isTrial && (
-            <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full uppercase tracking-wider">
-              Trial Active
+          {isTrial ? (
+            <div className="text-right">
+              <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full uppercase tracking-wider mb-1 inline-block">
+                Trial Active
+              </span>
+              <p className="text-sm font-bold text-slate-800">{daysLeft} days remaining</p>
+              <p className="text-xs text-slate-500">Ends on {trialEndDate ? formatDate(trialEndDate.toISOString()) : "N/A"}</p>
+            </div>
+          ) : (
+            <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full uppercase tracking-wider">
+              Active
             </span>
           )}
         </div>
@@ -75,18 +91,18 @@ export default async function BillingSettingsPage() {
               </p>
             </div>
             
-            <div className="flex gap-3">
-              {plan === "starter" && (
-                <Link
-                  href="/owner/dashboard/upgrade"
-                  className="px-6 py-2.5 bg-[#FF5C73] hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-md shadow-red-500/20 flex items-center gap-2"
-                >
-                  Upgrade
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/owner/dashboard/upgrade"
+                className="px-6 py-2.5 bg-[#FF5C73] hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-md shadow-red-500/20 flex items-center justify-center gap-2"
+              >
+                Upgrade Plan
+              </Link>
+              {plan !== "starter" && (
+                <Link href="#" className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all border border-slate-200 flex items-center justify-center">
+                  Manage Subscription
                 </Link>
               )}
-              <Link href="/owner/dashboard/upgrade" className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all border border-slate-200">
-                {plan === "starter" ? "Compare Plans" : "Manage Subscription"}
-              </Link>
             </div>
           </div>
 

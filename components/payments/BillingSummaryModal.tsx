@@ -27,6 +27,7 @@ export function BillingSummaryModal({
   daysLeft,
 }: BillingSummaryModalProps) {
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
   const router = useRouter();
 
   if (!isOpen) return null;
@@ -54,7 +55,7 @@ export function BillingSummaryModal({
         </div>
 
         {/* Content */}
-        {!isSuccess ? (
+        {!isSuccess && !isActivating ? (
           <div className="p-6 space-y-6">
             <div className="flex justify-between items-center text-sm font-semibold">
               <span className="text-slate-500 dark:text-slate-400">Current Plan</span>
@@ -101,14 +102,33 @@ export function BillingSummaryModal({
               </div>
             )}
           </div>
+        ) : isActivating ? (
+          <div className="p-10 text-center space-y-6">
+            <style>{`
+              @keyframes progress-fill {
+                0% { width: 0%; }
+                100% { width: 100%; }
+              }
+            `}</style>
+            <div className="text-5xl mb-4 animate-bounce">🎉</div>
+            <div>
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Payment Successful</h3>
+              <p className="text-slate-500 font-medium">Activating {displayName}...</p>
+            </div>
+            
+            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 mt-4 mb-2 overflow-hidden">
+              <div className="bg-[#FF5C73] h-2 rounded-full" style={{ animation: 'progress-fill 3s ease-in-out forwards' }}></div>
+            </div>
+            <p className="text-sm text-slate-400">This usually takes a few seconds.</p>
+          </div>
         ) : (
           <div className="p-8 text-center space-y-6">
             <div className="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto animate-in zoom-in spin-in-12 duration-500">
               <CheckCircle2 size={40} strokeWidth={2.5} />
             </div>
             <div>
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Workspace Upgraded!</h3>
-              <p className="text-slate-500 font-medium">You are now on the <strong className="text-[#FF5C73]">{displayName}</strong> plan.</p>
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">{displayName} Activated</h3>
+              <p className="text-slate-500 font-medium">Your workspace has been upgraded.</p>
             </div>
             
             <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl text-left space-y-3">
@@ -122,7 +142,7 @@ export function BillingSummaryModal({
         )}
 
         {/* Footer */}
-        {!isSuccess ? (
+        {!isSuccess && !isActivating ? (
           <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
             <RazorpayCheckout 
               planName={planName}
@@ -132,13 +152,19 @@ export function BillingSummaryModal({
               highlighted={true}
               buttonText="Proceed to Payment"
               className="w-full py-4 text-base"
-              onSuccess={() => setIsSuccess(true)}
+              onSuccess={() => {
+                setIsActivating(true);
+                setTimeout(() => {
+                  setIsActivating(false);
+                  setIsSuccess(true);
+                }, 3000);
+              }}
             />
             <p className="text-center text-xs text-slate-500 dark:text-slate-500 mt-4 flex items-center justify-center gap-1.5 font-medium">
               <ShieldCheck size={14} /> Secure Encrypted Checkout
             </p>
           </div>
-        ) : (
+        ) : isActivating ? null : (
           <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
             <button 
               onClick={() => {
