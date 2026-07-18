@@ -11,7 +11,9 @@ export default function RazorpayCheckout({
   period,
   gymId,
   highlighted,
-  className
+  className,
+  buttonText,
+  onSuccess
 }: {
   planName: string;
   price: number;
