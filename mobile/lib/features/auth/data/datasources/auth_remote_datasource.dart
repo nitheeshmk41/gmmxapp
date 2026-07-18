@@ -62,7 +62,29 @@ class AuthRemoteDataSource {
     }
   }
 
-  /// Fetch the member document associated with the given userId.
+  /// Fetch the member document associated with the given email.
+  Future<MemberModel?> getMemberByEmail(String email) async {
+    try {
+      final response = await _databases.listDocuments(
+        databaseId: AppConstants.databaseId,
+        collectionId: AppConstants.collectionMembers,
+        queries: [
+          Query.equal('email', email),
+          Query.limit(1),
+        ],
+      );
+
+      if (response.documents.isEmpty) return null;
+      return MemberModel.fromJson(response.documents.first.data);
+    } on AppwriteException catch (e) {
+      throw ServerException(
+        message: e.message ?? 'Failed to fetch member profile',
+        statusCode: e.code,
+      );
+    }
+  }
+
+  /// Fetch the member document associated with the given user ID.
   Future<MemberModel?> getMemberByUserId(String userId) async {
     try {
       final response = await _databases.listDocuments(

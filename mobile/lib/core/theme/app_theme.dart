@@ -55,7 +55,7 @@ class AppTheme {
         color: AppColors.lightSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radiusMd),
+          borderRadius: BorderRadius.circular(radiusXl),
           side: BorderSide(color: AppColors.neutral200),
         ),
         margin: EdgeInsets.zero,
@@ -231,7 +231,7 @@ class AppTheme {
         color: AppColors.darkCard,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radiusMd),
+          borderRadius: BorderRadius.circular(radiusXl),
           side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
         ),
         margin: EdgeInsets.zero,

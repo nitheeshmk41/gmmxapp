@@ -30,10 +30,10 @@ class GmmxCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final radius = borderRadius ?? BorderRadius.circular(AppTheme.radiusMd);
+    final radius = borderRadius ?? BorderRadius.circular(AppTheme.radiusXl);
 
     Widget card = Container(
-      padding: padding ?? const EdgeInsets.all(AppTheme.spacingMd),
+      padding: padding ?? const EdgeInsets.all(20),
       decoration: BoxDecoration(
         borderRadius: radius,
         gradient: gradient,

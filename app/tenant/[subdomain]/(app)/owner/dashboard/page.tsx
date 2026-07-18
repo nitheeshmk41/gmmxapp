@@ -33,9 +33,9 @@ export default async function DashboardPage() {
 
   const { databases } = await createAdminClient();
   const [settingsRes, subRes] = await Promise.all([
-    databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_SETTINGS, [Query.equal("gymId", gym.gymId)]),
+    databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_SETTINGS, [Query.equal("gymId", gym.gymId || "none")]),
     databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.SUBSCRIPTIONS, [
-      Query.equal("gymId", gym.gymId),
+      Query.equal("gymId", gym.gymId || "none"),
       Query.orderDesc("$createdAt"),
       Query.limit(1)
     ])
@@ -45,7 +45,7 @@ export default async function DashboardPage() {
   
   const subscription = subRes.documents[0];
   const isTrial = subscription?.status === "trial";
-  const daysLeft = subscription ? Math.max(0, Math.ceil((new Date(subscription.endsAt).getTime() - new Date().getTime()) / (1000 * 3600 * 24))) : 0;
+  const daysLeft = subscription?.endsAt ? Math.max(0, Math.ceil((new Date(subscription.endsAt).getTime() - new Date().getTime()) / (1000 * 3600 * 24))) : 0;
 
   const [stats, monthlyRevenue, newMembers, attendanceTrend, recentActivity, isSample] = await Promise.all([
     getDashboardStats(), getMonthlyRevenue(), getNewMembersMonthly(), getAttendanceTrend(), getRecentActivity(), isSampleDataEnabled()
@@ -264,7 +264,7 @@ export default async function DashboardPage() {
                     <p className="text-xs text-slate-500 truncate">{lead.intent || 'Interested'}</p>
                   </div>
                   {lead.phone && (
-                    <a href={buildLeadWelcomeUrl(lead.phone, lead.name, gym.gym.name)} target="_blank" rel="noreferrer"
+                    <a href={buildLeadWelcomeUrl(lead.phone, lead.name, gym.gym?.name || "Gym")} target="_blank" rel="noreferrer"
                       className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0 hover:bg-green-100 transition-colors text-green-600" title="Chat on WhatsApp">
                       <MessageCircle size={14} />
                     </a>
@@ -340,9 +340,10 @@ export default async function DashboardPage() {
           </div>
           <div className="flex-1 space-y-3 overflow-y-auto pr-2 scrollbar-thin">
             {recentActivity.upcomingRenewals.map((renewal) => {
-              const daysLeft = Math.ceil((new Date(renewal.membership_end).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+              const endDate = renewal.membership_end ? new Date(renewal.membership_end) : new Date();
+              const daysLeft = Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24));
               const isUrgent = daysLeft <= 3;
-              const formattedDate = format(new Date(renewal.membership_end), "MMM d");
+              const formattedDate = renewal.membership_end ? format(endDate, "MMM d") : "Soon";
               
               return (
                 <div key={renewal.id} className="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all group bg-white">
@@ -356,7 +357,7 @@ export default async function DashboardPage() {
                     </div>
                   </div>
                   {renewal.member?.phone && (
-                    <a href={buildExpiryReminderUrl(renewal.member?.phone || '', renewal.member?.name || '', gym.gym.name, formattedDate)}
+                    <a href={buildExpiryReminderUrl(renewal.member?.phone || '', renewal.member?.name || '', gym.gym?.name || "Gym", formattedDate)}
                       target="_blank" rel="noreferrer"
                       className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center hover:bg-green-500 hover:text-white text-green-600 transition-all opacity-0 group-hover:opacity-100"
                       title="Send WhatsApp Reminder">
@@ -404,7 +405,7 @@ export default async function DashboardPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 border-b border-slate-50 text-sm font-medium text-slate-500">
-                      {formatDistanceToNow(new Date(member.join_date), { addSuffix: true })}
+                      {member.join_date ? formatDistanceToNow(new Date(member.join_date), { addSuffix: true }) : 'Recently'}
                     </td>
                     <td className="px-4 py-3 border-b border-slate-50">
                       <span className="inline-flex px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md bg-emerald-50 text-emerald-600">Active</span>
@@ -450,7 +451,7 @@ export default async function DashboardPage() {
                       {formatCurrency(Number(payment.amount))}
                     </td>
                     <td className="px-4 py-3 border-b border-slate-50 text-sm font-medium text-slate-500">
-                      {formatDistanceToNow(new Date(payment.paid_at), { addSuffix: true })}
+                      {payment.paid_at ? formatDistanceToNow(new Date(payment.paid_at), { addSuffix: true }) : 'Recently'}
                     </td>
                   </tr>
                 ))}

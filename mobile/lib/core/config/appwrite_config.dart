@@ -7,9 +7,8 @@ class AppwriteConfig {
   AppwriteConfig._();
 
   // ── Connection Settings ──
-  // TODO: Replace with your actual Appwrite endpoint and project ID
-  static const String endpoint = 'https://cloud.appwrite.io/v1';
-  static const String projectId = 'YOUR_APPWRITE_PROJECT_ID';
+  static const String endpoint = 'https://sgp.cloud.appwrite.io/v1';
+  static const String projectId = '6a2d64fe0028ac437323';
 
   // ── Client ──
   static final Client client = () {

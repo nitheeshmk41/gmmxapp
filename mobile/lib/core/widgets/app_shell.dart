@@ -75,6 +75,9 @@ class _AppShellState extends State<AppShell> {
     int index,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isSelected
+        ? AppColors.primary
+        : (isDark ? AppColors.neutral500 : AppColors.neutral600).withOpacity(0.6);
 
     return Expanded(
       child: Material(
@@ -102,22 +105,34 @@ class _AppShellState extends State<AppShell> {
                 ),
                 child: Icon(
                   item.icon,
-                  size: 22,
-                  color: isSelected
-                      ? AppColors.primary
-                      : (isDark ? AppColors.neutral500 : AppColors.neutral600),
+                  size: 24,
+                  color: color,
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                item.label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected
-                      ? AppColors.primary
-                      : (isDark ? AppColors.neutral500 : AppColors.neutral600),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    item.label,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      color: color,
+                    ),
+                  ),
+                  if (isSelected) ...[
+                    const SizedBox(width: 4),
+                    Container(
+                      width: 4,
+                      height: 4,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
@@ -137,26 +152,29 @@ class _AppShellState extends State<AppShell> {
           _navigateToTab(context, 2);
         },
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                LucideIcons.scanLine,
-                size: 22,
-                color: Colors.white,
+            Transform.translate(
+              offset: const Offset(0, -12),
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.4),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  LucideIcons.scanLine,
+                  size: 26,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],

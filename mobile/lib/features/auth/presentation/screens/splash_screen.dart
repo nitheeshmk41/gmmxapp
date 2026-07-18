@@ -30,7 +30,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   Future<void> _checkAuth() async {
     // Wait for splash animation
-    await Future.delayed(const Duration(milliseconds: 2000));
+    await Future.delayed(const Duration(milliseconds: 2500));
 
     await ref.read(authProvider.notifier).checkAuthStatus();
 
@@ -60,99 +60,153 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.primary,
-              Color(0xFFFF8A65),
-              Color(0xFFFF5C73),
-            ],
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // Subtle particles effect (simulated with fixed positioned low-opacity circles)
+          Positioned(
+            top: 100,
+            left: 50,
+            child: FadeIn(
+              duration: const Duration(seconds: 2),
+              child: Container(
+                width: 4,
+                height: 4,
+                decoration: const BoxDecoration(
+                  color: Colors.white24,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(flex: 3),
-              // Animated Logo
-              FadeInDown(
-                duration: const Duration(milliseconds: 800),
-                child: AnimatedBuilder(
-                  animation: _pulseController,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: 1.0 + (_pulseController.value * 0.05),
-                      child: child,
-                    );
-                  },
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(32),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        width: 2,
+          Positioned(
+            top: 200,
+            right: 80,
+            child: FadeIn(
+              duration: const Duration(seconds: 2),
+              delay: const Duration(milliseconds: 500),
+              child: Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: Colors.white24,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 200,
+            left: 100,
+            child: FadeIn(
+              duration: const Duration(seconds: 2),
+              delay: const Duration(milliseconds: 800),
+              child: Container(
+                width: 3,
+                height: 3,
+                decoration: const BoxDecoration(
+                  color: Colors.white24,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Spacer(flex: 3),
+                  // Animated Logo with blue ring
+                  FadeInDown(
+                    duration: const Duration(milliseconds: 800),
+                    child: AnimatedBuilder(
+                      animation: _pulseController,
+                      builder: (context, child) {
+                        return Transform.scale(
+                          scale: 1.0 + (_pulseController.value * 0.05),
+                          child: child,
+                        );
+                      },
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          const SizedBox(
+                            width: 140,
+                            height: 140,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                          Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.fitness_center_rounded,
+                              size: 56,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: const Icon(
-                      Icons.fitness_center_rounded,
-                      size: 56,
-                      color: Colors.white,
+                  ),
+                  const SizedBox(height: 32),
+                  // App Name
+                  FadeInUp(
+                    delay: const Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 600),
+                    child: Text(
+                      'GMMX',
+                      style: AppTypography.displaySmall.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 4,
+                      ),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              // App Name
-              FadeInUp(
-                delay: const Duration(milliseconds: 300),
-                duration: const Duration(milliseconds: 600),
-                child: Text(
-                  'GMMX',
-                  style: AppTypography.displaySmall.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 4,
+                  const SizedBox(height: 12),
+                  // Personalized Message
+                  FadeInUp(
+                    delay: const Duration(milliseconds: 600),
+                    duration: const Duration(milliseconds: 600),
+                    child: Text(
+                      'Ready for today\'s workout?',
+                      style: AppTypography.titleMedium.copyWith(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              FadeInUp(
-                delay: const Duration(milliseconds: 500),
-                duration: const Duration(milliseconds: 600),
-                child: Text(
-                  'Your Fitness Companion',
-                  style: AppTypography.caption.copyWith(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    letterSpacing: 2,
-                    fontSize: 14,
+                  const Spacer(flex: 3),
+                  // Powered by footer
+                  FadeIn(
+                    delay: const Duration(milliseconds: 800),
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      child: Text(
+                        'Powered by GMMX',
+                        style: AppTypography.caption.copyWith(
+                          color: Colors.white54,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-              const Spacer(flex: 3),
-              // Loading indicator
-              FadeIn(
-                delay: const Duration(milliseconds: 1000),
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: Colors.white.withValues(alpha: 0.7),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 48),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

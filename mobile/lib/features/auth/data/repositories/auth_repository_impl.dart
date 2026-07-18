@@ -28,7 +28,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Member> loginWithEmail(String email, String password) async {
     // ── DEV MODE MOCK LOGIN ──
-    if (email == 'test@gmmx.app' && password == 'password123') {
+    if (email == 'test@gmmx.com' && password == '12345678') {
       final mockOrg = OrganizationModel(
         id: 'mock_gym_123',
         name: 'GMMX Elite Fitness',
@@ -43,7 +43,7 @@ class AuthRepositoryImpl implements AuthRepository {
         userId: 'mock_user_123',
         organizationId: 'mock_gym_123',
         name: 'Test Member',
-        email: 'test@gmmx.app',
+        email: 'test@gmmx.com',
         phone: '1234567890',
         membershipStatus: MembershipStatus.active,
         membershipStart: DateTime.now().subtract(const Duration(days: 10)),
@@ -64,7 +64,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
     try {
       final user = await _remote.loginWithEmail(email, password);
-      final member = await _remote.getMemberByUserId(user.$id);
+      final member = await _remote.getMemberByEmail(user.email);
 
       if (member == null) {
         throw const AuthFailure(
@@ -96,7 +96,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
     try {
       final user = await _remote.loginWithGoogle();
-      final member = await _remote.getMemberByUserId(user.$id);
+      final member = await _remote.getMemberByEmail(user.email);
 
       if (member == null) {
         throw const AuthFailure(
