@@ -230,12 +230,11 @@ export function MembersClientPage({ members, total, page, search, status }: Prop
                     {/* Member */}
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
-                        <div
-                          className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                          style={{ background: "var(--color-brand-primary)" }}
-                        >
-                          {getInitials(member.name)}
-                        </div>
+                        <img
+                          src={`https://api.dicebear.com/9.x/dylan/svg?seed=${encodeURIComponent(member.name || 'Unknown')}`}
+                          alt={member.name || 'Unknown'}
+                          className="w-9 h-9 rounded-full bg-slate-100 flex-shrink-0"
+                        />
                         <div>
                           <p className="text-sm font-medium" style={{ color: "var(--color-foreground)" }}>
                             {member.name} <span className="text-xs ml-1 font-semibold opacity-70" style={{ color: "var(--color-muted-foreground)" }}>({member.memberCode})</span>

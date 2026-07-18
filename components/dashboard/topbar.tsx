@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 import { usePathname } from "next/navigation";
 import { ExternalLink, Dumbbell, Plus, Moon, Sun, MessageSquare } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -37,6 +39,11 @@ export function Topbar({ gymSubdomain }: TopbarProps) {
     })?.[1] || "Dashboard";
 
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <header
@@ -87,7 +94,7 @@ export function Topbar({ gymSubdomain }: TopbarProps) {
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors hidden sm:flex"
           >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            {mounted ? (theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />) : <div className="w-[18px] h-[18px]" />}
           </button>
         </div>
         

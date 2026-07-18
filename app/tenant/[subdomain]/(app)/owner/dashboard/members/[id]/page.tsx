@@ -99,12 +99,11 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
               style={{ background: statusColor }}
             />
 
-            <div
-              className="w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-bold mb-4"
-              style={{ background: "var(--color-brand-primary)" }}
-            >
-              {getInitials(member.name)}
-            </div>
+            <img
+              src={`https://api.dicebear.com/9.x/dylan/svg?seed=${encodeURIComponent(member.name || 'Unknown')}`}
+              alt={member.name || 'Unknown'}
+              className="w-24 h-24 rounded-full bg-slate-100 mb-4 shadow-sm"
+            />
 
             <h1 className="text-xl font-bold" style={{ color: "var(--color-foreground)" }}>
               {member.name}

@@ -395,9 +395,11 @@ export default async function DashboardPage() {
                   <tr key={member.id} className="group hover:bg-slate-50 transition-colors cursor-pointer">
                     <td className="px-4 py-3 border-b border-slate-50">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
-                          {member.name.charAt(0)}
-                        </div>
+                        <img
+                          src={`https://api.dicebear.com/9.x/dylan/svg?seed=${encodeURIComponent(member.name || 'Unknown')}`}
+                          alt={member.name || 'Unknown'}
+                          className="w-8 h-8 rounded-full bg-slate-100 flex-shrink-0"
+                        />
                         <p className="text-sm font-bold text-slate-900">{member.name}</p>
                       </div>
                     </td>
