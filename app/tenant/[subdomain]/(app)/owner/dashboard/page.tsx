@@ -351,12 +351,12 @@ export default async function DashboardPage() {
                       <Clock size={16} />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-900 truncate">{renewal.member.name}</p>
+                      <p className="text-sm font-bold text-slate-900 truncate">{renewal.member?.name || 'Deleted Member'}</p>
                       <p className="text-xs font-medium text-slate-500">{daysLeft > 0 ? `Expires in ${daysLeft} days` : 'Expired'}</p>
                     </div>
                   </div>
-                  {renewal.member.phone && (
-                    <a href={buildExpiryReminderUrl(renewal.member.phone, renewal.member.name, gym.gym.name, formattedDate)}
+                  {renewal.member?.phone && (
+                    <a href={buildExpiryReminderUrl(renewal.member?.phone || '', renewal.member?.name || '', gym.gym.name, formattedDate)}
                       target="_blank" rel="noreferrer"
                       className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center hover:bg-green-500 hover:text-white text-green-600 transition-all opacity-0 group-hover:opacity-100"
                       title="Send WhatsApp Reminder">
@@ -443,7 +443,7 @@ export default async function DashboardPage() {
                         <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
                           <IndianRupee size={14} />
                         </div>
-                        <p className="text-sm font-bold text-slate-900">{payment.member.name}</p>
+                        <p className="text-sm font-bold text-slate-900">{payment.member?.name || 'Deleted Member'}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3 border-b border-slate-50 text-sm font-black text-slate-900">

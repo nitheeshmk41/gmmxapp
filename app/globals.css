@@ -57,6 +57,8 @@
   --shadow-brand: 0 4px 14px 0 rgb(255 92 115 / 0.25);
 }
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 .dark {
   /* Brand Colors - Keep primary, darken light variant */
   --color-brand-light: #2A1115;
