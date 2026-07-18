@@ -11,7 +11,7 @@ import { formatCurrency } from "@/lib/utils";
 import { DashboardCharts } from "./charts";
 import { formatDistanceToNow, format } from "date-fns";
 
-import { getCurrentGym } from "@/features/auth/actions";
+import { getCurrentGym, getCurrentUser } from "@/features/auth/actions";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
 import { Query } from "node-appwrite";
@@ -22,8 +22,7 @@ import { MiniSparkline } from "@/components/animations/MiniSparkline";
 import { TrialBanners } from "@/components/dashboard/TrialBanners";
 
 export default async function DashboardPage() {
-  try {
-    const gym = await getCurrentGym();
+  const [gym, user] = await Promise.all([getCurrentGym(), getCurrentUser()]);
   if (!gym) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -113,7 +112,7 @@ export default async function DashboardPage() {
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
             Good {getGreeting()} 👋 <br className="hidden md:block" /> 
-            <span className="text-slate-600 font-medium text-xl md:text-2xl">Welcome back, {gym.user.email?.split('@')[0] || 'Owner'}.</span>
+            <span className="text-slate-600 font-medium text-xl md:text-2xl">Welcome back, {user?.email?.split('@')[0] || 'Owner'}.</span>
           </h2>
           <p className="text-slate-500 mt-2 text-sm">Here's what's happening in your gym today.</p>
         </div>
@@ -480,16 +479,6 @@ export default async function DashboardPage() {
       </div>
     </div>
   );
-  } catch (err: any) {
-    console.error("DashboardPage CRASH:", err);
-    return (
-      <div className="p-10 bg-red-100 text-red-900 font-mono text-xs whitespace-pre-wrap max-w-full overflow-auto">
-        <h2 className="font-bold text-lg mb-4">Production Crash Debug:</h2>
-        <p>Message: {err.message}</p>
-        <p className="mt-4">{err.stack}</p>
-      </div>
-    );
-  }
 }
 
 function getGreeting() {
