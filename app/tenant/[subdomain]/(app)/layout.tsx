@@ -93,7 +93,7 @@ export default async function DashboardLayout({
         {/* Main content */}
         <div id="main-content-wrapper" className="flex-1 flex flex-col min-h-screen md:ml-[17rem] pb-16 md:pb-0 relative transition-all duration-300 ease-in-out">
           {gym && <TrialBanners daysLeft={daysLeft} isExpired={isExpired} gymName={gym.name} gymId={gym.$id} />}
-          <Topbar gymSubdomain={gym.subdomain} />
+          <Topbar gymSubdomain={gym.subdomain} userEmail={user.email} gymName={gym.name} />
           <main className="flex-1 p-4 md:p-6">{children}</main>
         </div>
 

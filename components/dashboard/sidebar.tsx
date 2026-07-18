@@ -227,31 +227,6 @@ export function Sidebar({ gymName = "Your Gym", gymSubdomain, userEmail }: Sideb
         </div>
       </div>
 
-      {/* User Footer */}
-      <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 rounded-b-2xl">
-        <div className={cn("flex items-center gap-3", isCollapsed ? "justify-center" : "px-2 py-1.5")}>
-          <div className="w-9 h-9 rounded-full flex items-center justify-center text-[#FF5C73] bg-[#FF5C73]/10 text-xs font-bold shrink-0 border border-[#FF5C73]/20">
-            {userEmail ? userEmail[0].toUpperCase() : "U"}
-          </div>
-          {!isCollapsed && (
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{gymName}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{userEmail || "Owner"}</p>
-            </div>
-          )}
-        </div>
-        {!isCollapsed && (
-          <form action={signOut} className="mt-2">
-            <button
-              type="submit"
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
-            >
-              <LogOut size={14} />
-              <span>Sign out</span>
-            </button>
-          </form>
-        )}
-      </div>
     </aside>
   );
 }

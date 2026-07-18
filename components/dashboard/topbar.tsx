@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { usePathname } from "next/navigation";
-import { ExternalLink, Dumbbell, Plus, Moon, Sun, MessageSquare } from "lucide-react";
+import { ExternalLink, Dumbbell, Plus, Moon, Sun, MessageSquare, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import { GlobalSearch } from "./global-search";
 import { MobileNav } from "./mobile-nav";
 import { NotificationsPopover } from "./NotificationsPopover";
+import { signOut } from "@/features/auth/actions";
+import { cn } from "@/lib/utils";
 
 const PAGE_TITLES: Record<string, string> = {
   "/owner/dashboard": "Dashboard Overview",
@@ -26,9 +28,11 @@ const PAGE_TITLES: Record<string, string> = {
 
 interface TopbarProps {
   gymSubdomain?: string;
+  userEmail?: string;
+  gymName?: string;
 }
 
-export function Topbar({ gymSubdomain }: TopbarProps) {
+export function Topbar({ gymSubdomain, userEmail, gymName }: TopbarProps) {
   const pathname = usePathname();
 
   // Find the matching page title
@@ -40,9 +44,19 @@ export function Topbar({ gymSubdomain }: TopbarProps) {
 
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
@@ -98,9 +112,37 @@ export function Topbar({ gymSubdomain }: TopbarProps) {
           </button>
         </div>
         
-        {/* Profile Dropdown Placeholder */}
-        <div className="ml-2 w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-[#0F172A] shadow-sm flex items-center justify-center cursor-pointer shrink-0">
-          <span className="text-xs font-bold text-slate-600 dark:text-slate-300">U</span>
+        {/* Profile Dropdown */}
+        <div className="relative ml-2" ref={profileRef}>
+          <button
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-transform hover:scale-105 border border-[#FF5C73]/20"
+            style={{
+              backgroundColor: "rgba(255, 92, 115, 0.1)",
+              color: "#FF5C73"
+            }}
+          >
+            {userEmail ? userEmail[0].toUpperCase() : "U"}
+          </button>
+
+          {isProfileOpen && (
+            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#1E293B] rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-700/50 mb-2">
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{gymName || "Workspace"}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{userEmail || "Owner"}</p>
+              </div>
+              
+              <form action={signOut} className="px-2">
+                <button
+                  type="submit"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-left"
+                >
+                  <LogOut size={16} />
+                  <span>Sign out</span>
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       </div>
     </header>
