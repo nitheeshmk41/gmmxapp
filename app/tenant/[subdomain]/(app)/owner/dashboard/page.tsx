@@ -351,9 +351,10 @@ export default async function DashboardPage() {
           <div className="flex-1 space-y-3 overflow-y-auto pr-2 scrollbar-thin">
             {recentActivity.upcomingRenewals.map((renewal) => {
               const endDate = renewal.membership_end ? new Date(renewal.membership_end) : new Date();
-              const daysLeft = Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+              const isValidDate = !isNaN(endDate.getTime());
+              const daysLeft = isValidDate ? Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24)) : 0;
               const isUrgent = daysLeft <= 3;
-              const formattedDate = renewal.membership_end ? format(endDate, "MMM d") : "Soon";
+              const formattedDate = (renewal.membership_end && isValidDate) ? format(endDate, "MMM d") : "Soon";
               
               return (
                 <div key={renewal.id} className="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all group bg-white">
@@ -363,7 +364,7 @@ export default async function DashboardPage() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-slate-900 truncate">{renewal.member?.name || 'Deleted Member'}</p>
-                      <p className="text-xs font-medium text-slate-500">{daysLeft > 0 ? `Expires in ${daysLeft} days` : 'Expired'}</p>
+                      <p className="text-xs font-medium text-slate-500">{daysLeft > 0 ? `Expires in ${daysLeft} days` : (isValidDate ? 'Expired' : 'Soon')}</p>
                     </div>
                   </div>
                   {renewal.member?.phone && (
@@ -415,7 +416,7 @@ export default async function DashboardPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 border-b border-slate-50 text-sm font-medium text-slate-500">
-                      {member.join_date ? formatDistanceToNow(new Date(member.join_date), { addSuffix: true }) : 'Recently'}
+                      {(member.join_date && !isNaN(new Date(member.join_date).getTime())) ? formatDistanceToNow(new Date(member.join_date), { addSuffix: true }) : 'Recently'}
                     </td>
                     <td className="px-4 py-3 border-b border-slate-50">
                       <span className="inline-flex px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md bg-emerald-50 text-emerald-600">Active</span>
@@ -461,7 +462,7 @@ export default async function DashboardPage() {
                       {formatCurrency(Number(payment.amount))}
                     </td>
                     <td className="px-4 py-3 border-b border-slate-50 text-sm font-medium text-slate-500">
-                      {payment.paid_at ? formatDistanceToNow(new Date(payment.paid_at), { addSuffix: true }) : 'Recently'}
+                      {(payment.paid_at && !isNaN(new Date(payment.paid_at).getTime())) ? formatDistanceToNow(new Date(payment.paid_at), { addSuffix: true }) : 'Recently'}
                     </td>
                   </tr>
                 ))}
