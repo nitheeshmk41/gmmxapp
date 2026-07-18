@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, CheckCircle2, Globe, Building2, Palette, Activity } from "lucide-react";
+import { Loader2, CheckCircle2, Globe, Building2, Palette, Activity, XCircle } from "lucide-react";
 
 export function OnboardingWizard({ userName }: { userName: string }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [provisioningStep, setProvisioningStep] = useState(0);
+  const [subdomainStatus, setSubdomainStatus] = useState<"idle" | "checking" | "available" | "unavailable">("idle");
+  const [subdomainError, setSubdomainError] = useState("");
 
   const [formData, setFormData] = useState({
     gymName: "",
@@ -28,6 +30,43 @@ export function OnboardingWizard({ userName }: { userName: string }) {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
+  const handleCountryChange = (country: string) => {
+    let timezone = "IST";
+    let currency = "INR";
+    if (country === "United States") { timezone = "EST"; currency = "USD"; }
+    else if (country === "United Kingdom") { timezone = "GMT"; currency = "GBP"; }
+    else if (country === "Australia") { timezone = "AEST"; currency = "AUD"; }
+    else if (country === "Canada") { timezone = "EST"; currency = "CAD"; }
+    
+    setFormData(prev => ({ ...prev, country, timezone, currency }));
+  };
+
+  useEffect(() => {
+    if (formData.subdomain.length < 3) {
+      setSubdomainStatus("idle");
+      setSubdomainError("");
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setSubdomainStatus("checking");
+      setSubdomainError("");
+      const formatCheck = await checkSubdomainFormat(formData.subdomain);
+      if (!formatCheck.valid) {
+        setSubdomainStatus("unavailable");
+        setSubdomainError(formatCheck.error || "Invalid subdomain");
+        return;
+      }
+      const isAvailable = await checkSubdomain(formData.subdomain);
+      if (isAvailable) {
+        setSubdomainStatus("available");
+      } else {
+        setSubdomainStatus("unavailable");
+        setSubdomainError("This subdomain is already taken.");
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [formData.subdomain]);
+
   const handleNext = async () => {
     setError("");
     if (step === 1) {
@@ -35,19 +74,9 @@ export function OnboardingWizard({ userName }: { userName: string }) {
         setError("Business name, type, subdomain, and country are required");
         return;
       }
-      setLoading(true);
-
-      const formatCheck = await checkSubdomainFormat(formData.subdomain);
-      if (!formatCheck.valid) {
-        setError(formatCheck.error || "Reserved subdomain or invalid format");
-        setLoading(false);
-        return;
-      }
-
-      const isAvailable = await checkSubdomain(formData.subdomain);
-      setLoading(false);
-      if (!isAvailable) {
-        setError("This subdomain is already taken.");
+      
+      if (subdomainStatus === "unavailable" || subdomainStatus === "checking") {
+        setError("Please choose a valid and available subdomain");
         return;
       }
     }
@@ -144,7 +173,7 @@ export function OnboardingWizard({ userName }: { userName: string }) {
                    
                    setFormData(prev => ({ ...prev, businessType: type, theme: newTheme }));
                 }}
-                className="w-full border border-zinc-800 bg-zinc-950/50 text-zinc-100 h-12 rounded-md px-3 text-lg focus:outline-none focus:ring-1 focus:ring-red-500 appearance-none cursor-pointer"
+                className="w-full border border-zinc-700 bg-zinc-900 text-zinc-100 h-12 rounded-md px-3 text-lg focus:outline-none focus:ring-2 focus:ring-red-500 hover:bg-zinc-800 transition-colors appearance-none cursor-pointer"
               >
                 <option value="Gym">Gym</option>
                 <option value="Yoga Studio">Yoga Studio</option>
@@ -169,9 +198,19 @@ export function OnboardingWizard({ userName }: { userName: string }) {
                 />
                 <span className="pr-3 text-zinc-500 font-medium">.gmmx.app</span>
               </div>
-              {formData.subdomain.length > 2 && (
+              {subdomainStatus === "checking" && (
+                <p className="text-xs text-zinc-400 flex items-center gap-1 mt-1 font-medium">
+                  <Loader2 size={12} className="animate-spin" /> Checking availability...
+                </p>
+              )}
+              {subdomainStatus === "available" && (
                 <p className="text-xs text-emerald-500 flex items-center gap-1 mt-1 font-medium">
                   <CheckCircle2 size={12} /> Available
+                </p>
+              )}
+              {subdomainStatus === "unavailable" && (
+                <p className="text-xs text-red-500 flex items-center gap-1 mt-1 font-medium">
+                  <XCircle size={12} /> {subdomainError}
                 </p>
               )}
             </div>
@@ -179,29 +218,33 @@ export function OnboardingWizard({ userName }: { userName: string }) {
             <div className="grid grid-cols-3 gap-4 pt-4 border-t border-zinc-800/50">
               <div className="space-y-2">
                 <Label className="text-zinc-400 text-xs uppercase tracking-wider">Country</Label>
-                <select value={formData.country} onChange={e => updateForm("country", e.target.value)} className="w-full border border-zinc-800 bg-zinc-950/30 text-zinc-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 appearance-none cursor-pointer">
+                <select value={formData.country} onChange={e => handleCountryChange(e.target.value)} className="w-full border border-zinc-700 bg-zinc-900 text-zinc-100 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 hover:bg-zinc-800 transition-colors appearance-none cursor-pointer">
                   <option value="India">India</option>
                   <option value="United States">United States</option>
                   <option value="United Kingdom">United Kingdom</option>
                   <option value="Australia">Australia</option>
+                  <option value="Canada">Canada</option>
                 </select>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 opacity-60">
                 <Label className="text-zinc-400 text-xs uppercase tracking-wider">Timezone</Label>
-                <select value={formData.timezone} onChange={e => updateForm("timezone", e.target.value)} className="w-full border border-zinc-800 bg-zinc-950/30 text-zinc-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 appearance-none cursor-pointer">
+                <select disabled value={formData.timezone} onChange={e => updateForm("timezone", e.target.value)} className="w-full border border-zinc-800 bg-zinc-950/30 text-zinc-500 rounded-md py-2 px-3 text-sm focus:outline-none appearance-none cursor-not-allowed">
                   <option value="IST">IST</option>
                   <option value="EST">EST</option>
                   <option value="PST">PST</option>
                   <option value="GMT">GMT</option>
+                  <option value="AEST">AEST</option>
+                  <option value="CAD">CAD</option>
                 </select>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 opacity-60">
                 <Label className="text-zinc-400 text-xs uppercase tracking-wider">Currency</Label>
-                <select value={formData.currency} onChange={e => updateForm("currency", e.target.value)} className="w-full border border-zinc-800 bg-zinc-950/30 text-zinc-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 appearance-none cursor-pointer">
+                <select disabled value={formData.currency} onChange={e => updateForm("currency", e.target.value)} className="w-full border border-zinc-800 bg-zinc-950/30 text-zinc-500 rounded-md py-2 px-3 text-sm focus:outline-none appearance-none cursor-not-allowed">
                   <option value="INR">INR (₹)</option>
                   <option value="USD">USD ($)</option>
                   <option value="GBP">GBP (£)</option>
                   <option value="AUD">AUD ($)</option>
+                  <option value="CAD">CAD ($)</option>
                 </select>
               </div>
             </div>
@@ -215,17 +258,26 @@ export function OnboardingWizard({ userName }: { userName: string }) {
                 <div 
                   key={t.id} 
                   onClick={() => updateForm("theme", t.id)}
-                  className={`cursor-pointer rounded-xl overflow-hidden border-2 transition-all group relative ${formData.theme === t.id ? 'border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.2)]' : 'border-zinc-800 hover:border-zinc-700'}`}
+                  className={`cursor-pointer rounded-xl overflow-hidden border-2 transition-all group relative bg-zinc-900 flex flex-col h-40 ${formData.theme === t.id ? 'border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.2)]' : 'border-zinc-800 hover:border-zinc-700'}`}
                 >
-                  <div className={`h-24 bg-gradient-to-br ${t.color} flex items-center justify-center`}>
-                    <Palette size={24} className={t.light ? 'text-slate-800' : 'text-white'} opacity={0.5} />
+                  <div className="flex-1 p-3 overflow-hidden relative">
+                    <div className="absolute inset-0 bg-zinc-800 m-2 rounded-lg flex flex-col gap-1 p-2">
+                      <div className="h-2 w-1/3 bg-zinc-700 rounded-full mb-2"></div>
+                      <div className="h-8 w-full bg-zinc-700/50 rounded flex items-center justify-center">
+                        <Palette size={16} className="text-zinc-500" />
+                      </div>
+                      <div className="flex gap-1 mt-1">
+                        <div className="h-4 flex-1 bg-zinc-700/30 rounded"></div>
+                        <div className="h-4 flex-1 bg-zinc-700/30 rounded"></div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-3 bg-zinc-900 border-t border-zinc-800">
+                  <div className="p-3 bg-zinc-950 border-t border-zinc-800 z-10">
                     <p className="font-bold text-zinc-100">{t.name}</p>
                     <p className="text-xs text-zinc-500">{t.text}</p>
                   </div>
                   {formData.theme === t.id && (
-                    <div className="absolute top-2 right-2 bg-red-500 rounded-full p-1">
+                    <div className="absolute top-2 right-2 bg-red-500 rounded-full p-1 z-20 shadow-md">
                       <CheckCircle2 size={12} className="text-white" />
                     </div>
                   )}

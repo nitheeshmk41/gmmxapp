@@ -185,12 +185,46 @@ export async function createMember(formData: FormData): Promise<{ success?: bool
 
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
-  const phone = formData.get("phone") as string;
+  const rawPhone = formData.get("phone") as string;
+  const countryCode = formData.get("country_code") as string;
+  const phone = countryCode && rawPhone ? `${countryCode}${rawPhone}` : rawPhone;
   const notes = formData.get("notes") as string;
   const planId = formData.get("plan_id") as string;
   const joinDate = formData.get("join_date") as string;
 
   if (!name || !phone) return { error: "Name and phone are required" };
+
+  if (email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return { error: "Please enter a valid email address." };
+    }
+
+    const disposableDomains = new Set(["mailinator.com", "guerrillamail.com", "tempmail.com", "10minutemail.com", "yopmail.com"]);
+    const domain = email.split('@')[1];
+    if (domain && disposableDomains.has(domain.toLowerCase())) {
+      return { error: "Disposable email addresses are not allowed." };
+    }
+
+    try {
+      const { databases } = await createAdminClient();
+      const existingRes = await databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.MEMBERS, [
+        Query.equal("email", email.toLowerCase()),
+        Query.limit(1)
+      ]);
+
+      if (existingRes.total > 0) {
+        const existingMember = existingRes.documents[0];
+        if (existingMember.gymId === context.gym.$id) {
+          return { error: "A member with this email already exists in your gym." };
+        } else {
+          return { error: "This email is associated with another gym on GMMX. Please use a different email." };
+        }
+      }
+    } catch (e) {
+      console.error("Email uniqueness check failed", e);
+    }
+  }
 
   try {
     const { databases } = await createAdminClient();
@@ -403,7 +437,9 @@ export async function updateMember(id: string, formData: FormData): Promise<{ su
 
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
-  const phone = formData.get("phone") as string;
+  const rawPhone = formData.get("phone") as string;
+  const countryCode = formData.get("country_code") as string;
+  const phone = countryCode && rawPhone ? `${countryCode}${rawPhone}` : rawPhone;
   const notes = formData.get("notes") as string;
   const planId = formData.get("plan_id") as string;
   const joinDate = formData.get("join_date") as string;

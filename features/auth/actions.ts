@@ -45,11 +45,11 @@ async function setSessionCookie(secret: string) {
   const headerStore = await headers();
   const host = headerStore.get("host") || "";
   const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
-  const domain = isLocalhost ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
+  const domain = isLocalhost ? undefined : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
   
   cookieStore.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, secret, {
     path: "/",
-    domain: domain,
+    ...(domain ? { domain } : {}),
     httpOnly: true,
     sameSite: "lax",
     secure: env.NODE_ENV === "production",
@@ -62,11 +62,11 @@ async function setTenantCookie(subdomain: string, role: string) {
   const headerStore = await headers();
   const host = headerStore.get("host") || "";
   const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
-  const domain = isLocalhost ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
+  const domain = isLocalhost ? undefined : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
   
   cookieStore.set("gmmx_tenant", `${subdomain}:${role}`, {
     path: "/",
-    domain: domain,
+    ...(domain ? { domain } : {}),
     httpOnly: false, // Accessible by middleware if needed
     sameSite: "lax",
     secure: env.NODE_ENV === "production",
@@ -79,11 +79,11 @@ async function deleteSessionCookie() {
   const headerStore = await headers();
   const host = headerStore.get("host") || "";
   const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
-  const domain = isLocalhost ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
+  const domain = isLocalhost ? undefined : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
   
   cookieStore.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, "", {
     path: "/",
-    domain: domain,
+    ...(domain ? { domain } : {}),
     expires: new Date(0),
   });
 }

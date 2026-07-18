@@ -82,24 +82,58 @@ export function MemberFormPage({ plans, mode, member }: Props) {
                 {group.title}
               </p>
               <div className="grid grid-cols-2 gap-3">
-                {group.fields.map((field) => (
-                  <div key={field.name} className={`space-y-1.5 ${field.col === 2 ? "col-span-2" : ""}`}>
-                    <label className="text-xs font-medium" style={{ color: "var(--color-foreground)" }}>
-                      {field.label} {field.required && "*"}
-                    </label>
-                    <input
-                      name={field.name}
-                      type={field.type}
-                      required={field.required}
-                      placeholder={field.placeholder}
-                      defaultValue={(member as Record<string, unknown>)?.[field.name] as string || ""}
-                      className="w-full px-3 py-2.5 rounded-lg text-sm"
-                      style={inputStyle}
-                      onFocus={(e) => { e.target.style.borderColor = "var(--color-brand-primary)"; }}
-                      onBlur={(e) => { e.target.style.borderColor = "var(--color-border)"; }}
-                    />
-                  </div>
-                ))}
+                {group.fields.map((field) => {
+                  if (field.name === "phone") {
+                    return (
+                      <div key={field.name} className={`space-y-1.5 ${field.col === 2 ? "col-span-2" : ""}`}>
+                        <label className="text-xs font-medium" style={{ color: "var(--color-foreground)" }}>
+                          {field.label} {field.required && "*"}
+                        </label>
+                        <div className="flex border rounded-lg focus-within:border-[#FF5C73] focus-within:ring-1 focus-within:ring-[#FF5C73] transition-all overflow-hidden" style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}>
+                          <select 
+                            name="country_code" 
+                            className="bg-transparent text-sm border-none pl-3 pr-1 outline-none text-slate-500 cursor-pointer"
+                            defaultValue="+91"
+                          >
+                            <option value="+91">+91 (IN)</option>
+                            <option value="+1">+1 (US/CA)</option>
+                            <option value="+44">+44 (UK)</option>
+                            <option value="+61">+61 (AU)</option>
+                            <option value="+971">+971 (AE)</option>
+                          </select>
+                          <input
+                            name={field.name}
+                            type={field.type}
+                            required={field.required}
+                            placeholder={field.placeholder}
+                            defaultValue={(member as Record<string, unknown>)?.[field.name] as string || ""}
+                            className="w-full px-3 py-2.5 text-sm bg-transparent outline-none"
+                            style={{ color: "var(--color-foreground)" }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div key={field.name} className={`space-y-1.5 ${field.col === 2 ? "col-span-2" : ""}`}>
+                      <label className="text-xs font-medium" style={{ color: "var(--color-foreground)" }}>
+                        {field.label} {field.required && "*"}
+                      </label>
+                      <input
+                        name={field.name}
+                        type={field.type}
+                        required={field.required}
+                        placeholder={field.placeholder}
+                        defaultValue={(member as Record<string, unknown>)?.[field.name] as string || ""}
+                        className="w-full px-3 py-2.5 rounded-lg text-sm"
+                        style={inputStyle}
+                        onFocus={(e) => { e.target.style.borderColor = "var(--color-brand-primary)"; }}
+                        onBlur={(e) => { e.target.style.borderColor = "var(--color-border)"; }}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}

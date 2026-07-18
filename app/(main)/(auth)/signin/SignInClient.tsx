@@ -1,10 +1,10 @@
 "use client";
 
 import { signInWithGoogle, signInWithEmail, checkAuthMethod, sendPasswordCreationEmail } from "@/features/auth/actions";
-import { PhoneOtpForm } from "@/features/auth/components/phone-otp-form";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { PasswordInput } from "@/components/ui/password-input";
 
 function ErrorBanner() {
   const searchParams = useSearchParams();
@@ -85,8 +85,8 @@ export function SignInClient() {
       ) : googleOnlyUser ? (
         <div className="mb-6 space-y-4 animate-in fade-in">
           <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl text-center">
-            <h3 className="font-semibold text-blue-900 mb-1">This account uses Google Sign-In.</h3>
-            <p className="text-sm text-blue-700">You haven't set a password for this account yet.</p>
+            <h3 className="font-semibold text-blue-900 mb-1">This account doesn't have a password yet.</h3>
+            <p className="text-sm text-blue-700">Please continue with Google once to set your password.</p>
           </div>
           
           <form action={signInWithGoogle}>
@@ -145,29 +145,14 @@ export function SignInClient() {
               </button>
             </form>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-3 bg-white text-slate-500 font-medium">or continue with OTP</span>
-              </div>
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200"></div>
             </div>
-
-            <PhoneOtpForm />
+            <div className="relative flex justify-center text-sm">
+              <span className="px-3 bg-white text-slate-500 font-medium">or continue with email</span>
+            </div>
           </div>
-
-          {!showEmailForm ? (
-            <div className="text-center pt-2">
-              <button
-                type="button"
-                onClick={() => setShowEmailForm(true)}
-                className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors"
-              >
-                Or continue with Email
-              </button>
-            </div>
-          ) : (
             <div className="pt-6 border-t border-slate-100 animate-in fade-in slide-in-from-bottom-4">
               <div className="mb-4 text-center">
                 <h3 className="text-sm font-bold text-slate-700">Email & Password</h3>
@@ -189,37 +174,41 @@ export function SignInClient() {
                     Password
                     <a href="/forgot-password" className="text-xs font-medium text-slate-500 hover:text-[#FF5C73] transition-colors">Forgot?</a>
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     name="password"
                     required
                     minLength={8}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#FF5C73] focus:ring-1 focus:ring-[#FF5C73] outline-none transition-all text-sm"
                     placeholder="••••••••"
                   />
+                </div>
+                <div className="flex items-center gap-2 mb-2">
+                  <input type="checkbox" id="remember" name="remember" className="rounded border-slate-300 text-[#FF5C73] focus:ring-[#FF5C73]" />
+                  <label htmlFor="remember" className="text-sm text-slate-600 font-medium">Remember me</label>
                 </div>
                 <button
                   type="submit"
                   disabled={loading}
                   className="w-full py-3.5 rounded-xl text-sm font-bold text-white bg-[#FF5C73] hover:bg-rose-600 transition-all flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign in to account"}
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign in"}
                 </button>
               </form>
             </div>
-          )}
+          </div>
         </>
       )}
 
-      <p className="mt-8 text-center text-sm font-medium text-slate-500">
-        Don&apos;t have an account?{" "}
+      <div className="mt-8 pt-8 border-t border-slate-100 flex flex-col items-center">
+        <p className="text-sm font-medium text-slate-500 mb-4">
+          Start your free 14-day trial
+        </p>
         <a
           href="/signup"
-          className="font-bold text-[#FF5C73] hover:text-rose-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+          className="w-full py-3.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 border-2 border-[#FF5C73] text-[#FF5C73] hover:bg-rose-50"
         >
-          Start free trial
+          Create Account
         </a>
-      </p>
+      </div>
     </div>
   );
 }

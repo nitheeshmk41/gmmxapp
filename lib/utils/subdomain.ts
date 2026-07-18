@@ -3,23 +3,14 @@ import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
 import { Query } from "node-appwrite";
 
 const RESERVED_SUBDOMAINS = new Set([
-  "admin",
-  "api",
-  "www",
-  "mail",
-  "cdn",
-  "app",
-  "dashboard",
-  "support",
-  "help",
-  "blog",
-  "docs",
-  "login",
-  "signup",
-  "register",
-  "test",
-  "staging",
-  "dev"
+  "admin", "root", "api", "server", "mail", "email", "support", "help", 
+  "dashboard", "app", "cdn", "ftp", "www", "test", "dev", "staging", 
+  "localhost", "website", "blog", "shop", "system", "null", "undefined",
+  "docs", "login", "signup", "register"
+]);
+
+const PROFANITY_LIST = new Set([
+  "fuck", "shit", "bitch", "cunt", "asshole", "dick", "pussy", "bastard", "whore" // Basic MVP filter
 ]);
 
 const SUBDOMAIN_REGEX = /^[a-z0-9-]+$/;
@@ -38,7 +29,15 @@ export function validateSubdomainFormat(subdomain: string): { valid: boolean; er
   }
 
   if (RESERVED_SUBDOMAINS.has(subdomain)) {
-    return { valid: false, error: "This subdomain is reserved and cannot be used" };
+    return { valid: false, error: "This subdomain is reserved. Please choose another one." };
+  }
+
+  // Simple profanity check (if it contains any of the words)
+  for (const word of PROFANITY_LIST) {
+    if (subdomain.includes(word)) {
+      // Returning generic message as requested
+      return { valid: false, error: "This subdomain isn't available. Please choose another name." };
+    }
   }
 
   return { valid: true };
