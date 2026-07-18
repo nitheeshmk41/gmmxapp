@@ -24,6 +24,18 @@ export type WebsiteTemplate = "modern" | "minimal" | "performance";
 
 export type DomainVerificationStatus = "pending" | "verified" | "failed";
 
+export type SectionCategory = "essential" | "premium" | "mandatory";
+
+export interface WebsiteSectionDefinition {
+  key: string;
+  label: string;
+  category: SectionCategory;
+  defaultEnabled: boolean;
+  defaultConfig: Record<string, unknown>;
+  icon?: string; // For the UI
+}
+
+
 // ── Entities ──────────────────────────────────────────────────
 
 export interface Gym {
