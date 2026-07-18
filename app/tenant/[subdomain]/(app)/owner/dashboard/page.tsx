@@ -33,9 +33,9 @@ export default async function DashboardPage() {
 
   const { databases } = await createAdminClient();
   const [settingsRes, subRes] = await Promise.all([
-    databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_SETTINGS, [Query.equal("gymId", gym.$id)]),
+    databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.GYM_SETTINGS, [Query.equal("gymId", gym.gymId)]),
     databases.listDocuments(APPWRITE_DB_ID, COLLECTIONS.SUBSCRIPTIONS, [
-      Query.equal("gymId", gym.$id),
+      Query.equal("gymId", gym.gymId),
       Query.orderDesc("$createdAt"),
       Query.limit(1)
     ])
@@ -264,7 +264,7 @@ export default async function DashboardPage() {
                     <p className="text-xs text-slate-500 truncate">{lead.intent || 'Interested'}</p>
                   </div>
                   {lead.phone && (
-                    <a href={buildLeadWelcomeUrl(lead.phone, lead.name, gym.name)} target="_blank" rel="noreferrer"
+                    <a href={buildLeadWelcomeUrl(lead.phone, lead.name, gym.gym.name)} target="_blank" rel="noreferrer"
                       className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0 hover:bg-green-100 transition-colors text-green-600" title="Chat on WhatsApp">
                       <MessageCircle size={14} />
                     </a>
@@ -356,7 +356,7 @@ export default async function DashboardPage() {
                     </div>
                   </div>
                   {renewal.member.phone && (
-                    <a href={buildExpiryReminderUrl(renewal.member.phone, renewal.member.name, gym.name, formattedDate)}
+                    <a href={buildExpiryReminderUrl(renewal.member.phone, renewal.member.name, gym.gym.name, formattedDate)}
                       target="_blank" rel="noreferrer"
                       className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center hover:bg-green-500 hover:text-white text-green-600 transition-all opacity-0 group-hover:opacity-100"
                       title="Send WhatsApp Reminder">
@@ -381,8 +381,8 @@ export default async function DashboardPage() {
             <h3 className="text-lg font-bold text-slate-900 tracking-tight">Recent Members</h3>
             <Link href="/owner/dashboard/members" className="text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors">View All</Link>
           </div>
-          <div className="flex-1 p-2">
-            <table className="w-full text-left border-collapse">
+          <div className="flex-1 p-2 overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[400px]">
               <thead>
                 <tr>
                   <th className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Member</th>
@@ -424,8 +424,8 @@ export default async function DashboardPage() {
             <h3 className="text-lg font-bold text-slate-900 tracking-tight">Recent Payments</h3>
             <Link href="/owner/dashboard/payments" className="text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors">View All</Link>
           </div>
-          <div className="flex-1 p-2">
-            <table className="w-full text-left border-collapse">
+          <div className="flex-1 p-2 overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[400px]">
               <thead>
                 <tr>
                   <th className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Member</th>

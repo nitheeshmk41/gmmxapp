@@ -116,19 +116,19 @@ export function Sidebar({ gymName = "Your Gym", gymSubdomain, userEmail }: Sideb
   return (
     <aside
       className={cn(
-        "fixed inset-y-4 left-4 z-50 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 transition-all duration-300 ease-in-out",
+        "fixed inset-y-4 left-4 z-50 flex flex-col bg-white dark:bg-[#0F172A] rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 transition-all duration-300 ease-in-out",
         isCollapsed ? "w-20" : "w-64"
       )}
     >
       {/* Header / Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-100">
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-100 dark:border-slate-800">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0 bg-[#FF5C73] shadow-sm shadow-[#FF5C73]/20">
-          G
+          {gymName.charAt(0).toUpperCase()}
         </div>
         {!isCollapsed && (
           <div className="min-w-0 animate-in fade-in zoom-in-95 duration-200">
-            <div className="font-bold text-slate-900 tracking-tight text-base truncate">GMMX</div>
-            <div className="text-xs text-slate-500 truncate">Workspace</div>
+            <div className="font-bold text-slate-900 dark:text-slate-100 tracking-tight text-base truncate">{gymName}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 truncate">Workspace</div>
           </div>
         )}
       </div>
@@ -150,7 +150,7 @@ export function Sidebar({ gymName = "Your Gym", gymSubdomain, userEmail }: Sideb
                   "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
                   isActive 
                     ? "bg-[#FF5C73]/10 text-[#FF5C73]" 
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100",
                   isCollapsed && "justify-center px-0"
                 )}
                 title={isCollapsed ? item.label : undefined}
@@ -228,15 +228,15 @@ export function Sidebar({ gymName = "Your Gym", gymSubdomain, userEmail }: Sideb
       </div>
 
       {/* User Footer */}
-      <div className="p-3 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
+      <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 rounded-b-2xl">
         <div className={cn("flex items-center gap-3", isCollapsed ? "justify-center" : "px-2 py-1.5")}>
           <div className="w-9 h-9 rounded-full flex items-center justify-center text-[#FF5C73] bg-[#FF5C73]/10 text-xs font-bold shrink-0 border border-[#FF5C73]/20">
             {userEmail ? userEmail[0].toUpperCase() : "U"}
           </div>
           {!isCollapsed && (
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-slate-900 truncate">{gymName}</p>
-              <p className="text-xs text-slate-500 truncate">{userEmail || "Owner"}</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{gymName}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{userEmail || "Owner"}</p>
             </div>
           )}
         </div>
@@ -244,7 +244,7 @@ export function Sidebar({ gymName = "Your Gym", gymSubdomain, userEmail }: Sideb
           <form action={signOut} className="mt-2">
             <button
               type="submit"
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 transition-all"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
             >
               <LogOut size={14} />
               <span>Sign out</span>

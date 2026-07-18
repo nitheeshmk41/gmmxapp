@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { ExternalLink, Dumbbell, Plus, Moon, MessageSquare } from "lucide-react";
+import { ExternalLink, Dumbbell, Plus, Moon, Sun, MessageSquare } from "lucide-react";
+import { useTheme } from "next-themes";
 import { GlobalSearch } from "./global-search";
 import { MobileNav } from "./mobile-nav";
 import { NotificationsPopover } from "./NotificationsPopover";
@@ -35,19 +36,16 @@ export function Topbar({ gymSubdomain }: TopbarProps) {
       return pathname.startsWith(key);
     })?.[1] || "Dashboard";
 
+  const { theme, setTheme } = useTheme();
+
   return (
     <header
-      className="sticky top-0 z-40 flex items-center justify-between h-[72px] px-6"
-      style={{
-        background: "rgba(248,250,252,0.75)",
-        backdropFilter: "blur(12px)",
-        borderBottom: "1px solid var(--color-border)",
-      }}
+      className="sticky top-0 z-40 flex items-center justify-between h-[72px] px-6 bg-white/75 dark:bg-[#0B1120]/75 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors"
     >
       {/* Left side: Mobile Menu + Page title */}
       <div className="flex items-center gap-4">
         <MobileNav />
-        <h1 className="text-xl font-bold tracking-tight text-slate-900 hidden md:block">
+        <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 hidden md:block">
           {title}
         </h1>
       </div>
@@ -77,22 +75,25 @@ export function Topbar({ gymSubdomain }: TopbarProps) {
           </a>
         )}
 
-        <div className="flex items-center gap-1.5 border-l border-slate-200 pl-4">
-          <button className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors">
+        <div className="flex items-center gap-1.5 border-l border-slate-200 dark:border-slate-800 pl-4">
+          <button className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
             <Plus size={18} />
           </button>
-          <button className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors hidden sm:flex">
+          <button className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors hidden sm:flex">
             <MessageSquare size={18} />
           </button>
           <NotificationsPopover />
-          <button className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors hidden sm:flex">
-            <Moon size={18} />
+          <button 
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors hidden sm:flex"
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </div>
         
         {/* Profile Dropdown Placeholder */}
-        <div className="ml-2 w-9 h-9 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center cursor-pointer shrink-0">
-          <span className="text-xs font-bold text-slate-600">U</span>
+        <div className="ml-2 w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-[#0F172A] shadow-sm flex items-center justify-center cursor-pointer shrink-0">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300">U</span>
         </div>
       </div>
     </header>

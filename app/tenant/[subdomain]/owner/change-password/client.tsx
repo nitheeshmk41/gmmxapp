@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { changeInitialPassword } from "@/features/auth/actions";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 
 export function ChangePasswordClient() {
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -13,6 +16,12 @@ export function ChangePasswordClient() {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
 
     const formData = new FormData();
     formData.append("password", password);
@@ -36,15 +45,46 @@ export function ChangePasswordClient() {
 
          <div>
            <label className="block text-sm font-bold text-slate-700 mb-1.5">New Password</label>
-           <input 
-             type="password" 
-             value={password}
-             onChange={e => setPassword(e.target.value)}
-             className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-1 focus:ring-[#FF5C73] focus:border-[#FF5C73] outline-none transition-all text-sm"
-             required minLength={8}
-             placeholder="••••••••"
-           />
+           <div className="relative">
+             <input 
+               type={showPassword ? "text" : "password"} 
+               value={password}
+               onChange={e => setPassword(e.target.value)}
+               className="w-full pl-4 pr-10 py-3 rounded-xl border border-slate-200 focus:ring-1 focus:ring-[#FF5C73] focus:border-[#FF5C73] outline-none transition-all text-sm"
+               required minLength={8}
+               placeholder="••••••••"
+             />
+             <button
+               type="button"
+               onClick={() => setShowPassword(!showPassword)}
+               className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+             >
+               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+             </button>
+           </div>
          </div>
+
+         <div>
+           <label className="block text-sm font-bold text-slate-700 mb-1.5">Confirm Password</label>
+           <div className="relative">
+             <input 
+               type={showConfirmPassword ? "text" : "password"} 
+               value={confirmPassword}
+               onChange={e => setConfirmPassword(e.target.value)}
+               className="w-full pl-4 pr-10 py-3 rounded-xl border border-slate-200 focus:ring-1 focus:ring-[#FF5C73] focus:border-[#FF5C73] outline-none transition-all text-sm"
+               required minLength={8}
+               placeholder="••••••••"
+             />
+             <button
+               type="button"
+               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+               className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+             >
+               {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+             </button>
+           </div>
+         </div>
+
          <button type="submit" disabled={loading} className="w-full bg-[#FF5C73] hover:bg-rose-600 transition-all text-white font-bold p-3.5 rounded-xl flex items-center justify-center">
            {loading && <Loader2 className="w-5 h-5 animate-spin mr-2" />}
            Save & Continue

@@ -57,6 +57,35 @@
   --shadow-brand: 0 4px 14px 0 rgb(255 92 115 / 0.25);
 }
 
+.dark {
+  /* Brand Colors - Keep primary, darken light variant */
+  --color-brand-light: #2A1115;
+
+  /* Sidebar / Dark */
+  --color-sidebar: #0F172A;
+  --color-sidebar-foreground: #F8FAFC;
+  --color-sidebar-muted: #94A3B8;
+  --color-sidebar-border: #1E293B;
+  --color-sidebar-accent: #1E293B;
+
+  /* Background & Surface */
+  --color-background: #0B1120;
+  --color-surface: #0F172A;
+  --color-border: #1E293B;
+  --color-border-muted: #1E293B;
+
+  /* Text */
+  --color-foreground: #F8FAFC;
+  --color-muted-foreground: #94A3B8;
+  --color-subtle: #64748B;
+
+  /* Status Colors Dark variants */
+  --color-success-light: #064E3B;
+  --color-warning-light: #78350F;
+  --color-danger-light: #7F1D1D;
+  --color-info-light: #1E3A8A;
+}
+
 /* ─────────────────────────────────────────────────────────────
    Base Reset & Typography
    ───────────────────────────────────────────────────────────── */
