@@ -5,6 +5,7 @@ import { Query } from "node-appwrite";
 import { CreditCard, Download, HardDrive, Users, CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
+import { UpgradeManager } from "@/components/payments/UpgradeManager";
 
 const PLAN_LABELS: Record<string, string> = {
   starter: "Starter",
@@ -92,12 +93,12 @@ export default async function BillingSettingsPage() {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                href="/owner/dashboard/upgrade"
-                className="px-6 py-2.5 bg-[#FF5C73] hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-md shadow-red-500/20 flex items-center justify-center gap-2"
-              >
-                Upgrade Plan
-              </Link>
+              <UpgradeManager 
+                gym={gym}
+                currentPlan={plan}
+                isTrial={isTrial}
+                daysLeft={daysLeft}
+              />
               {plan !== "starter" && (
                 <Link href="#" className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all border border-slate-200 flex items-center justify-center">
                   Manage Subscription
