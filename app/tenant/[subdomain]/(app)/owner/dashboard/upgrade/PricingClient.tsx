@@ -3,9 +3,12 @@
 import { useState } from "react";
 import { CheckCircle2, Building2, Zap, Star, ShieldCheck, Check } from "lucide-react";
 import RazorpayCheckout from "@/components/payments/RazorpayCheckout";
+import { BillingSummaryModal } from "@/components/payments/BillingSummaryModal";
 
-export default function PricingClient({ gym }: { gym: any }) {
+export default function PricingClient({ gym, isTrial, daysLeft }: { gym: any, isTrial: boolean, daysLeft: number }) {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<"professional" | "enterprise" | null>(null);
 
   const starterPrice = billingCycle === "monthly" ? 499 : 4990;
   const proPrice = billingCycle === "monthly" ? 999 : 9990;
@@ -135,14 +138,15 @@ export default function PricingClient({ gym }: { gym: any }) {
             </div>
             
             <div className="mt-auto relative z-10">
-                <RazorpayCheckout 
-                  planName="professional"
-                  price={proPrice}
-                  period={billingCycle}
-                  gymId={gym.$id}
-                  highlighted={true}
-                  className="py-4 text-lg shadow-xl shadow-[#FF5C73]/30 hover:scale-[1.02] active:scale-[0.98] rounded-2xl"
-                />
+                <button 
+                  onClick={() => {
+                    setSelectedPlan("professional");
+                    setIsModalOpen(true);
+                  }}
+                  className="w-full py-4 text-lg bg-[#FF5C73] hover:bg-red-500 text-white shadow-xl shadow-[#FF5C73]/30 hover:scale-[1.02] active:scale-[0.98] rounded-2xl transition-all font-bold"
+                >
+                  Upgrade Now
+                </button>
                 <p className="text-center text-xs text-slate-500 mt-4 flex items-center justify-center gap-1.5 font-medium">
                   <ShieldCheck size={14} /> Secure Razorpay Checkout
                 </p>
@@ -255,6 +259,20 @@ export default function PricingClient({ gym }: { gym: any }) {
         </div>
 
       </div>
+      
+      {/* Billing Summary Modal */}
+      {selectedPlan && (
+        <BillingSummaryModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          planName={selectedPlan}
+          price={selectedPlan === "professional" ? proPrice : 0}
+          period={billingCycle}
+          gym={gym}
+          isTrial={isTrial}
+          daysLeft={daysLeft}
+        />
+      )}
     </div>
   );
 }

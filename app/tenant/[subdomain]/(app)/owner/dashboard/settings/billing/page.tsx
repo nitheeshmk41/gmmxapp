@@ -2,7 +2,7 @@ import { getCurrentGym } from "@/features/auth/actions";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
 import { Query } from "node-appwrite";
-import { CreditCard, Download, HardDrive, Users } from "lucide-react";
+import { CreditCard, Download, HardDrive, Users, CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 
@@ -40,6 +40,8 @@ export default async function BillingSettingsPage() {
   ]);
   const membersCount = membersRes.total;
   const maxMembers = plan === "starter" ? 200 : "Unlimited";
+  const membersPercentage = plan === "starter" ? Math.min((membersCount / 200) * 100, 100) : 5;
+  const progressColor = membersPercentage > 90 ? "bg-red-500" : membersPercentage > 75 ? "bg-orange-500" : "bg-blue-500";
 
   return (
     <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
@@ -74,15 +76,17 @@ export default async function BillingSettingsPage() {
             </div>
             
             <div className="flex gap-3">
-              <Link
-                href="/owner/dashboard/upgrade"
-                className="px-6 py-2.5 bg-[#FF5C73] hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-md shadow-red-500/20"
-              >
-                Upgrade
+              {plan === "starter" && (
+                <Link
+                  href="/owner/dashboard/upgrade"
+                  className="px-6 py-2.5 bg-[#FF5C73] hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-md shadow-red-500/20 flex items-center gap-2"
+                >
+                  Upgrade
+                </Link>
+              )}
+              <Link href="/owner/dashboard/upgrade" className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all border border-slate-200">
+                {plan === "starter" ? "Compare Plans" : "Manage Subscription"}
               </Link>
-              <button className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all border border-slate-200">
-                Cancel
-              </button>
             </div>
           </div>
 
@@ -101,6 +105,21 @@ export default async function BillingSettingsPage() {
               </div>
             </div>
           </div>
+          
+          {plan === "starter" && (
+            <div className="mt-8 p-5 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/10 dark:to-orange-900/10 border border-red-100 dark:border-red-900/20 rounded-xl">
+              <h4 className="font-bold text-slate-900 dark:text-white mb-3 text-sm flex items-center gap-2">
+                Unlock with Professional
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {["Unlimited Members", "Unlimited Trainers", "AI Assistant", "Advanced Reports"].map((f, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+                    <CheckCircle2 size={16} className="text-[#FF5C73]" /> {f}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -116,8 +135,8 @@ export default async function BillingSettingsPage() {
                 <p className="text-sm font-medium text-slate-700 flex items-center gap-2"><Users size={16} /> Members</p>
                 <p className="text-sm font-bold text-slate-900">{membersCount} / {maxMembers}</p>
               </div>
-              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-blue-500 rounded-full" style={{ width: plan === "starter" ? `${Math.min((membersCount / 200) * 100, 100)}%` : '5%' }}></div>
+              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className={`h-full rounded-full transition-all ${progressColor}`} style={{ width: `${membersPercentage}%` }}></div>
               </div>
             </div>
 

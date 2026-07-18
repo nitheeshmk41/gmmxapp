@@ -19,6 +19,8 @@ export default function RazorpayCheckout({
   gymId: string;
   highlighted: boolean;
   className?: string;
+  buttonText?: string;
+  onSuccess?: () => void;
 }) {
   const [isPending, setIsPending] = useState(false);
   const router = useRouter();
@@ -88,9 +90,14 @@ export default function RazorpayCheckout({
             const verifyData = await verifyRes.json();
             
             if (verifyData.success) {
-              toast.success("Payment successful! Your plan is now active.", { id: "verify-toast" });
-              router.push("/owner/dashboard/settings/billing");
-              router.refresh();
+              toast.dismiss("verify-toast");
+              if (onSuccess) {
+                onSuccess();
+              } else {
+                toast.success("Payment successful! Your plan is now active.");
+                router.push("/owner/dashboard/settings/billing");
+                router.refresh();
+              }
             } else {
               toast.error(verifyData.error || "Payment verification failed", { id: "verify-toast" });
             }
@@ -132,7 +139,7 @@ export default function RazorpayCheckout({
         border: highlighted ? "1px solid #FF5C73" : "1px solid #CBD5E1",
       }}
     >
-      {isPending ? <Loader2 size={16} className="animate-spin" /> : "Upgrade Now"}
+      {isPending ? <Loader2 size={16} className="animate-spin" /> : (buttonText || "Upgrade Now")}
     </button>
   );
 }

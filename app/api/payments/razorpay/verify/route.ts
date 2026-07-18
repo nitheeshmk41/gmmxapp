@@ -64,6 +64,20 @@ export async function POST(req: Request) {
         paymentProvider: "razorpay"
       });
     }
+
+    // 3. Create Activity Log
+    try {
+      await databases.createDocument(APPWRITE_DB_ID, COLLECTIONS.ACTIVITY_LOGS, ID.unique(), {
+        gymId,
+        userId: gymId, // Fallback since we don't have the exact user ID in the webhook without querying
+        action: `Workspace upgraded to ${plan}`,
+        entity: "subscription",
+        metadataJson: JSON.stringify({ amount: period === "yearly" ? 9990 : 999, period, provider: "razorpay" }),
+        timestamp: new Date().toISOString()
+      });
+    } catch (e) {
+      console.error("Failed to create activity log", e);
+    }
     
     console.log(`[Razorpay Verify] Successfully upgraded gym ${gymId} to ${plan} via synchronous verification`);
 
