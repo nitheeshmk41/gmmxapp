@@ -75,7 +75,7 @@ export default async function BillingSettingsPage() {
             
             <div className="flex gap-3">
               <Link
-                href="/owner/dashboard/settings/billing/upgrade"
+                href="/owner/dashboard/upgrade"
                 className="px-6 py-2.5 bg-[#FF5C73] hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-md shadow-red-500/20"
               >
                 Upgrade
