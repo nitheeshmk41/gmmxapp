@@ -24,10 +24,10 @@ export function TrialBanners({ daysLeft, isExpired, gymName, gymId }: TrialBanne
             <span>Trial Expired. Your workspace is frozen. Upgrade to continue using GMMX.</span>
           </div>
           <Link 
-            href="/owner/dashboard/settings/billing/upgrade"
+            href="/owner/dashboard/settings/billing"
             className="px-4 py-1.5 bg-red-600 text-white rounded-lg font-bold text-xs shadow-sm hover:bg-red-700 transition-colors whitespace-nowrap"
           >
-            Upgrade Now
+            Go to Billing
           </Link>
         </div>
       </div>
@@ -45,10 +45,10 @@ export function TrialBanners({ daysLeft, isExpired, gymName, gymId }: TrialBanne
               <span>Trial ends in {daysLeft} days. Upgrade now to avoid service interruption.</span>
             </div>
             <Link 
-              href="/owner/dashboard/settings/billing/upgrade"
+              href="/owner/dashboard/settings/billing"
               className="px-4 py-1.5 bg-orange-600 text-white rounded-lg font-bold text-xs shadow-sm hover:bg-orange-700 transition-colors whitespace-nowrap"
             >
-              Upgrade
+              Go to Billing
             </Link>
           </div>
         </div>
@@ -90,7 +90,7 @@ export function TrialBanners({ daysLeft, isExpired, gymName, gymId }: TrialBanne
               />
               
               <p className="text-center text-xs text-slate-400 mt-4">
-                Or <Link href="/owner/dashboard/settings/billing/upgrade" className="text-blue-500 hover:underline">view all plans</Link>
+                Or <Link href="/owner/dashboard/settings/billing" className="text-blue-500 hover:underline">view all plans</Link>
               </p>
             </div>
           </div>
