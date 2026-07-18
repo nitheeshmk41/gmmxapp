@@ -83,6 +83,7 @@ export default function RazorpayCheckout({
             
             if (verifyData.success) {
               toast.success("Payment successful! Your plan is now active.", { id: "verify-toast" });
+              router.push("/owner/dashboard/settings/billing");
               router.refresh();
             } else {
               toast.error(verifyData.error || "Payment verification failed", { id: "verify-toast" });
