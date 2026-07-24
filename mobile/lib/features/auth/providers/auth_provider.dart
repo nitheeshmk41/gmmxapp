@@ -42,6 +42,8 @@ class AuthState {
   final bool isLoading;
   final String? error;
 
+  static const Object _errorUnset = Object();
+
   const AuthState({
     this.status = AuthStatus.initial,
     this.member,
@@ -55,14 +57,14 @@ class AuthState {
     Member? member,
     Organization? organization,
     bool? isLoading,
-    String? error,
+    Object? error = _errorUnset,
   }) {
     return AuthState(
       status: status ?? this.status,
       member: member ?? this.member,
       organization: organization ?? this.organization,
       isLoading: isLoading ?? this.isLoading,
-      error: error,
+      error: identical(error, _errorUnset) ? this.error : error as String?,
     );
   }
 }
