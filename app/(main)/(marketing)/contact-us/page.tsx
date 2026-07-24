@@ -237,6 +237,32 @@ export default function ContactUsPage() {
                </div>
             </div>
 
+            <div className="bg-white border border-slate-200/60 rounded-3xl p-4 shadow-sm space-y-4">
+              <div className="flex items-center justify-between gap-4 px-2 pt-1">
+                <div>
+                  <h3 className="font-bold text-slate-900 text-base">Find us on the map</h3>
+                  <p className="text-slate-500 text-xs">Visit or verify our location before you book a demo.</p>
+                </div>
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=Coimbatore%2C%20India"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-bold text-[#FF5C73] hover:text-rose-600"
+                >
+                  Open Maps
+                </a>
+              </div>
+              <div className="overflow-hidden rounded-2xl border border-slate-200">
+                <iframe
+                  title="GMMX location map"
+                  src="https://www.google.com/maps?q=Coimbatore%2C%20India&z=13&output=embed"
+                  loading="lazy"
+                  className="h-56 w-full"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+            </div>
+
           </div>
 
           {/* Right Column: Lead Form */}

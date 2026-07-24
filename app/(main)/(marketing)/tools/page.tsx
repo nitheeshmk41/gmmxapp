@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Calculator, Activity, CheckSquare, Target, TrendingUp, Users, Smartphone, Search, FileText } from "lucide-react";
+import { ArrowRight, Activity, Target, TrendingUp, Calculator } from "lucide-react";
 
 type ToolItem = {
   title: string;
@@ -23,7 +23,7 @@ type ToolCategory = {
 export default function ToolsHubPage() {
   const tools: ToolCategory[] = [
     {
-      category: "Must-Have Tools",
+      category: "Useful Tools",
       items: [
         {
           title: "Gym Digital Readiness Score",
@@ -46,47 +46,13 @@ export default function ToolsHubPage() {
           icon: <Calculator className="text-indigo-500" size={24} />,
           href: "/tools/gym-roi-calculator",
           color: "bg-indigo-50 border-indigo-200 hover:border-indigo-500",
-        }
-      ]
-    },
-    {
-      category: "Fitness & Member Tools",
-      items: [
+        },
         {
           title: "BMI Calculator",
           description: "Check Body Mass Index quickly and easily.",
           icon: <Activity className="text-rose-500" size={24} />,
           href: "/tools/bmi-calculator",
           color: "bg-rose-50 border-rose-200 hover:border-rose-500",
-        },
-        {
-          title: "Calorie Calculator",
-          description: "Estimate daily calorie needs for bulking or cutting.",
-          icon: <Activity className="text-orange-500" size={24} />,
-          href: "#",
-          comingSoon: true,
-          color: "bg-orange-50 border-orange-200",
-        }
-      ]
-    },
-    {
-      category: "Generators & Resources",
-      items: [
-        {
-          title: "Membership Agreement Generator",
-          description: "Generate professional membership PDFs in seconds.",
-          icon: <FileText className="text-purple-500" size={24} />,
-          href: "#",
-          comingSoon: true,
-          color: "bg-purple-50 border-purple-200",
-        },
-        {
-          title: "QR Code Generator",
-          description: "Generate check-in QR codes for your gym members.",
-          icon: <Smartphone className="text-slate-500" size={24} />,
-          href: "#",
-          comingSoon: true,
-          color: "bg-slate-50 border-slate-200",
         }
       ]
     }
@@ -111,7 +77,7 @@ export default function ToolsHubPage() {
             Free Tools for <span className="text-[#FF5C73]">Gym Owners</span>
           </h1>
           <p className="text-slate-300 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed font-medium">
-            Calculators, generators, and assessments designed to help you run a more profitable fitness business.
+            Only the tools that actually help you make better decisions, convert more leads, or understand your numbers faster.
           </p>
         </div>
       </section>

@@ -13,14 +13,16 @@ class AttendanceRemoteDataSource {
     try {
       await _databases.createDocument(
         databaseId: AppConstants.databaseId,
-        collectionId: 'attendance',
+        collectionId: AppConstants.collectionAttendance,
         documentId: attendance.id,
         data: {
-          'member_id': attendance.memberId,
-          'gym_id': attendance.organizationId,
-          'branch_id': attendance.branchId,
-          'check_in_time': attendance.timestamp.toIso8601String(),
+          'gymId': attendance.organizationId,
+          'memberId': attendance.memberId,
+          'attendanceDate': attendance.timestamp.toIso8601String().split('T').first,
+          'checkIn': attendance.timestamp.toIso8601String(),
+          'checkOut': null,
           'method': 'qr',
+          'source': 'mobile_qr',
         },
       );
     } on AppwriteException catch (e) {

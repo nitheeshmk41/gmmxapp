@@ -3,10 +3,11 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, HelpCircle } from "lucide-react";
 import { notFound } from "next/navigation";
 
-// Define the static SEO content for all 11 solutions
+// Define the static SEO content for the supported solutions.
 const SOLUTIONS: Record<string, any> = {
   "gym": {
     name: "Gym",
+    audienceLabel: "Gym Owners",
     fullName: "Gym Management",
     title: "Gym Management Software India – gmmx.app",
     desc: "Manage members, trainers, attendance, memberships & billing. The all-in-one gym management software.",
@@ -16,6 +17,7 @@ const SOLUTIONS: Record<string, any> = {
   },
   "yoga": {
     name: "Yoga Studio",
+    audienceLabel: "Yoga Studios",
     fullName: "Yoga Studio Management",
     title: "Yoga Studio Management Software – gmmx.app",
     desc: "Manage classes, instructors, packages, online sessions and member attendance with ease.",
@@ -25,6 +27,7 @@ const SOLUTIONS: Record<string, any> = {
   },
   "dance": {
     name: "Dance Academy",
+    audienceLabel: "Dance Academies",
     fullName: "Dance Academy Management",
     title: "Dance Academy Software – gmmx.app",
     desc: "Organize batches, performances, student progress and fee collection for your dance academy.",
@@ -32,8 +35,9 @@ const SOLUTIONS: Record<string, any> = {
     problems: ["Student Batches", "Fee Collection", "Performance Tracking", "Student Progress", "Parent Notifications", "Instructor Schedules"],
     whyChoose: ["Organize chaotic batches", "Never miss fee collections", "Track student levels", "Accept online payments", "Professional academy website"]
   },
-  "swimming": {
-    name: "Swimming Academy",
+  "swim": {
+    name: "Swim Academy",
+    audienceLabel: "Swimming Academies",
     fullName: "Swimming Academy Management",
     title: "Swimming Academy Management System – gmmx.app",
     desc: "Manage pool schedules, coaches, lane allocation and membership plans.",
@@ -41,68 +45,6 @@ const SOLUTIONS: Record<string, any> = {
     problems: ["Pool Scheduling", "Lane Allocation", "Coach Roster", "Membership Plans", "Student Progress", "Safety Waivers"],
     whyChoose: ["Optimize pool usage", "Manage peak hours", "Easily manage coaches", "Accept online bookings", "Professional website"]
   },
-  "martial-arts": {
-    name: "Martial Arts",
-    fullName: "Martial Arts Academy Management",
-    title: "Martial Arts Management Software – gmmx.app",
-    desc: "Track belts, competitions, attendance and instructor schedules.",
-    heroSubtitle: "Belt tracking, competitions, attendance & coach management simplified.",
-    problems: ["Belt Tracking", "Competition Records", "Attendance Tracking", "Monthly Fees", "Instructor Schedules", "Parent Notifications"],
-    whyChoose: ["Track belt progression", "Organize competitions", "Reduce missed renewals", "Accept online payments", "Professional dojo website"]
-  },
-  "personal-trainer": {
-    name: "Personal Trainer",
-    fullName: "Personal Trainer Software",
-    title: "Personal Trainer Software – gmmx.app",
-    desc: "Manage clients, workout plans, nutrition and online coaching.",
-    heroSubtitle: "Client management, workout plans & nutrition coaching organized efficiently.",
-    problems: ["Client Management", "Workout Tracking", "Nutrition Logs", "Online Coaching", "Session Billing", "Progress Photos"],
-    whyChoose: ["Automate client check-ins", "Track client progress", "Easily manage schedules", "Accept online payments", "Professional portfolio website"]
-  },
-  "sports-academy": {
-    name: "Sports Academy",
-    fullName: "Sports Academy Management",
-    title: "Sports Academy Management Software – gmmx.app",
-    desc: "Manage teams, coaching, tournaments, schedules and memberships.",
-    heroSubtitle: "Team management, tournaments, schedules & performance tracking.",
-    problems: ["Team Management", "Tournament Logs", "Performance Tracking", "Court Schedules", "Membership Dues", "Coach Roster"],
-    whyChoose: ["Organize entire teams", "Track performance stats", "Manage court availability", "Accept online payments", "Professional academy website"]
-  },
-  "crossfit": {
-    name: "CrossFit Box",
-    fullName: "CrossFit Management",
-    title: "CrossFit Management Software – gmmx.app",
-    desc: "Manage WODs, athletes, class limits, and billing for your CrossFit box.",
-    heroSubtitle: "Athletes, classes, WOD tracking & memberships managed flawlessly.",
-    problems: ["Athlete Management", "Class Size Limits", "WOD Tracking", "Drop-ins", "Membership Billing", "Coach Schedules"],
-    whyChoose: ["Manage class capacities", "Automate recurring billing", "Track athlete PRs", "Handle drop-in payments", "Professional Box website"]
-  },
-  "pilates": {
-    name: "Pilates Studio",
-    fullName: "Pilates Studio Management",
-    title: "Pilates Studio Software – gmmx.app",
-    desc: "Manage reformer bookings, instructors, class packs and memberships.",
-    heroSubtitle: "Reformer scheduling, instructors, packages & billing tracked easily.",
-    problems: ["Reformer Booking", "Class Scheduling", "Instructor Roster", "Class Packs", "Waitlist Management", "Payment Collection"],
-    whyChoose: ["Optimize machine usage", "Automate waitlists", "Easily manage instructors", "Accept online bookings", "Beautiful studio website"]
-  },
-  "boxing": {
-    name: "Boxing Club",
-    fullName: "Boxing Club Management",
-    title: "Boxing Club Management Software – gmmx.app",
-    desc: "Manage fighters, sparring schedules, coaches, and memberships.",
-    heroSubtitle: "Fighters, ring schedules, coaches & billing managed efficiently.",
-    problems: ["Fighter Management", "Ring Scheduling", "Coach Roster", "Membership Dues", "Event Prep", "Drop-ins"],
-    whyChoose: ["Track fighter stats", "Manage ring availability", "Easily manage coaches", "Accept online payments", "Professional club website"]
-  },
-  "zumba": {
-    name: "Zumba Studio",
-    fullName: "Zumba Studio Management",
-    title: "Zumba Studio Software – gmmx.app",
-    desc: "Manage batches, instructors, drop-ins, and monthly memberships.",
-    heroSubtitle: "Batches, instructors, drop-ins & memberships managed vibrantly.",
-    problems: ["Batch Scheduling", "Instructor Roster", "Drop-in Payments", "Monthly Memberships", "Attendance Tracking", "Lead Generation"],
-    whyChoose: ["Organize vibrant batches", "Handle drop-in rushes", "Easily manage instructors", "Accept online bookings", "Beautiful studio website"]
   }
 };
 
@@ -147,7 +89,7 @@ export default async function SolutionPage({ params }: { params: Promise<{ solut
         <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center w-full">
           
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 bg-rose-500/20 text-rose-300 border border-rose-500/30 backdrop-blur-md">
-            <span>Built for {data.name}s</span>
+            <span>Built for {data.audienceLabel}</span>
           </div>
           
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight mb-6 tracking-tight text-white">
@@ -199,7 +141,7 @@ export default async function SolutionPage({ params }: { params: Promise<{ solut
       <section className="py-24 px-6 bg-slate-900 text-white">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-black text-white tracking-tight mb-4">Why {data.name}s Choose GMMX</h2>
+            <h2 className="text-3xl font-black text-white tracking-tight mb-4">Why {data.audienceLabel} Choose GMMX</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">

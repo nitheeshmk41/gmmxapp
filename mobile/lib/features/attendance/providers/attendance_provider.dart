@@ -80,6 +80,9 @@ class ScanNotifier extends Notifier<ScanStateModel> {
     state = state.copyWith(
       hasCameraPermission: cameraStatus.isGranted,
       hasLocationPermission: locationStatus.isGranted,
+      status: cameraStatus.isGranted && locationStatus.isGranted
+          ? ScanState.scanning
+          : ScanState.initial,
     );
   }
 

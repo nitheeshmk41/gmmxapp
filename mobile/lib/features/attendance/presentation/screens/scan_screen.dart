@@ -120,6 +120,37 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               ),
             ),
 
+          if (state.hasCameraPermission && state.hasLocationPermission && state.status == ScanState.scanning)
+            Positioned(
+              left: AppTheme.spacingLg,
+              right: AppTheme.spacingLg,
+              bottom: AppTheme.spacingLg,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.72),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                ),
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Keep the member QR inside the frame',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      'Location is verified automatically before attendance is saved.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // 4. Loading / Success / Error Overlay
           if (state.status == ScanState.loading || state.status == ScanState.success || state.status == ScanState.error)
             Container(

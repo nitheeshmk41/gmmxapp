@@ -205,7 +205,19 @@ export default function PricingPage() {
           <div className="pt-4 flex flex-col items-center gap-6">
             
             <div className="bg-rose-500/20 border border-rose-500/30 text-rose-300 px-4 py-2 rounded-full text-sm font-bold animate-pulse shadow-[0_0_15px_rgba(255,92,115,0.2)] flex items-center gap-2">
-               <span>🎉</span> Founding Customer Offer: Lock your price forever.
+               <span>🎉</span> First 10 customers: 50% off for 3 months + free onboarding.
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-3xl">
+              {[
+                "Priority setup support",
+                "Free migration help",
+                "Founding customer pricing",
+              ].map((item) => (
+                <div key={item} className="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm font-semibold text-slate-200 backdrop-blur-sm">
+                  {item}
+                </div>
+              ))}
             </div>
 
             {/* Double Toggles */}
