@@ -45,7 +45,6 @@ const SOLUTIONS: Record<string, any> = {
     problems: ["Pool Scheduling", "Lane Allocation", "Coach Roster", "Membership Plans", "Student Progress", "Safety Waivers"],
     whyChoose: ["Optimize pool usage", "Manage peak hours", "Easily manage coaches", "Accept online bookings", "Professional website"]
   },
-  }
 };
 
 export function generateStaticParams() {
