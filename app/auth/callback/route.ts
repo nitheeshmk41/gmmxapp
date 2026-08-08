@@ -8,10 +8,10 @@ import { createAdminClient, createOAuthSessionHelper } from "@/lib/appwrite/serv
 
 export async function GET(request: Request) {
   const correlationId = createCorrelationId();
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get("userId");
-  const secret = searchParams.get("secret");
-  const origin = getBaseUrl();
+  const requestUrl = new URL(request.url);
+  const userId = requestUrl.searchParams.get("userId");
+  const secret = requestUrl.searchParams.get("secret");
+  const origin = requestUrl.origin;
 
   console.log("Host:", request.headers.get("host"));
   console.log("Origin:", request.headers.get("origin"));

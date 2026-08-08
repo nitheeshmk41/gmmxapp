@@ -90,7 +90,17 @@ async function deleteSessionCookie() {
 
 export async function signInWithGoogle() {
   const account = getAuthClient();
-  const appUrl = getBaseUrl();
+  let appUrl = getBaseUrl();
+  try {
+    const headerStore = await headers();
+    const host = headerStore.get("host");
+    if (host) {
+      const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
+      appUrl = `${protocol}://${host}`;
+    }
+  } catch (err) {
+    console.error("[signInWithGoogle] Error getting host header:", err);
+  }
 
   console.log("[signInWithGoogle] Generating OAuth URLs using base URL:", appUrl);
 
