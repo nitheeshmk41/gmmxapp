@@ -24,15 +24,11 @@ export default async function DashboardLayout({
   const [user, gym] = await Promise.all([getCurrentUser(), getCurrentGym()]);
 
   if (!user) {
-    // Session cookie is stale/invalid. 
-    // We redirect to owner login with a redirectTo parameter.
-    // The middleware will intercept this and delete the stale cookie.
-    redirect("/owner/login?redirectTo=/owner/dashboard");
+    redirect("/signin?redirectTo=/dashboard");
   }
 
   if (user.role === "super_admin") {
-    const rootUrl = process.env.NODE_ENV === "production" ? "https://gmmx.app/dashboard" : "http://localhost:3000/dashboard";
-    redirect(rootUrl);
+    redirect("/admin/dashboard");
   }
   
   if ((user as any).requiresPasswordChange) {
@@ -44,13 +40,7 @@ export default async function DashboardLayout({
   }
 
   if (!gym) {
-    const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "gmmx.app";
-    const proto = process.env.NODE_ENV === "production" ? "https" : "http";
-    let host = appDomain;
-    if (process.env.NODE_ENV !== "production") {
-      host = "localhost:3000";
-    }
-    redirect(`${proto}://${host}/dashboard`);
+    redirect("/dashboard");
   }
 
   let daysLeft = 0;
@@ -86,6 +76,7 @@ export default async function DashboardLayout({
           <Sidebar
             gymName={gym.name}
             gymSubdomain={gym.subdomain}
+            organizationSlug={gym.subdomain}
             userEmail={user.email}
           />
         </div>
@@ -93,12 +84,12 @@ export default async function DashboardLayout({
         {/* Main content */}
         <div id="main-content-wrapper" className="flex-1 flex flex-col min-h-screen md:ml-[17rem] pb-16 md:pb-0 relative transition-all duration-300 ease-in-out">
           {gym && <TrialBanners daysLeft={daysLeft} isExpired={isExpired} gymName={gym.name} gymId={gym.$id} />}
-          <Topbar gymSubdomain={gym.subdomain} userEmail={user.email} gymName={gym.name} />
+          <Topbar gymSubdomain={gym.subdomain} organizationSlug={gym.subdomain} userEmail={user.email} gymName={gym.name} />
           <main className="flex-1 p-4 md:p-6">{children}</main>
         </div>
 
         {/* Mobile Bottom Navigation */}
-        <BottomNav />
+        <BottomNav organizationSlug={gym.subdomain} />
       </div>
     </SubscriptionProvider>
   );

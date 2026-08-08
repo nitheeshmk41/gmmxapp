@@ -3,27 +3,37 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, LayoutDashboard, Users, UserPlus, Dumbbell, CreditCard, CalendarCheck, Globe, Settings, LogOut, ChevronRight, Building2, TrendingUp } from "lucide-react";
+import {
+  Menu, X, LayoutDashboard, Users, UserPlus, Dumbbell, CreditCard,
+  CalendarCheck, Globe, Settings, LogOut, Building2, TrendingUp, BarChart
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "@/features/auth/actions";
 
-const NAV_ITEMS = [
-  { href: "/owner/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/owner/dashboard/members", label: "Members", icon: Users },
-  { href: "/owner/dashboard/attendance", label: "Attendance", icon: CalendarCheck },
-  { href: "/owner/dashboard/payments", label: "Payments", icon: CreditCard },
-  { href: "/owner/dashboard/leads", label: "Leads", icon: UserPlus },
-  { href: "/owner/dashboard/team", label: "Team", icon: Dumbbell },
-  { href: "/owner/dashboard/plans", label: "Plans", icon: Building2 },
-  { href: "/owner/dashboard/website", label: "Website", icon: Globe },
-  { href: "/owner/dashboard/reports", label: "Reports", icon: TrendingUp },
-  { href: "/owner/dashboard/analytics", label: "Analytics", icon: TrendingUp }, // Temporary fallback icon until we import BarChart in mobile-nav
-  { href: "/owner/dashboard/settings", label: "Settings", icon: Settings },
-];
+interface MobileNavProps {
+  /** New: org slug for path-based routing */
+  organizationSlug?: string;
+}
 
-export function MobileNav() {
+export function MobileNav({ organizationSlug }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const base = organizationSlug ? `/${organizationSlug}` : `/owner/dashboard`;
+  const dashboardHref = organizationSlug ? `${base}/dashboard` : base;
+
+  const NAV_ITEMS = [
+    { href: dashboardHref, label: "Dashboard", icon: LayoutDashboard, exact: true },
+    { href: `${base}/members`, label: "Members", icon: Users, exact: false },
+    { href: `${base}/attendance`, label: "Attendance", icon: CalendarCheck, exact: false },
+    { href: `${base}/payments`, label: "Payments", icon: CreditCard, exact: false },
+    { href: `${base}/leads`, label: "Leads", icon: UserPlus, exact: false },
+    { href: `${base}/team`, label: "Team", icon: Dumbbell, exact: false },
+    { href: `${base}/plans`, label: "Plans", icon: Building2, exact: false },
+    { href: `${base}/website`, label: "Website", icon: Globe, exact: false },
+    { href: `${base}/reports`, label: "Reports", icon: TrendingUp, exact: false },
+    { href: `${base}/analytics`, label: "Analytics", icon: BarChart, exact: false },
+    { href: `${base}/settings`, label: "Settings", icon: Settings, exact: false },
+  ];
 
   return (
     <>
@@ -54,7 +64,7 @@ export function MobileNav() {
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href || (item.href !== "/owner/dashboard" && pathname.startsWith(item.href));
+              const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
               return (
                 <Link
                   key={item.href}
@@ -71,14 +81,17 @@ export function MobileNav() {
               );
             })}
           </div>
-          
+
           <div className="p-4 border-t border-slate-100">
-             <form action={signOut}>
-               <button type="submit" className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50">
-                 <LogOut size={20} />
-                 Sign Out
-               </button>
-             </form>
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50"
+              >
+                <LogOut size={20} />
+                Sign Out
+              </button>
+            </form>
           </div>
         </div>
       )}

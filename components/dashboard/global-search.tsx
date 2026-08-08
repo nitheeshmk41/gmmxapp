@@ -13,7 +13,11 @@ interface SearchResult {
   url: string;
 }
 
-export function GlobalSearch() {
+interface GlobalSearchProps {
+  organizationSlug?: string;
+}
+
+export function GlobalSearch({ organizationSlug }: GlobalSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 300);
@@ -53,7 +57,11 @@ export function GlobalSearch() {
       }
       setLoading(true);
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`);
+        const res = await fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`, {
+          headers: {
+            "x-organization-slug": organizationSlug || ""
+          }
+        });
         if (res.ok) {
           const data = await res.json();
           setResults({

@@ -202,9 +202,7 @@ export default async function AdminLayout({
 
   if (user.role !== "super_admin") {
     if (gymContext?.gym?.subdomain) {
-      const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "gmmx.app";
-      const proto = process.env.NODE_ENV === "production" ? "https" : "http";
-      redirect(`${proto}://${gymContext.gym.subdomain}.${appDomain}/dashboard`);
+      redirect(`/${gymContext.gym.subdomain}/dashboard`);
     } else {
       redirect("/onboarding");
     }

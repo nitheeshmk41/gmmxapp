@@ -7,8 +7,10 @@ export default async function TrainerLayout({ children }: { children: React.Reac
   const [user, gym] = await Promise.all([getCurrentUser(), getCurrentGym()]);
 
   if (!user || (user.role || "").toUpperCase() !== "TRAINER") {
-    redirect("/trainer/login");
+    redirect(gym?.subdomain ? `/${gym.subdomain}/trainer/login` : "/signin");
   }
+
+  const base = gym?.subdomain ? `/${gym.subdomain}/trainer` : "/trainer";
 
   return (
     <div className="min-h-screen flex flex-col justify-between" style={{ background: "#F8FAFC", fontFamily: "'Inter', sans-serif" }}>
@@ -20,9 +22,9 @@ export default async function TrainerLayout({ children }: { children: React.Reac
               <span className="badge-success text-xs font-semibold">Trainer</span>
             </div>
             <div className="flex items-center gap-4">
-              <Link href="/trainer/dashboard" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Dashboard</Link>
-              <Link href="/trainer/members" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">My Members</Link>
-              <Link href="/trainer/profile" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Profile</Link>
+              <Link href={`${base}/dashboard`} className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Dashboard</Link>
+              <Link href={`${base}/members`} className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">My Members</Link>
+              <Link href={`${base}/profile`} className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Profile</Link>
               <form action={signOut}>
                 <button type="submit" className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors">Sign out</button>
               </form>

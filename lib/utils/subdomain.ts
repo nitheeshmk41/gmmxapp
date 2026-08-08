@@ -2,11 +2,25 @@ import { createAdminClient } from "@/lib/appwrite/server";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
 import { Query } from "node-appwrite";
 
-const RESERVED_SUBDOMAINS = new Set([
-  "admin", "root", "api", "server", "mail", "email", "support", "help", 
-  "dashboard", "app", "cdn", "ftp", "www", "test", "dev", "staging", 
-  "localhost", "website", "blog", "shop", "system", "null", "undefined",
-  "docs", "login", "signup", "register"
+export const RESERVED_SUBDOMAINS = new Set([
+  // System / infrastructure
+  "admin", "root", "api", "server", "mail", "email", "support", "help",
+  "dashboard", "app", "cdn", "ftp", "www", "test", "dev", "staging",
+  "localhost", "website", "shop", "system", "null", "undefined",
+  "docs", "register", "status", "monitor", "metrics",
+
+  // Auth & onboarding routes (must match RESERVED_PATHS in middleware.ts)
+  "login", "signin", "signup", "signout", "auth", "onboarding",
+  "forgot-password", "reset-password", "set-password", "change-password",
+  "callback",
+
+  // Marketing pages
+  "pricing", "features", "about", "contact", "contact-us",
+  "blog", "blogs", "privacy", "terms", "refund", "solutions",
+  "testimonials", "tools", "how-it-works",
+
+  // Reserved GMMX internal paths
+  "tenant", "error", "not-found",
 ]);
 
 const PROFANITY_LIST = new Set([

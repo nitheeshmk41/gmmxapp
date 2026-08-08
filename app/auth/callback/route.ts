@@ -111,27 +111,19 @@ export async function GET(request: Request) {
       gymId: null
     });
     
+    let finalPath = path;
     if (subdomain && path.includes("dashboard")) {
-      const proto = origin.startsWith("http://localhost") ? "http" : "https";
-      const baseDomain = origin.replace(/^https?:\/\//, "");
-      const res = NextResponse.redirect(`${proto}://${subdomain}.${baseDomain}${path}`);
-      
-      const host = request.headers.get("host") || "";
-      const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
-      const cookieDomain = isLocalhost ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
-      
-      res.cookies.set(`a_session_${env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`, sessionSecret, {
-        path: "/",
-        domain: cookieDomain,
-        httpOnly: true,
-        sameSite: "lax",
-        secure: env.NODE_ENV === "production",
-        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
-      });
-      return res;
+      const r = (userRole || "").toUpperCase();
+      if (r === "TRAINER") {
+        finalPath = `/${subdomain}/trainer/dashboard`;
+      } else if (r === "MEMBER") {
+        finalPath = `/${subdomain}/member/dashboard`;
+      } else {
+        finalPath = `/${subdomain}/dashboard`;
+      }
     }
 
-    const res = NextResponse.redirect(`${origin}${path}`);
+    const res = NextResponse.redirect(`${origin}${finalPath}`);
     const host = request.headers.get("host") || "";
     const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
     const cookieDomain = isLocalhost ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;

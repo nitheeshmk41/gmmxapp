@@ -209,23 +209,24 @@ export async function signUpWithEmail(formData: FormData) {
       }
     }
 
-    const path = routeForUser({
-      role: userRole,
-      onboarding_status: onboardingStatus,
-      gymId: null
-    });
-
     if (subdomain) {
       await setTenantCookie(subdomain, userRole);
     }
 
-    if (subdomain && path.includes("dashboard")) {
-      const appUrl = getBaseUrl();
-      const baseDomain = appUrl.replace(/^https?:\/\//, "");
-      const proto = appUrl.startsWith("https") ? "https" : "http";
-      redirectTo = `${proto}://${subdomain}.${baseDomain}${path}`;
+    // New path-based routing: redirect to /{slug}/dashboard or /{slug}/member/dashboard etc.
+    if (subdomain && onboardingStatus === "completed") {
+      const r = (userRole || "").toUpperCase();
+      if (r === "TRAINER") {
+        redirectTo = `/${subdomain}/trainer/dashboard`;
+      } else if (r === "MEMBER") {
+        redirectTo = `/${subdomain}/member/dashboard`;
+      } else {
+        redirectTo = `/${subdomain}/dashboard`;
+      }
+    } else if (onboardingStatus !== "completed") {
+      redirectTo = "/onboarding";
     } else {
-      redirectTo = path;
+      redirectTo = "/dashboard";
     }
   } catch (error: any) {
     console.error("[signUpWithEmail] Error:", error.message);
@@ -325,26 +326,29 @@ export async function signInWithEmail(formData: FormData) {
       }
     }
 
-    console.log("[signInWithEmail] Step 6: Getting route for user");
-    const path = routeForUser({
-      role: userRole,
-      onboarding_status: onboardingStatus,
-      gymId: null
-    });
+    console.log("[signInWithEmail] Step 6: Resolving post-login redirect");
     
     if (subdomain) {
       await setTenantCookie(subdomain, userRole);
     }
 
-    if (subdomain && path.includes("dashboard")) {
-      console.log("[signInWithEmail] Step 7a: Generating absolute URL for tenant");
-      const appUrl = getBaseUrl();
-      const baseDomain = appUrl.replace(/^https?:\/\//, "");
-      const proto = appUrl.startsWith("https") ? "https" : "http";
-      redirectTo = `${proto}://${subdomain}.${baseDomain}${path}`;
+    // New path-based routing: redirect to /{slug}/dashboard or /{slug}/member/dashboard etc.
+    if (subdomain && onboardingStatus === "completed") {
+      console.log("[signInWithEmail] Step 7a: Path-based redirect to org dashboard");
+      const r = (userRole || "").toUpperCase();
+      if (r === "TRAINER") {
+        redirectTo = `/${subdomain}/trainer/dashboard`;
+      } else if (r === "MEMBER") {
+        redirectTo = `/${subdomain}/member/dashboard`;
+      } else {
+        redirectTo = `/${subdomain}/dashboard`;
+      }
+    } else if (onboardingStatus !== "completed") {
+      console.log("[signInWithEmail] Step 7b: Redirecting to onboarding");
+      redirectTo = "/onboarding";
     } else {
-      console.log("[signInWithEmail] Step 7b: Using relative URL");
-      redirectTo = path;
+      console.log("[signInWithEmail] Step 7c: Fallback redirect");
+      redirectTo = "/dashboard";
     }
   } catch (error: any) {
     console.error("[signInWithEmail] Catch Block Error:", {
@@ -358,12 +362,7 @@ export async function signInWithEmail(formData: FormData) {
   }
 
   console.log(`[signInWithEmail] Step 8: Triggering redirect to ${redirectTo}`);
-  
-  if (redirectTo.startsWith("http")) {
-    redirect(redirectTo);
-  } else {
-    redirect(redirectTo);
-  }
+  redirect(redirectTo);
 }
 
 export async function sendOtp(formData: FormData) {
@@ -426,11 +425,32 @@ export async function verifyOtp(formData: FormData) {
       }
     }
 
-    redirectTo = routeForUser({
-      role: gymUser?.role || "OWNER",
-      onboarding_status: dbUser.onboarding_status || "completed",
-      gymId: gymUser?.gymId
-    });
+    // Resolve gym subdomain for path-based redirect
+    let otpGymSubdomain: string | null = null;
+    if (gymUser) {
+      try {
+        const gym = await databases.getDocument(APPWRITE_DB_ID, COLLECTIONS.GYMS, gymUser.gymId);
+        otpGymSubdomain = gym.subdomain || null;
+        if (gym.subdomain) {
+          await setTenantCookie(gym.subdomain, gymUser.role);
+        }
+      } catch (e) {
+        console.error("[verifyOtp] Failed to fetch gym", e);
+      }
+    }
+
+    if (otpGymSubdomain && dbUser.onboarding_status === "completed") {
+      const r = (gymUser?.role || "MEMBER").toUpperCase();
+      if (r === "TRAINER") {
+        redirectTo = `/${otpGymSubdomain}/trainer/dashboard`;
+      } else if (r === "MEMBER") {
+        redirectTo = `/${otpGymSubdomain}/member/dashboard`;
+      } else {
+        redirectTo = `/${otpGymSubdomain}/dashboard`;
+      }
+    } else if (dbUser.onboarding_status !== "completed") {
+      redirectTo = "/onboarding";
+    }
   } catch (error: unknown) {
     console.error("OTP verification failed", error);
     return { error: "Invalid OTP or OTP expired." };
@@ -440,21 +460,7 @@ export async function verifyOtp(formData: FormData) {
 }
 
 export async function signOut() {
-  let redirectUrl = "/login";
-  try {
-    const cookieStore = await cookies();
-    const tenantCookie = cookieStore.get("gmmx_tenant")?.value;
-    if (tenantCookie) {
-      const parts = tenantCookie.split(":");
-      if (parts.length === 2) {
-        const role = parts[1];
-        if (role === "owner" || role === "super_admin") redirectUrl = "/owner/login";
-        else if (role === "trainer") redirectUrl = "/trainer/login";
-        else redirectUrl = "/member/login";
-      }
-    }
-  } catch {}
-
+  // Always redirect to /signin after logout (single domain, no more subdomain-specific login pages)
   try {
     const { account } = await createSessionClient();
     await account.deleteSession("current");
@@ -467,24 +473,15 @@ export async function signOut() {
     const headerStore = await headers();
     const host = headerStore.get("host") || "";
     const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
-    const domain = isLocalhost ? "localhost" : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
-    
+    const domain = isLocalhost ? undefined : `.${env.NEXT_PUBLIC_APP_DOMAIN}`;
     cookieStore.set("gmmx_tenant", "", {
       path: "/",
-      domain: domain,
+      ...(domain ? { domain } : {}),
       expires: new Date(0),
     });
   } catch {}
   
-  const headerStore = await headers();
-  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
-  const isRoot = host.includes("gmmx.app") && !host.match(/^[a-zA-Z0-9-]+\.gmmx\.app/);
-  
-  if (isRoot || (host.includes("localhost") && host.split(":").length > 0 && host.split(":")[0] === "localhost")) {
-    redirectUrl = "/signin";
-  }
-  
-  redirect(redirectUrl);
+  redirect("/signin");
 }
 
 export async function getCurrentUser() {

@@ -49,33 +49,80 @@ export async function getCurrentGym() {
     const host = headerStore.get("host") || "";
     const hostname = host.split(":")[0];
     const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "gmmx.app";
-    const isMainDomain = 
-      hostname === appDomain || 
-      hostname === `www.${appDomain}` || 
-      hostname === "localhost" || 
-      hostname === "127.0.0.1";
 
     let resolvedGymId: string | null = null;
+    let resolvedSlug = headerStore.get("x-organization-slug");
 
-    if (!isMainDomain) {
-      let gym = null;
+    // ── Primary Fallback for Server Actions / APIs: Referer header ───────────
+    if (!resolvedSlug) {
+      const referer = headerStore.get("referer");
+      if (referer) {
+        try {
+          const refererUrl = new URL(referer);
+          // If referer is on the appDomain, extract first pathname segment
+          const refererHost = refererUrl.host.split(":")[0];
+          const isRefererMainDomain =
+            refererHost === appDomain ||
+            refererHost === `www.${appDomain}` ||
+            refererHost === "localhost" ||
+            refererHost === "127.0.0.1";
 
-      if (hostname.endsWith(".localhost")) {
-        const subdomain = hostname.replace(".localhost", "");
-        const res = await databases.listDocuments<GymDocument>(APPWRITE_DB_ID, COLLECTIONS.GYMS, [Query.equal("subdomain", subdomain)]);
-        gym = res.documents[0] || null;
-      } else if (hostname.endsWith(`.${appDomain}`)) {
-        const subdomain = hostname.slice(0, -(appDomain.length + 1));
-        const res = await databases.listDocuments<GymDocument>(APPWRITE_DB_ID, COLLECTIONS.GYMS, [Query.equal("subdomain", subdomain)]);
-        gym = res.documents[0] || null;
-      } else {
-        // Custom Domain Lookup
-        const res = await databases.listDocuments<GymDocument>(APPWRITE_DB_ID, COLLECTIONS.GYMS, [Query.equal("customDomain", hostname)]);
-        gym = res.documents[0] || null;
+          if (isRefererMainDomain) {
+            const segments = refererUrl.pathname.split("/").filter(Boolean);
+            if (segments.length > 0) {
+              const possibleSlug = segments[0];
+              const { RESERVED_SUBDOMAINS } = await import("@/lib/utils/subdomain");
+              if (!RESERVED_SUBDOMAINS.has(possibleSlug)) {
+                resolvedSlug = possibleSlug;
+              }
+            }
+          }
+        } catch (e) {
+          console.error("[getCurrentGym] Error parsing referer URL:", e);
+        }
       }
+    }
 
-      if (gym) {
-        resolvedGymId = gym.$id;
+    // ── Primary: path-based routing (new architecture) ───────────────────────
+    if (resolvedSlug) {
+      const res = await databases.listDocuments<GymDocument>(
+        APPWRITE_DB_ID,
+        COLLECTIONS.GYMS,
+        [Query.equal("subdomain", resolvedSlug), Query.equal("isDeleted", false), Query.limit(1)]
+      );
+      if (res.documents[0]) {
+        resolvedGymId = res.documents[0].$id;
+      }
+    }
+
+    // ── Fallback: subdomain-based routing (public sites, legacy, member/trainer portals) ──
+    if (!resolvedGymId) {
+      const isMainDomain =
+        hostname === appDomain ||
+        hostname === `www.${appDomain}` ||
+        hostname === "localhost" ||
+        hostname === "127.0.0.1";
+
+      if (!isMainDomain) {
+        let gym = null;
+
+        if (hostname.endsWith(".localhost")) {
+          const subdomain = hostname.replace(".localhost", "");
+          const res = await databases.listDocuments<GymDocument>(APPWRITE_DB_ID, COLLECTIONS.GYMS, [Query.equal("subdomain", subdomain)]);
+          gym = res.documents[0] || null;
+        } else if (hostname.endsWith(`.${appDomain}`)) {
+          const subdomain = hostname.slice(0, -(appDomain.length + 1));
+          const res = await databases.listDocuments<GymDocument>(APPWRITE_DB_ID, COLLECTIONS.GYMS, [Query.equal("subdomain", subdomain)]);
+          gym = res.documents[0] || null;
+        } else {
+          // Custom Domain Lookup
+          const res = await databases.listDocuments<GymDocument>(APPWRITE_DB_ID, COLLECTIONS.GYMS, [Query.equal("customDomain", hostname)]);
+          gym = res.documents[0] || null;
+        }
+
+        if (gym) {
+          resolvedGymId = gym.$id;
+        }
       }
     }
 

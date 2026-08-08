@@ -7,8 +7,10 @@ export default async function MemberLayout({ children }: { children: React.React
   const [user, gym] = await Promise.all([getCurrentUser(), getCurrentGym()]);
 
   if (!user || (user.role || "").toUpperCase() !== "MEMBER") {
-    redirect("/member/login");
+    redirect(gym?.subdomain ? `/${gym.subdomain}/member/login` : "/signin");
   }
+
+  const base = gym?.subdomain ? `/${gym.subdomain}/member` : "/member";
 
   return (
     <div className="min-h-screen flex flex-col justify-between" style={{ background: "#F8FAFC", fontFamily: "'Inter', sans-serif" }}>
@@ -20,11 +22,11 @@ export default async function MemberLayout({ children }: { children: React.React
               <span className="badge-brand text-xs font-semibold">Member</span>
             </div>
             <div className="flex items-center gap-4">
-              <Link href="/member/dashboard" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Dashboard</Link>
-              <Link href="/member/membership" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Membership</Link>
-              <Link href="/member/attendance" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Attendance</Link>
-              <Link href="/member/payments" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Payments</Link>
-              <Link href="/member/profile" className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Profile</Link>
+              <Link href={`${base}/dashboard`} className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Dashboard</Link>
+              <Link href={`${base}/membership`} className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Membership</Link>
+              <Link href={`${base}/attendance`} className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Attendance</Link>
+              <Link href={`${base}/payments`} className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Payments</Link>
+              <Link href={`${base}/profile`} className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Profile</Link>
               <form action={signOut}>
                 <button type="submit" className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors">Sign out</button>
               </form>

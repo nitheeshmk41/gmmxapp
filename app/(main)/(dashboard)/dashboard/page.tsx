@@ -3,8 +3,11 @@ import { getCurrentContext } from "@/lib/auth/context";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
 import { Query } from "node-appwrite";
-import { routeForUser } from "@/lib/auth/bootstrap";
 
+/**
+ * Generic /dashboard page — resolves the authenticated user's org slug
+ * and redirects to the new path-based URL: /{slug}/dashboard
+ */
 export default async function DashboardRedirectPage() {
   const context = await getCurrentContext();
   if (!context) {
@@ -21,7 +24,7 @@ export default async function DashboardRedirectPage() {
     redirect("/onboarding");
   }
 
-  // Find user's gym subdomain to redirect them
+  // Find user's gym slug to redirect them to the path-based dashboard
   try {
     const { databases } = await createAdminClient();
     const gymUsersRes = await databases.listDocuments(
@@ -37,18 +40,9 @@ export default async function DashboardRedirectPage() {
         COLLECTIONS.GYMS,
         gymId
       );
-      if (gym && gym.subdomain) {
-        const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "gmmx.app";
-        const proto = process.env.NODE_ENV === "production" ? "https" : "http";
-        
-        let host = `${gym.subdomain}.${appDomain}`;
-        if (process.env.NODE_ENV !== "production") {
-          // Detect port or use default 3000
-          host = `${gym.subdomain}.localhost:3000`;
-        }
-        
-        const path = routeForUser(user);
-        redirect(`${proto}://${host}${path}`);
+      if (gym?.subdomain) {
+        // New path-based redirect: gmmx.app/{slug}/dashboard
+        redirect(`/${gym.subdomain}/dashboard`);
       }
     }
   } catch (error) {

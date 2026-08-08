@@ -59,7 +59,7 @@ export async function GET(request: Request) {
           type: "member",
           title: m.name,
           subtitle: m.phone || "No phone",
-          url: `/owner/dashboard/members/${m.$id}`
+          url: `/${gym.subdomain}/members/${m.$id}`
         });
       }
     }
@@ -73,7 +73,7 @@ export async function GET(request: Request) {
           type: "trainer",
           title: t.name || "Trainer",
           subtitle: "Staff",
-          url: `/owner/dashboard/team/trainers`
+          url: `/${gym.subdomain}/team/trainers`
         });
       }
     }
@@ -87,7 +87,7 @@ export async function GET(request: Request) {
           type: "lead",
           title: l.name,
           subtitle: l.phone || "No phone",
-          url: `/owner/dashboard/leads`
+          url: `/${gym.subdomain}/leads`
         });
       }
     }
