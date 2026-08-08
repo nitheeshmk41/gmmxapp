@@ -17,22 +17,23 @@ const appwriteAdminEnvSchema = z.object({
   APPWRITE_API_KEY: z.string().min(1, "APPWRITE_API_KEY is required for Appwrite admin operations"),
 });
 
-const cleanEnv = (value: string | undefined) => {
+const cleanEnv = (key: string) => {
+  const value = process.env[key];
   if (!value) return value;
   // Remove surrounding quotes and trim spaces which Dokploy/Docker often leave behind
   return value.replace(/^["']|["']$/g, '').trim();
 };
 
 const parsedEnv = envSchema.safeParse({
-  NEXT_PUBLIC_APP_URL: cleanEnv(process.env.NEXT_PUBLIC_APP_URL),
-  NEXT_PUBLIC_APP_DOMAIN: cleanEnv(process.env.NEXT_PUBLIC_APP_DOMAIN),
-  NEXT_PUBLIC_APPWRITE_ENDPOINT: cleanEnv(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT),
-  NEXT_PUBLIC_APPWRITE_PROJECT_ID: cleanEnv(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID),
-  APPWRITE_API_KEY: cleanEnv(process.env.APPWRITE_API_KEY),
-  RAZORPAY_KEY_ID: cleanEnv(process.env.RAZORPAY_KEY_ID),
-  RAZORPAY_KEY_SECRET: cleanEnv(process.env.RAZORPAY_KEY_SECRET),
-  RAZORPAY_WEBHOOK_SECRET: cleanEnv(process.env.RAZORPAY_WEBHOOK_SECRET),
-  NODE_ENV: cleanEnv(process.env.NODE_ENV),
+  NEXT_PUBLIC_APP_URL: cleanEnv("NEXT_PUBLIC_APP_URL"),
+  NEXT_PUBLIC_APP_DOMAIN: cleanEnv("NEXT_PUBLIC_APP_DOMAIN"),
+  NEXT_PUBLIC_APPWRITE_ENDPOINT: cleanEnv("NEXT_PUBLIC_APPWRITE_ENDPOINT"),
+  NEXT_PUBLIC_APPWRITE_PROJECT_ID: cleanEnv("NEXT_PUBLIC_APPWRITE_PROJECT_ID"),
+  APPWRITE_API_KEY: cleanEnv("APPWRITE_API_KEY"),
+  RAZORPAY_KEY_ID: cleanEnv("RAZORPAY_KEY_ID"),
+  RAZORPAY_KEY_SECRET: cleanEnv("RAZORPAY_KEY_SECRET"),
+  RAZORPAY_WEBHOOK_SECRET: cleanEnv("RAZORPAY_WEBHOOK_SECRET"),
+  NODE_ENV: cleanEnv("NODE_ENV"),
 });
 
 if (!parsedEnv.success) {
