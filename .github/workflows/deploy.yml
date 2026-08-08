@@ -1,0 +1,120 @@
+name: Deploy GMMX
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+concurrency:
+  group: gmmx-production
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build GMMX
+    runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
+      NEXT_PUBLIC_APP_DOMAIN: ${{ vars.NEXT_PUBLIC_APP_DOMAIN }}
+      NEXT_PUBLIC_APPWRITE_ENDPOINT: ${{ vars.NEXT_PUBLIC_APPWRITE_ENDPOINT }}
+      NEXT_PUBLIC_APPWRITE_PROJECT_ID: ${{ vars.NEXT_PUBLIC_APPWRITE_PROJECT_ID }}
+
+      APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+      RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
+      RAZORPAY_KEY_SECRET: ${{ secrets.RAZORPAY_KEY_SECRET }}
+      RAZORPAY_WEBHOOK_SECRET: ${{ secrets.RAZORPAY_WEBHOOK_SECRET }}
+
+      NODE_ENV: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js
+        run: npm run build
+
+      - name: Prepare standalone deployment
+        run: |
+          rm -rf deploy
+          mkdir -p deploy
+
+          cp -a .next/standalone/. deploy/
+
+          mkdir -p deploy/.next/static
+          cp -a .next/static/. deploy/.next/static/
+
+          if [ -d public ]; then
+            cp -a public deploy/
+          fi
+
+      - name: Create deployment archive
+        run: |
+          tar -czf gmmx.tar.gz -C deploy .
+          ls -lh gmmx.tar.gz
+
+      - name: Upload deployment
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "gmmx.tar.gz"
+          target: "/home/gmmx/apps/gmmx"
+
+      - name: Deploy and restart
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+
+            APP_DIR="/home/gmmx/apps/gmmx"
+            RELEASE_ID="$(date +%Y%m%d-%H%M%S)"
+            RELEASE_DIR="$APP_DIR/releases/$RELEASE_ID"
+
+            echo "Creating release: $RELEASE_ID"
+
+            mkdir -p "$RELEASE_DIR"
+
+            tar -xzf "$APP_DIR/gmmx.tar.gz" -C "$RELEASE_DIR"
+
+            rm -f "$APP_DIR/gmmx.tar.gz"
+
+            ln -sfn "$RELEASE_DIR" "$APP_DIR/current"
+
+            cd "$APP_DIR/current"
+
+            if pm2 describe gmmx > /dev/null 2>&1; then
+              pm2 restart gmmx --update-env
+            else
+              pm2 start "$APP_DIR/start.sh" \
+                --name gmmx \
+                --cwd "$APP_DIR/current"
+            fi
+
+            pm2 save
+
+            echo "Deployment complete."
+            echo "Release: $RELEASE_ID"
+
+            pm2 status
+
+            echo "Cleaning old releases..."
+
+            cd "$APP_DIR/releases"
+
+            ls -1dt */ 2>/dev/null | tail -n +4 | xargs -r rm -rf
