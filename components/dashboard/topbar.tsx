@@ -7,8 +7,9 @@ import { useTheme } from "next-themes";
 import { GlobalSearch } from "./global-search";
 import { MobileNav } from "./mobile-nav";
 import { NotificationsPopover } from "./NotificationsPopover";
-import { signOut } from "@/features/auth/actions";
 import { cn } from "@/lib/utils";
+import { SignOutButton } from "@clerk/nextjs";
+
 
 interface TopbarProps {
   gymSubdomain?: string;
@@ -199,15 +200,17 @@ export function Topbar({ gymSubdomain, organizationSlug, userEmail, gymName }: T
                 </a>
               )}
 
-              <form action={signOut} className="px-2">
-                <button
-                  type="submit"
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-left"
-                >
-                  <LogOut size={16} />
-                  <span>Sign out</span>
-                </button>
-              </form>
+              <div className="px-2">
+                <SignOutButton redirectUrl="/signin">
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-left"
+                  >
+                    <LogOut size={16} />
+                    <span>Sign out</span>
+                  </button>
+                </SignOutButton>
+              </div>
             </div>
           )}
         </div>

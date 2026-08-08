@@ -1,29 +1,47 @@
-import { createAdminClient, createSessionClient } from "@/lib/appwrite/server";
+import { createAdminClient } from "@/lib/appwrite/server";
 import { AuthenticationError, AuthorizationError } from "@/lib/errors";
 import { APPWRITE_DB_ID, COLLECTIONS, GymUserDocument, GymDocument, SubscriptionDocument } from "@/lib/appwrite/types";
 import { Query } from "node-appwrite";
 import { headers } from "next/headers";
+import { currentUser } from "@clerk/nextjs/server";
+import { ensureUserRecord } from "@/lib/auth/bootstrap";
 
 export type AuthContext = Awaited<ReturnType<typeof getCurrentContext>>;
 export type TenantContext = Awaited<ReturnType<typeof getCurrentGym>>;
 
 export async function getCurrentContext() {
   try {
-    const { account } = await createSessionClient();
-    const appwriteUser = await account.get();
-    
+    const clerkUser = await currentUser();
+    if (!clerkUser) return null;
+
+    const email = clerkUser.emailAddresses[0]?.emailAddress || "";
+    const name = clerkUser.firstName 
+      ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim() 
+      : email.split("@")[0] || "Owner";
+
+    let onboarding_status = clerkUser.publicMetadata?.onboarding_status as string;
+    let role = clerkUser.publicMetadata?.role as string;
+
+    // Bootstrap Clerk metadata dynamically if empty
+    if (!onboarding_status || !role) {
+      const syncedUser = await ensureUserRecord({ clerkUser });
+      onboarding_status = syncedUser.onboarding_status;
+      role = syncedUser.role;
+    }
+
     return {
-      appwriteUser,
+      clerkUser,
       user: { 
-        id: appwriteUser.$id, 
-        email: appwriteUser.email, 
-        name: appwriteUser.name, 
-        onboarding_status: (appwriteUser.prefs && appwriteUser.prefs.onboarding_status) || "pending",
-        role: (appwriteUser.prefs && appwriteUser.prefs.role) || "owner",
-        requiresPasswordChange: (appwriteUser.prefs && appwriteUser.prefs.requiresPasswordChange) || false
+        id: clerkUser.id, 
+        email, 
+        name, 
+        onboarding_status,
+        role,
+        requiresPasswordChange: false
       }
     };
   } catch (error) {
+    console.error("[getCurrentContext] Error fetching Clerk context:", error);
     return null;
   }
 }

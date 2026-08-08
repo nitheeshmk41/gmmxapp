@@ -5,6 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X, ArrowRight, Dumbbell, Flower2, Music, Waves, Swords, User, Trophy } from "lucide-react";
+import { Show, UserButton } from "@clerk/nextjs";
+
 
 const NAV_ITEMS = [
   { 
@@ -183,22 +185,27 @@ export default function Header() {
 
         {/* CTA Buttons */}
         <div className="hidden lg:flex items-center gap-6 shrink-0">
-          <Link
-            href="/signin"
-            className={`text-sm font-semibold transition-colors ${isHome ? 'text-slate-200 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
-          >
-            Login
-          </Link>
-          <Link
-            href="/signup"
-            className="flex items-center justify-center gap-1.5 h-10 px-5 rounded-full text-sm font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
-            style={{
-              background: "#FF5C73",
-              boxShadow: "0 4px 12px rgba(255,92,115,0.2)",
-            }}
-          >
-            Start Free Trial <ArrowRight size={16} />
-          </Link>
+          <Show when="signed-out">
+            <Link
+              href="/signin"
+              className={`text-sm font-semibold transition-colors ${isHome ? 'text-slate-200 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
+            >
+              Login
+            </Link>
+            <Link
+              href="/signup"
+              className="flex items-center justify-center gap-1.5 h-10 px-5 rounded-full text-sm font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{
+                background: "#FF5C73",
+                boxShadow: "0 4px 12px rgba(255,92,115,0.2)",
+              }}
+            >
+              Start Free Trial <ArrowRight size={16} />
+            </Link>
+          </Show>
+          <Show when="signed-in">
+            <UserButton />
+          </Show>
         </div>
 
         {/* Mobile menu button */}
@@ -236,23 +243,30 @@ export default function Header() {
           })}
           <hr className={isHome ? "border-white/10 my-2" : "border-slate-100 my-2"} />
           <div className="flex flex-col gap-3">
-            <Link
-              href="/signin"
-              className={`text-center py-3 rounded-full text-sm font-semibold border ${
-                isHome
-                  ? "border-white/20 text-white hover:bg-white/5"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              Login
-            </Link>
-            <Link
-              href="/signup"
-              className="flex items-center justify-center gap-2 h-11 rounded-full text-sm font-semibold text-white transition-all"
-              style={{ background: "#FF5C73" }}
-            >
-              Start Free Trial <ArrowRight size={16} />
-            </Link>
+            <Show when="signed-out">
+              <Link
+                href="/signin"
+                className={`text-center py-3 rounded-full text-sm font-semibold border ${
+                  isHome
+                    ? "border-white/20 text-white hover:bg-white/5"
+                    : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                Login
+              </Link>
+              <Link
+                href="/signup"
+                className="flex items-center justify-center gap-2 h-11 rounded-full text-sm font-semibold text-white transition-all"
+                style={{ background: "#FF5C73" }}
+              >
+                Start Free Trial <ArrowRight size={16} />
+              </Link>
+            </Show>
+            <Show when="signed-in">
+              <div className="flex justify-center py-2">
+                <UserButton />
+              </div>
+            </Show>
           </div>
         </div>
       )}

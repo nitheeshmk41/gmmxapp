@@ -8,7 +8,8 @@ import {
   CalendarCheck, Globe, Settings, LogOut, Building2, TrendingUp, BarChart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { signOut } from "@/features/auth/actions";
+import { SignOutButton } from "@clerk/nextjs";
+
 
 interface MobileNavProps {
   /** New: org slug for path-based routing */
@@ -83,15 +84,15 @@ export function MobileNav({ organizationSlug }: MobileNavProps) {
           </div>
 
           <div className="p-4 border-t border-slate-100">
-            <form action={signOut}>
+            <SignOutButton redirectUrl="/signin">
               <button
-                type="submit"
+                type="button"
                 className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50"
               >
                 <LogOut size={20} />
                 Sign Out
               </button>
-            </form>
+            </SignOutButton>
           </div>
         </div>
       )}

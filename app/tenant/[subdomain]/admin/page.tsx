@@ -1,7 +1,7 @@
-import { TenantLoginForm } from "@/features/auth/components/tenant-login-form";
 import { getTenantBySubdomain } from "@/lib/tenant";
 import { notFound } from "next/navigation";
 import { Dumbbell } from "lucide-react";
+import { SignIn } from "@clerk/nextjs";
 
 interface Props {
   params: Promise<{ subdomain: string }>;
@@ -34,8 +34,19 @@ export default async function AdminLoginPage({ params }: Props) {
           </p>
         </div>
 
-        <div className="p-8">
-          <TenantLoginForm roleType="admin" />
+        <div className="p-8 flex justify-center">
+          <SignIn 
+            routing="hash"
+            signUpUrl="/signup"
+            forceRedirectUrl="/dashboard"
+            appearance={{
+              elements: {
+                formButtonPrimary: 'bg-[#FF5C73] hover:bg-rose-600 text-white transition-all',
+                footerActionLink: 'text-[#FF5C73] hover:text-rose-600 font-bold',
+                card: 'shadow-none border-0 p-0 w-full',
+              }
+            }}
+          />
         </div>
       </div>
     </div>
