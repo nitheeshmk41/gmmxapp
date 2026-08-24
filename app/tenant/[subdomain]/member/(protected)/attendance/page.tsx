@@ -16,7 +16,7 @@ export default async function MemberAttendancePage() {
       const res = await databases.listDocuments<AttendanceDocument>(
         APPWRITE_DB_ID,
         COLLECTIONS.ATTENDANCE,
-        [Query.equal("memberId", user.id), Query.orderDesc("date"), Query.limit(30)]
+        [Query.equal("memberId", user.id), Query.orderDesc("$createdAt"), Query.limit(30)]
       );
       attendance = res.documents;
     } catch (error) {
@@ -50,13 +50,13 @@ export default async function MemberAttendancePage() {
             <tbody className="text-sm">
               {attendance.map((log) => (
                 <tr key={log.$id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors">
-                  <td className="p-4 font-semibold text-slate-700">{formatDate(log.date)}</td>
+                  <td className="p-4 font-semibold text-slate-700">{formatDate(log.attendanceDate)}</td>
                   <td className="p-4 text-slate-600">
-                    {log.markedAt ? new Date(log.markedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
+                    {log.checkIn ? new Date(log.checkIn).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
                   </td>
                   <td className="p-4">
                     <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md capitalize">
-                      <UserCheck size={12} /> {log.type}
+                      <UserCheck size={12} /> {log.method}
                     </span>
                   </td>
                 </tr>

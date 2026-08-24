@@ -1,33 +1,33 @@
+import type { Models } from "node-appwrite";
 import { ID, Query } from "node-appwrite";
 import { logEvent } from "@/lib/logger";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { APPWRITE_DB_ID, COLLECTIONS } from "@/lib/appwrite/types";
 import { DEFAULT_WEBSITE_SECTIONS } from "@/features/website/seed";
 import { validateSubdomainFormat } from "@/lib/utils/subdomain";
-import { clerkClient } from "@clerk/nextjs/server";
 
 export async function ensureUserRecord({
-  clerkUser,
+  appwriteUser,
+  provider,
   correlationId,
 }: {
-  clerkUser: any;
+  appwriteUser: Models.User<Models.Preferences>;
+  provider: "email" | "google" | "phone";
   correlationId?: string;
 }) {
-  const email = clerkUser.emailAddresses[0]?.emailAddress || "";
-  const displayName = clerkUser.firstName 
-    ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim() 
-    : email.split("@")[0] || "Owner";
+  const displayName = appwriteUser.name || appwriteUser.email.split("@")[0] || "Owner";
 
-  const { databases } = await createAdminClient();
+  const { databases, users } = await createAdminClient();
   
-  let detectedRole = clerkUser.publicMetadata?.role || "owner";
-  let onboardingStatus = clerkUser.publicMetadata?.onboarding_status || "pending";
+  const prefs = await users.getPrefs(appwriteUser.$id);
+  let detectedRole = prefs.role || "owner";
+  let onboardingStatus = prefs.onboarding_status || "pending";
 
   try {
     const gymUsersRes = await databases.listDocuments(
       APPWRITE_DB_ID,
       COLLECTIONS.GYM_USERS,
-      [Query.equal("userId", clerkUser.id)]
+      [Query.equal("userId", appwriteUser.$id)]
     );
 
     if (gymUsersRes.documents.length > 0) {
@@ -35,8 +35,10 @@ export async function ensureUserRecord({
       onboardingStatus = "completed";
     } else {
       const queries = [];
-      if (email) {
-        queries.push(Query.equal("email", email));
+      if (appwriteUser.email && !appwriteUser.email.endsWith('@phone.gmmx.app')) {
+        queries.push(Query.equal("email", appwriteUser.email));
+      } else if (appwriteUser.email && appwriteUser.email.endsWith('@phone.gmmx.app')) {
+        queries.push(Query.equal("phone", appwriteUser.email.split('@')[0]));
       }
 
       if (queries.length > 0) {
@@ -56,32 +58,28 @@ export async function ensureUserRecord({
     console.error("[ensureUserRecord] Failed to query gym_users or members", error);
   }
 
-  // Sync back to Clerk metadata if there is a mismatch
-  const currentRole = clerkUser.publicMetadata?.role;
-  const currentStatus = clerkUser.publicMetadata?.onboarding_status;
+  const needsUpdate = 
+    prefs.onboarding_status !== onboardingStatus || 
+    prefs.role !== detectedRole ||
+    !prefs.onboarding_status;
 
-  if (currentRole !== detectedRole || currentStatus !== onboardingStatus) {
-    try {
-      const client = await clerkClient();
-      await client.users.updateUserMetadata(clerkUser.id, {
-        publicMetadata: {
-          role: detectedRole,
-          onboarding_status: onboardingStatus,
-        }
-      });
-    } catch (e) {
-      console.error("[ensureUserRecord] Failed to update Clerk metadata:", e);
-    }
+  if (needsUpdate) {
+    await users.updatePrefs(appwriteUser.$id, {
+      ...prefs,
+      onboarding_status: onboardingStatus,
+      role: detectedRole
+    });
   }
 
   logEvent("info", "user.bootstrap.completed", {
     correlationId,
-    userId: clerkUser.id,
+    userId: appwriteUser.$id,
+    provider,
   });
 
   return {
-    id: clerkUser.id,
-    email,
+    id: appwriteUser.$id,
+    email: appwriteUser.email,
     name: displayName,
     onboarding_status: onboardingStatus,
     role: detectedRole
@@ -97,6 +95,9 @@ export async function createGymTenant({
   country,
   timezone,
   currency,
+  phone,
+  address,
+  logoFileId,
 }: {
   userId: string;
   gymName: string;
@@ -106,13 +107,16 @@ export async function createGymTenant({
   country?: string;
   timezone?: string;
   currency?: string;
+  phone?: string;
+  address?: string;
+  logoFileId?: string;
 }) {
   const formatCheck = validateSubdomainFormat(subdomain);
   if (!formatCheck.valid) {
     throw new Error(formatCheck.error);
   }
 
-  const { databases } = await createAdminClient();
+  const { databases, users } = await createAdminClient();
 
   // Validate Subdomain uniqueness
   const existingGyms = await databases.listDocuments(
@@ -125,6 +129,9 @@ export async function createGymTenant({
     throw new Error("This subdomain is already taken.");
   }
 
+  // TRANSACTION SIMULATION
+  // Since Appwrite lacks native multi-document transactions, we create documents sequentially.
+  // If a later step fails, we attempt to clean up the partially created tenant.
   let createdGymId: string | null = null;
   const createdDocs: { collection: string; id: string }[] = [];
 
@@ -162,7 +169,7 @@ export async function createGymTenant({
     createdDocs.push({ collection: COLLECTIONS.GYM_USERS, id: gymUser.$id });
 
     // 3. Find Starter plan document dynamically
-    let planId = "starter";
+    let planId = "starter"; // Fallback
     try {
       const planRes = await databases.listDocuments(
         APPWRITE_DB_ID,
@@ -172,6 +179,7 @@ export async function createGymTenant({
       if (planRes.documents.length > 0) {
         planId = planRes.documents[0].$id;
       } else {
+        // Fallback to query any plan if "Starter" isn't explicitly defined
         const anyPlanRes = await databases.listDocuments(
           APPWRITE_DB_ID,
           COLLECTIONS.SAAS_PLANS,
@@ -212,7 +220,8 @@ export async function createGymTenant({
         gymId: gym.$id,
         websiteStatus: "draft",
         theme: theme || "modern_fitness",
-        themeVersion: 1
+        themeVersion: 1,
+        logoFileId: logoFileId || ""
       }
     );
     createdDocs.push({ collection: COLLECTIONS.GYM_SETTINGS, id: settings.$id });
@@ -224,8 +233,8 @@ export async function createGymTenant({
       ID.unique(),
       {
         gymId: gym.$id,
-        phone: "",
-        address: ""
+        phone: phone || "",
+        address: address || ""
       }
     );
     createdDocs.push({ collection: COLLECTIONS.GYM_PROFILE, id: profile.$id });
@@ -250,13 +259,11 @@ export async function createGymTenant({
       createdDocs.push({ collection: COLLECTIONS.WEBSITE_SECTIONS, id: secDoc.$id });
     }
 
-    // 7. Mark User as Onboarded in Clerk
-    const client = await clerkClient();
-    await client.users.updateUserMetadata(userId, {
-      publicMetadata: {
-        onboarding_status: "completed",
-        role: "owner"
-      }
+    // 7. Mark User as Onboarded
+    const prefs = await users.getPrefs(userId);
+    await users.updatePrefs(userId, {
+      ...prefs,
+      onboarding_status: "completed"
     });
 
     return gym;
@@ -264,6 +271,7 @@ export async function createGymTenant({
   } catch (error) {
     console.error("Tenant provisioning failed! Rolling back...", error);
     
+    // Log failure to activity_logs
     try {
       await databases.createDocument(
         APPWRITE_DB_ID,
@@ -286,7 +294,7 @@ export async function createGymTenant({
       console.error("[createGymTenant] Failed to log failure to activity_logs:", logError);
     }
 
-    // Rollback
+    // Attempt Rollback
     for (const doc of createdDocs.reverse()) {
       try {
         await databases.deleteDocument(APPWRITE_DB_ID, doc.collection, doc.id);

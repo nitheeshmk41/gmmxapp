@@ -2,7 +2,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -60,7 +60,7 @@ class WelcomeScreen extends ConsumerWidget {
                 delay: const Duration(milliseconds: 200),
                 duration: const Duration(milliseconds: 600),
                 child: Text(
-                  'Welcome to GMMX',
+                  'GMMX Member App',
                   textAlign: TextAlign.center,
                   style: AppTypography.headlineLarge.copyWith(
                     color: isDark ? Colors.white : AppColors.neutral900,
@@ -153,7 +153,7 @@ class WelcomeScreen extends ConsumerWidget {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : Icon(
-                          LucideIcons.chrome,
+                          Icons.login,
                           size: 20,
                           color: isDark ? Colors.white : AppColors.neutral800,
                         ),

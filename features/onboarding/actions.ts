@@ -5,6 +5,31 @@ import { getCurrentContext } from "@/lib/auth/context";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { cookies } from "next/headers";
 import { env } from "@/lib/env";
+import { ID } from "node-appwrite";
+import { InputFile } from "node-appwrite/file";
+
+export async function uploadOnboardingLogo(formData: FormData) {
+  const context = await getCurrentContext();
+  if (!context) {
+    return { error: "Not authenticated" };
+  }
+
+  const file = formData.get("file") as File;
+  if (!file || file.size === 0) {
+    return { error: "No file provided" };
+  }
+
+  try {
+    const { storage } = await createAdminClient();
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const inputFile = InputFile.fromBuffer(buffer, file.name);
+    const res = await storage.createFile("gym-logos", ID.unique(), inputFile);
+    return { success: true, fileId: res.$id };
+  } catch (error: any) {
+    console.error("[uploadOnboardingLogo] Error:", error);
+    return { error: error.message || "Failed to upload logo." };
+  }
+}
 
 export async function completeOnboardingWizard(formData: {
   gymName: string;
@@ -14,6 +39,9 @@ export async function completeOnboardingWizard(formData: {
   country?: string;
   timezone?: string;
   currency?: string;
+  phone?: string;
+  address?: string;
+  logoFileId?: string;
 }) {
   const context = await getCurrentContext();
   if (!context) {
@@ -31,6 +59,9 @@ export async function completeOnboardingWizard(formData: {
       country: formData.country,
       timezone: formData.timezone,
       currency: formData.currency,
+      phone: formData.phone,
+      address: formData.address,
+      logoFileId: formData.logoFileId,
     });
 
     const { users } = await createAdminClient();

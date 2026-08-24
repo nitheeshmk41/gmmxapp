@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, getCurrentGym } from "@/features/auth/actions";
 import Link from "next/link";
-import { SignOutButton } from "@clerk/nextjs";
+import { signOut } from "@/features/auth/actions";
 
 
 export default async function TrainerLayout({ children }: { children: React.ReactNode }) {
@@ -26,9 +26,9 @@ export default async function TrainerLayout({ children }: { children: React.Reac
               <Link href={`${base}/dashboard`} className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Dashboard</Link>
               <Link href={`${base}/members`} className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">My Members</Link>
               <Link href={`${base}/profile`} className="text-xs font-semibold text-slate-500 hover:text-[#FF5C73] transition-colors">Profile</Link>
-              <SignOutButton redirectUrl="/signin">
-                <button type="button" className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors">Sign out</button>
-              </SignOutButton>
+              <form action={signOut}>
+                <button type="submit" className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors">Sign out</button>
+              </form>
             </div>
           </div>
         </header>

@@ -115,7 +115,7 @@ export async function getDashboardStats() {
     const attendanceRes = await databases.listDocuments(
       APPWRITE_DB_ID,
       COLLECTIONS.ATTENDANCE,
-      [Query.equal("gymId", gym.$id), Query.equal("date", todayStr)]
+      [Query.equal("gymId", gym.$id), Query.equal("attendanceDate", todayStr)]
     );
     // Since attendance record is per member per date, total represents today's attendance count
     const attendanceToday = attendanceRes.total;

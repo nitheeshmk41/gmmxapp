@@ -24,6 +24,8 @@ export default async function DashboardRedirectPage() {
     redirect("/onboarding");
   }
 
+  let redirectUrl: string | null = null;
+
   // Find user's gym slug to redirect them to the path-based dashboard
   try {
     const { databases } = await createAdminClient();
@@ -42,11 +44,15 @@ export default async function DashboardRedirectPage() {
       );
       if (gym?.subdomain) {
         // New path-based redirect: gmmx.app/{slug}/dashboard
-        redirect(`/${gym.subdomain}/dashboard`);
+        redirectUrl = `/${gym.subdomain}/dashboard`;
       }
     }
   } catch (error) {
     console.error("[DashboardRedirectPage] Redirect resolution error:", error);
+  }
+
+  if (redirectUrl) {
+    redirect(redirectUrl);
   }
 
   // Fallback to onboarding if no gym found

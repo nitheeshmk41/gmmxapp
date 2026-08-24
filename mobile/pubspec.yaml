@@ -19,7 +19,6 @@ dependencies:
 
   # ── UI & Design ──
   google_fonts: ^8.1.0
-  lucide_icons: ^0.257.0
   lottie: ^3.3.3
   cupertino_icons: ^1.0.8
   shimmer: ^3.0.0
@@ -51,6 +50,7 @@ dependencies:
   crypto: ^3.0.6
   collection: ^1.19.1
   equatable: ^2.0.7
+  lucide_icons_flutter: ^3.1.17
 
 dev_dependencies:
   flutter_test:

@@ -1,7 +1,9 @@
 import { getTenantBySubdomain } from "@/lib/tenant";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Dumbbell } from "lucide-react";
-import { SignIn } from "@clerk/nextjs";
+import { OwnerLoginClient } from "./client";
+import { getCurrentUser } from "@/features/auth/actions";
+import { routeForUser } from "@/lib/auth/bootstrap";
 
 interface Props {
   params: Promise<{ subdomain: string }>;
@@ -9,6 +11,13 @@ interface Props {
 
 export default async function OwnerLoginPage({ params }: Props) {
   const { subdomain } = await params;
+
+  // Session Check
+  const user = await getCurrentUser();
+  if (user) {
+    redirect(routeForUser(user));
+  }
+
   const tenant = await getTenantBySubdomain(subdomain);
 
   if (!tenant) {
@@ -34,19 +43,14 @@ export default async function OwnerLoginPage({ params }: Props) {
           </p>
         </div>
 
-        <div className="p-8 flex justify-center">
-          <SignIn 
-            routing="hash"
-            signUpUrl="/signup"
-            forceRedirectUrl="/dashboard"
-            appearance={{
-              elements: {
-                formButtonPrimary: 'bg-[#FF5C73] hover:bg-rose-600 text-white transition-all',
-                footerActionLink: 'text-[#FF5C73] hover:text-rose-600 font-bold',
-                card: 'shadow-none border-0 p-0 w-full',
-              }
-            }}
-          />
+        <div className="p-8">
+          <OwnerLoginClient />
+
+          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-4 text-sm font-medium text-slate-500">
+            <a href="/member/login" className="hover:text-slate-800 transition-colors">Member Login</a>
+            <span className="hidden sm:inline text-slate-300">•</span>
+            <a href="/trainer/login" className="hover:text-slate-800 transition-colors">Trainer Login</a>
+          </div>
         </div>
       </div>
     </div>

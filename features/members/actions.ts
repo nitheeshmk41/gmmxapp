@@ -148,11 +148,12 @@ export async function getMemberById(id: string) {
     const mappedAttendance = attendanceRes.documents
       .map((a: any) => ({
         id: a.$id,
-        date: a.date,
-        time: a.time,
-        status: a.status,
+        date: a.attendanceDate,
+        time: a.checkIn ? new Date(a.checkIn).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—",
+        status: "present",
+        checkIn: a.checkIn,
       }))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort((a, b) => new Date(b.checkIn).getTime() - new Date(a.checkIn).getTime())
       .slice(0, 30);
 
     return {
