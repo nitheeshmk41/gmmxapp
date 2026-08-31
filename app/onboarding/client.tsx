@@ -117,13 +117,8 @@ export function OnboardingWizard({ userName }: { userName: string }) {
     setProvisioningStep(5);
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    const proto = window.location.protocol;
-    const host = window.location.host;
-    let baseDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "gmmx.app";
-    if (window.location.hostname === "localhost") {
-      baseDomain = host.includes(".") ? host.substring(host.indexOf(".") + 1) : host;
-    }
-    window.location.href = `${proto}//${formData.subdomain}.${baseDomain}/owner/dashboard`;
+    // Use the new path-based routing for dashboards instead of the legacy subdomain redirect
+    window.location.href = `/${formData.subdomain}/dashboard`;
   };
 
   const themes = [
