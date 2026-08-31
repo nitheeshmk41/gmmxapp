@@ -9,7 +9,6 @@ import '../datasources/attendance_local_datasource.dart';
 import '../datasources/attendance_remote_datasource.dart';
 import '../models/attendance_model.dart';
 import '../../../auth/data/datasources/auth_local_datasource.dart';
-import '../../../auth/domain/entities/organization.dart';
 
 /// Implementation of [AttendanceRepository].
 /// Coordinates offline-first saving, location validation, and backend syncing.

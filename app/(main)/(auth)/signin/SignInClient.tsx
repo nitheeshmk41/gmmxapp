@@ -164,7 +164,7 @@ export function SignInClient() {
                     type="email"
                     name="email"
                     required
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#FF5C73] focus:ring-1 focus:ring-[#FF5C73] outline-none transition-all text-sm"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#FF5C73] focus:ring-1 focus:ring-[#FF5C73] outline-none transition-all text-sm text-slate-900 placeholder:text-slate-400"
                     placeholder="you@example.com"
                   />
                 </div>

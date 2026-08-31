@@ -351,10 +351,10 @@ class _ScannerOverlayShape extends ShapeBorder {
     final height = rect.height;
     final borderOffset = borderWidth / 2;
     final actualBorderLength =
-        this.borderLength > this.cutOutSize / 2 + borderWidthSize
+        borderLength > cutOutSize / 2 + borderWidthSize
             ? borderWidthSize / 2
-            : this.borderLength;
-    final actualCutOutSize = this.cutOutSize;
+            : borderLength;
+    final actualCutOutSize = cutOutSize;
 
     final backgroundPaint = Paint()
       ..color = overlayColor

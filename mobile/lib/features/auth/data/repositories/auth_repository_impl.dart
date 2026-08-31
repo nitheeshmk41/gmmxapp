@@ -202,7 +202,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
     // ── DEV MODE MOCK UPDATE ──
     if (memberId == 'mock_member_123') {
-      final currentMember = await _local.getCachedMember() as MemberModel?;
+      final currentMember = await _local.getCachedMember();
       if (currentMember != null) {
         final genderEnum = gender != null 
             ? Gender.values.firstWhere(

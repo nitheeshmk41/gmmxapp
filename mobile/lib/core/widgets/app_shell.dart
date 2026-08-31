@@ -77,7 +77,7 @@ class _AppShellState extends State<AppShell> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isSelected
         ? AppColors.primary
-        : (isDark ? AppColors.neutral500 : AppColors.neutral600).withOpacity(0.6);
+        : (isDark ? AppColors.neutral500 : AppColors.neutral600).withValues(alpha: 0.6);
 
     return Expanded(
       child: Material(
